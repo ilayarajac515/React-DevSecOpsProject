@@ -1,8 +1,9 @@
 import { Box, Button, TextField, Typography, IconButton, InputAdornment } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Visibility, VisibilityOff } from "@mui/icons-material"; // Import icons for visibility toggle
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useState } from "react";
+import { signUp } from "../Services/UserService";
 
 type FormValues = {
   fullName: string;
@@ -24,8 +25,9 @@ const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
-    console.log("Form Data:", data);
+  const onSubmit: SubmitHandler<FormValues> = async(data) => {
+    const {fullName, email, password} = data;
+    await signUp(fullName, email, password);
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -86,7 +88,7 @@ const SignUpPage = () => {
       <TextField
         sx={{ width: "100%" }}
         id="password"
-        type={showPassword ? "text" : "password"} // Toggle between text and password input
+        type={showPassword ? "text" : "password"}
         label="Password"
         variant="outlined"
         placeholder="Your password"
@@ -108,7 +110,7 @@ const SignUpPage = () => {
       <TextField
         sx={{ width: "100%" }}
         id="confirmPassword"
-        type={showConfirmPassword ? "text" : "password"} // Toggle between text and password input
+        type={showConfirmPassword ? "text" : "password"}
         label="Confirm Password"
         variant="outlined"
         placeholder="Confirm your password"
