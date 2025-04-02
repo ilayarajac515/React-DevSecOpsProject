@@ -9,8 +9,12 @@ interface User {
 }
 
 interface ForgotPasswordResponse {
-    id: string;
+    message: string;
+    status: boolean;
+}
+interface ResetPasswordResponse {
     token: string;
+    tokenExpires: string;
 }
 
 export const signUp = async (
@@ -25,7 +29,6 @@ export const login = async (email: string, password: string): Promise<User> => {
     try {
         const { data } = await axios.post(`${API_URL}/login`, { email, password });
         const { token, name, emailId, id } = data;
-
         document.cookie = `token=${token}; max-age=${30 * 24 * 60 * 60}; path=/;`;
         return { name, emailId, id };
     } catch (error) {
@@ -59,17 +62,21 @@ export const getToken = (): string | null => {
 export const forgotPass = async (email: string): Promise<ForgotPasswordResponse> => {
     try {
         const { data } = await axios.post(`${API_URL}/forgot-password`, { email });
-        const { id, token } = data;
-        return { id, token };
+        const { message , status } = data;
+        console.log(message,status);
+        
+        return {message ,status };
     } catch (error) {
         console.error('Failed to send mail:', error);
         throw error;
     }
 };
 
-export const resetPass = async (Id: string, Token: string, password: string): Promise<void> => {
+export const resetPass = async (userId: string, Token: string, password: string): Promise<ResetPasswordResponse> => {
     try {
-        await axios.post(`${API_URL}/reset-password/${Id}/${Token}`, { password });
+        const { data } = await axios.post(`${API_URL}/reset-password/${userId}/${Token}`, { password });
+        const {token , tokenExpires} = data;
+        return {token , tokenExpires };
     } catch (error) {
         console.error('Failed to reset password:', error);
         throw error;

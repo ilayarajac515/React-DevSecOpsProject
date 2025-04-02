@@ -1,9 +1,19 @@
-import { Box, Button, TextField, Typography, IconButton, InputAdornment } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { login } from "../Services/UserService";
+import { useDispatch } from "react-redux";
+import { setUser } from "../slices/userSlice";
+import { toast } from "react-toastify";
 
 type FormValues = {
   email: string;
@@ -15,14 +25,41 @@ const SignInPage = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    reset,
     formState: { errors },
   } = useForm<FormValues>();
 
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [existError, setExistError] = useState("");
+  const emailValue = watch("email");
+  const passwordValue = watch("password");
 
-  const onSubmit: SubmitHandler<FormValues> = async(data) => {
-    const {email, password} = data;
-      await login(email, password);
+  useEffect(() => {
+    if (existError) {
+      setExistError("");
+    }
+  }, [emailValue, passwordValue]);
+
+  const handleForgotPassword = () => {
+    navigate("/Forget-password");
+  };
+
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    const { email, password } = data;
+    try {
+      const result = await login(email, password);
+      setExistError("");
+      console.log(result.id,result.name,result.emailId);
+      
+      dispatch(setUser(result.name));
+      reset();
+      navigate("/");
+      toast.success("Sign in Succesfully!");
+    } catch (err: any) {
+      setExistError(err.response.data.error);
+    }
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -65,8 +102,8 @@ const SignInPage = () => {
             message: "Invalid email format",
           },
         })}
-        error={!!errors.email}
-        helperText={errors.email?.message}
+        error={!!errors.email || !!existError}
+        helperText={errors.email?.message || existError}
       />
       <TextField
         sx={{ width: "100%" }}
@@ -76,8 +113,8 @@ const SignInPage = () => {
         variant="outlined"
         placeholder="Your password"
         {...register("password", { required: "Password is required" })}
-        error={!!errors.password}
-        helperText={errors.password?.message}
+        error={!!errors.email || !!existError}
+        helperText={errors.password?.message || existError}
         slotProps={{
           input: {
             endAdornment: (
@@ -90,19 +127,22 @@ const SignInPage = () => {
           },
         }}
       />
-      <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-        <Typography>
-          Don't have an account?{" "}
-          <span
-            onClick={() => navigate("/sign-up")}
-            style={{
-              fontSize: "14px",
-              color: "#007bff",
-              cursor: "pointer",
-            }}
-          >
-            Sign Up
-          </span>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        <Typography
+          sx={{
+            color: "#007bff",
+            cursor: "pointer",
+          }}
+          onClick={handleForgotPassword}
+        >
+          Forgot Password?
         </Typography>
       </Box>
       <Button
@@ -113,6 +153,19 @@ const SignInPage = () => {
       >
         Sign in
       </Button>
+      <Typography>
+        Don't have an account?{" "}
+        <span
+          onClick={() => navigate("/sign-up")}
+          style={{
+            fontSize: "14px",
+            color: "#007bff",
+            cursor: "pointer",
+          }}
+        >
+          Sign Up
+        </span>
+      </Typography>
     </Box>
   );
 };

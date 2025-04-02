@@ -3,7 +3,7 @@ import { getToken } from "../Services/UserService";
 
 axios.interceptors.request.use(req => {
     const key = getToken();
-    const user = localStorage.getItem('user');
+    const user = localStorage.getItem('UserName');
     const token = user && key;
     if(token){
         req.headers['access_token'] = token;
