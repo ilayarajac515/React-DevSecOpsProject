@@ -28,9 +28,13 @@ export const signUp = async (
 export const login = async (email: string, password: string): Promise<User> => {
     try {
         const { data } = await axios.post(`${API_URL}/login`, { email, password });
-        const { userId } = data;
-        document.cookie = `token=${userId}; max-age=${30 * 24 * 60 * 60}; path=/;`;
-        return { name: "", emailId: email, id: userId };
+         
+        const { token, name, emailId, id} = data;
+
+        
+        document.cookie = `token=${token}; max-age=${30 * 24 * 60 * 60}; path=/;`;
+        return {name, emailId, id};
+        
     } catch (error) {
         console.error('Error logging in:', error);
         throw error;
@@ -77,12 +81,12 @@ export const resetPass = async (userId: string, token: string, password: string,
 };
 
 export const verifyToken = async (userId: string | undefined, token: string | undefined, expiry: string | undefined) => {
-    try {
-      const { data } = await axios.post(`${API_URL}/verify-token`, { userId, token, expiry });
-      return data;
-    } catch (error) {
-      console.error("Token verification error:", error);
-      throw error;
-    }
-  };
-  
+  try {
+    const { data } = await axios.post(`${API_URL}/verify-token`, { userId, token, expiry });
+    return data;
+  } catch (error) {
+    console.error("Token verification error:", error);
+    throw error;
+  }
+};
+

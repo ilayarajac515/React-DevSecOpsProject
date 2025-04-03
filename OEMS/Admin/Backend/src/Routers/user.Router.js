@@ -3,38 +3,64 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { connection } from "../server.js";
+import { generateTokenResponse } from "../Token/Token.js";
 
 const router = Router();
 
+ 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
-
+ 
   try {
-    const user = await findUserByEmail(email);
-    if (user) return res.status(400).json({ error: "User already exists" });
-
+    let user = await findUserByEmail(email);
+ 
+    if (user) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+ 
     const hashedPassword = await bcrypt.hash(password, 10);
+ 
     await createUser(name, email, hashedPassword);
-
+ 
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Error registering user:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
+ 
   try {
-    const user = await findUserByEmail(email);
+    let user = await findUserByEmail(email);
+   
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
-
-    res.json({ message: "Login successful", userId: user.id });
+    console.log(user);
+ 
+    const tokenResponse = generateTokenResponse(user);
+ 
+    if (!tokenResponse || !tokenResponse.token) {
+      throw new Error("Token generation failed");
+    }
+ 
+    res.cookie("token", tokenResponse.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+ 
+    res.json({
+      token: tokenResponse.token,
+      id: user.id,
+      name: user.name,
+      emailId: user.email,
+    });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Error logging in:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
