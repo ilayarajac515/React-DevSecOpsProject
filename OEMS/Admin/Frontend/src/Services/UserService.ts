@@ -28,10 +28,7 @@ export const signUp = async (
 export const login = async (email: string, password: string): Promise<User> => {
     try {
         const { data } = await axios.post(`${API_URL}/login`, { email, password });
-         
         const { token, name, emailId, id} = data;
-
-        
         document.cookie = `token=${token}; max-age=${30 * 24 * 60 * 60}; path=/;`;
         return {name, emailId, id};
         

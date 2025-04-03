@@ -56,7 +56,7 @@ const SignInPage = () => {
       dispatch(setUser(result.name));
       reset();
       navigate("/");
-      toast.success("Sign in Succesfully!");
+      toast.success("Sign in Successfully!");
     } catch (err: any) {
       setExistError(err.response.data.error);
     }

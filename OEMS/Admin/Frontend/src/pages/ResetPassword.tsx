@@ -34,7 +34,7 @@ const ResetPassword = () => {
   const [existError, setExistError] = useState("");
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState(false);
+  const [confrmPassword, setConfirmPassword] = useState(false);
 
   const passwordValue = watch("password");
   const confirmPasswordValue = watch("confirmPassword");
@@ -143,9 +143,8 @@ const ResetPassword = () => {
 
           <TextField
             sx={{ width: "100%" }}
-<<<<<<< Updated upstream
             id="confirm-password"
-            type={showPassword ? "text" : "password"}
+            type={confrmPassword ? "text" : "password"}
             label="Confirm New Password"
             variant="outlined"
             placeholder="Confirm New password"
@@ -159,31 +158,13 @@ const ResetPassword = () => {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      onClick={() => setShowPassword((prev) => !prev)}
+                      onClick={() => setConfirmPassword((prev) => !prev)}
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {confrmPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               },
-=======
-            id="password"
-            type={confirmPassword ? "text" : "password"}
-            label="Confirm Password"
-            variant="outlined"
-            placeholder="Confirm New password"
-            {...register("confirmPassword", { required: "Password is required" })}
-            error={!!errors.password}
-            helperText={errors.password?.message}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setConfirmPassword((prev) => !prev)}>
-                    {confirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
->>>>>>> Stashed changes
             }}
           />
 
