@@ -65,6 +65,11 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logout successful" });
+});
+
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 

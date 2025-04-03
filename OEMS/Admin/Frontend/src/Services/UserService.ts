@@ -41,10 +41,12 @@ export const login = async (email: string, password: string): Promise<User> => {
     }
 };
 
-export const logout = async (): Promise<void> => {
+export const logout = async () => {
     try {
         await axios.post(`${API_URL}/logout`);
-        document.cookie = `token=; max-age=0; path=/;`;
+        document.cookie = `token=; max-age=${30 * 24 * 60 * 60}; path=/;`;
+
+        document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     } catch (error) {
         console.error('Error logging out:', error);
         throw error;
