@@ -23,7 +23,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// User Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -76,8 +75,6 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// Reset Password
-// Reset Password
 router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
   const { userId, token, expiry } = req.params;
   const { password } = req.body;
@@ -111,6 +108,36 @@ router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+router.post("/verify-token", async (req, res) => {
+  const { userId, token, expiry } = req.body;
+
+  try {
+    const user = await findUserById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const tokenRecord = await getPasswordResetToken(userId, hashedToken);
+
+    if (!tokenRecord) {
+      return res.status(400).json({ error: "Invalid token" });
+    }
+
+    if (tokenRecord.is_used) {
+      return res.status(400).json({ error: "Token has already been used" });
+    }
+
+    if (Date.now() > parseInt(expiry) || tokenRecord.expiration_time < Date.now()) {
+      return res.status(400).json({ error: "Token has expired" });
+    }
+
+    res.json({ status: true, message: "Token is valid" });
+  } catch (error) {
+    console.error("Token verification error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 
 async function findUserByEmail(email) {
