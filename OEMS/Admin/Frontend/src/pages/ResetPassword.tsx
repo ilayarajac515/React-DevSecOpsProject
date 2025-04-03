@@ -1,16 +1,37 @@
-import { Box, Button, TextField, Typography, Alert, Paper } from "@mui/material";
-import { useState, useEffect, ChangeEvent } from "react";
-import { resetPass, verifyToken } from "../Services/UserService";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Alert,
+} from "@mui/material";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { resetPass, verifyToken } from "../Services/UserService";
 import { toast } from "react-toastify";
 
-const ResetPassword: React.FC = () => {
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [isTokenValid, setIsTokenValid] = useState<boolean>(false);
-  const [hasReset, setHasReset] = useState<boolean>(false);
-  const { userId, token, expiry } = useParams<Record<string, string | undefined>>();
+type FormValues = {
+  password: string;
+  confirmPassword: string;
+};
+
+const ResetPassword = () => {
   const navigate = useNavigate();
+  const { userId, token, expiry } = useParams<Record<string, string | undefined>>();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>();
+
+  const [existError, setExistError] = useState("");
+  const [isTokenValid, setIsTokenValid] = useState(false);
+
+  const passwordValue = watch("password");
+  const confirmPasswordValue = watch("confirmPassword");
 
   useEffect(() => {
     const checkTokenValidity = async () => {
@@ -32,7 +53,13 @@ const ResetPassword: React.FC = () => {
     }
   }, [userId, token, expiry]);
 
-  const handleResetPassword = async () => {
+  useEffect(() => {
+    if (existError) {
+      setExistError("");
+    }
+  }, [passwordValue, confirmPasswordValue]);
+
+  const onSubmit: SubmitHandler<FormValues> = async ({ password, confirmPassword }) => {
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -43,8 +70,7 @@ const ResetPassword: React.FC = () => {
         const response = await resetPass(userId, token, password, expiry || "");
         if (response.message) {
           toast.success("Password reset successful!");
-          setHasReset(true);
-          navigate("/Sign-in");
+          navigate("/sign-in");
         }
       } else {
         toast.error("Invalid or expired token.");
@@ -55,42 +81,70 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="#f5f5f5" px={2}>
-      <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, width: "100%", borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom align="center">
-          Reset Password
-        </Typography>
+    <Box
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{
+        width: { xs: "90%", sm: "400px", md: "450px" },
+        height: "auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        gap: "20px",
+        padding: "40px",
+        marginTop: "50px",
+        border: "1px solid #ddd",
+        borderRadius: "12px",
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+        backgroundColor: "white",
+        mx: "auto",
+      }}
+    >
+      <Typography variant="h5" sx={{ fontWeight: "bold", color: "#333" }}>
+        Reset Password
+      </Typography>
 
-        {isTokenValid && !hasReset ? (
-          <>
-            <TextField
-              type="password"
-              label="New Password"
-              value={password}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-              fullWidth
-              margin="normal"
-              required
-            />
-            <TextField
-              type="password"
-              label="Confirm Password"
-              value={confirmPassword}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-              fullWidth
-              margin="normal"
-              required
-            />
-            <Button onClick={handleResetPassword} variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-              Submit
-            </Button>
-          </>
-        ) : (
-          <Alert severity="error">
-            {hasReset ? "Your password has already been reset." : "Invalid or expired reset token. Please request a new link."}
-          </Alert>
-        )}
-      </Paper>
+      {isTokenValid ? (
+        <>
+          <TextField
+            sx={{ width: "100%" }}
+            id="new-password"
+            type="password"
+            label="New Password"
+            variant="outlined"
+            placeholder="New Password"
+            {...register("password", { required: "Password is required" })}
+            error={!!errors.password || !!existError}
+            helperText={errors.password?.message || existError}
+          />
+
+          <TextField
+            sx={{ width: "100%" }}
+            id="confirm-password"
+            type="password"
+            label="Confirm Password"
+            variant="outlined"
+            placeholder="Confirm New Password"
+            {...register("confirmPassword", { required: "Confirm Password is required" })}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
+          />
+
+          <Button
+            sx={{ width: "100%", padding: "12px", fontSize: "16px" }}
+            variant="contained"
+            color="primary"
+            type="submit"
+          >
+            Submit
+          </Button>
+        </>
+      ) : (
+        <Alert severity="error" sx={{ width: "100%" }}>
+          {"Invalid or expired reset token. Please request a new link."}
+        </Alert>
+      )}
     </Box>
   );
 };
