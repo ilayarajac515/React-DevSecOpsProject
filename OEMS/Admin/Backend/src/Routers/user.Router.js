@@ -1,8 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { generateTokenResponse } from "../Token/Token.js";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { connection } from "../server.js";
 
 const router = Router();
@@ -11,61 +10,34 @@ router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    let user = await findUserByEmail(email);
-
-    if (user) {
-      return res.status(400).json({ error: "User already exists" });
-    }
+    const user = await findUserByEmail(email);
+    if (user) return res.status(400).json({ error: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await createUser(name, email, hashedPassword);
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error registering user:", error);
+    console.error("Registration error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
 
+// User Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = await findUserByEmail(email);
-    console.log(user);
-
+    const user = await findUserByEmail(email);
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
-    const tokenResponse = generateTokenResponse(user);
-    if (!tokenResponse || !tokenResponse.token) {
-      throw new Error("Token generation failed");
-    }
-
-    res.cookie("token", tokenResponse.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-    console.log(user.name);
-
-    res.json({
-      token: tokenResponse.token,
-      id: user.id,
-      name: user.name,
-      emailId: user.email,
-    });
+    res.json({ message: "Login successful", userId: user.id });
   } catch (error) {
-    console.error("Error logging in:", error);
+    console.error("Login error:", error);
     res.status(500).json({ error: "Server error" });
   }
-});
-
-router.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({ message: "Logout successful" });
 });
 
 router.post("/forgot-password", async (req, res) => {
@@ -73,103 +45,79 @@ router.post("/forgot-password", async (req, res) => {
 
   try {
     const user = await findUserByEmail(email);
-    if (!user) {
-      return res.json({ status: "User not found", status: false });
-    }
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
-      console.log("hash:", hashedToken);
-      console.log("reset:", resetToken);
     const expirationTime = Date.now() + 10 * 60 * 1000;
 
-    await updateUserToken(user.id, hashedToken, expirationTime);
+    await savePasswordResetToken(user.id, hashedToken, expirationTime);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user: "Karthivishva45@gmail.com",
-        pass: "gjmo dstk xuci oyfd",
-      },
+      auth: { user: "Karthivishva45@gmail.com", pass: "gjmo dstk xuci oyfd" },
     });
 
     const mailOptions = {
       from: "Karthivishva45@gmail.com",
       to: email,
       subject: "Reset your password",
-      text: `Click the link to reset your password: http://localhost:5173/reset-password/${user.id}/${hashedToken}`,
+      text: `Click the link to reset your password: http://localhost:5173/reset-password/${user.id}/${resetToken}/${expirationTime}`,
     };
 
     await transporter.sendMail(mailOptions);
-
-    res.json({ message: "Password reset email sent" , status: true});
-    
+    res.json({ message: "Password reset email sent" });
   } catch (error) {
-    console.error("Error in forgot-password endpoint:", error);
+    console.error("Forgot password error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-router.get('/reset', async (req, res) => {
-  const { userId } = req.query;
-
-  if (!userId) {
-    return res.status(400).json({ error: 'User ID is required' });
-  }
-
-  try {
-    const [rows] = await connection.promise().query(
-      'SELECT id, passwordResetToken, passwordResetTokenExpires FROM users WHERE id = ?',
-      [userId]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ error: 'Error fetching data' });
-  }
-});
-
-
-router.post("/reset-password/:userId/:token", async (req, res) => {
-  const { userId, token } = req.params;
+// Reset Password
+// Reset Password
+router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
+  const { userId, token, expiry } = req.params;
   const { password } = req.body;
 
   try {
     const user = await findUserById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const tokenRecord = await getPasswordResetToken(userId, hashedToken);
+
+    if (!tokenRecord) {
+      return res.status(400).json({ error: "Invalid token" });
     }
-    const hashedToken = token;
-    console.log(hashedToken);
-    if (
-      !user.passwordResetToken ||
-      user.passwordResetToken !== hashedToken ||
-      user.passwordResetTokenExpires < Date.now()
-    ) {
-      console.log("Token is invalid or expired");
-      await clearExpiredToken(userId);
-      return res.status(400).json({ error: "Invalid or expired token" });
+
+    if (tokenRecord.is_used) {
+      return res.status(400).json({ error: "Token has already been used" });
     }
+
+    if (Date.now() > parseInt(expiry) || tokenRecord.expiration_time < Date.now()) {
+      return res.status(400).json({ error: "Token has expired" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     await updateUserPassword(user.id, hashedPassword);
+    await invalidatePasswordResetToken(tokenRecord.id);
+
+    res.json({ message: "Password reset successful" });
   } catch (error) {
-    console.error("Error resetting password:", error);
+    console.error("Reset password error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-async function findUserById(userId) {
+
+async function findUserByEmail(email) {
   return new Promise((resolve, reject) => {
     connection.query(
-      "SELECT id, passwordResetToken, passwordResetTokenExpires FROM users WHERE id = ?",
-      [userId],
+      "SELECT * FROM users WHERE email = ?",
+      [email],
       (err, results) => {
         if (err) reject(err);
         else resolve(results[0]);
@@ -178,11 +126,11 @@ async function findUserById(userId) {
   });
 }
 
-async function findUserByEmail(email) {
+async function findUserById(userId) {
   return new Promise((resolve, reject) => {
     connection.query(
-      "SELECT id, email, name , password FROM users WHERE email = ?",
-      [email],
+      "SELECT * FROM users WHERE id = ?",
+      [userId],
       (err, results) => {
         if (err) reject(err);
         else resolve(results[0]);
@@ -204,11 +152,11 @@ async function createUser(name, email, password) {
   });
 }
 
-async function clearExpiredToken(userId) {
+async function savePasswordResetToken(userId, hashedToken, expirationTime) {
   return new Promise((resolve, reject) => {
     connection.query(
-      "UPDATE users SET passwordResetToken = NULL, passwordResetTokenExpires = NULL WHERE id = ? AND passwordResetTokenExpires < ?",
-      [userId, Date.now()],
+      "INSERT INTO password_reset_tokens (user_id, token, expiration_time) VALUES (?, ?, ?)",
+      [userId, hashedToken, expirationTime],
       (err, results) => {
         if (err) reject(err);
         else resolve(results);
@@ -217,14 +165,14 @@ async function clearExpiredToken(userId) {
   });
 }
 
-async function updateUserToken(userId, hashedToken, expirationTime) {
+async function getPasswordResetToken(userId, hashedToken) {
   return new Promise((resolve, reject) => {
     connection.query(
-      "UPDATE users SET passwordResetToken = ?, passwordResetTokenExpires = ? WHERE id = ?",
-      [hashedToken, expirationTime, userId],
+      "SELECT * FROM password_reset_tokens WHERE user_id = ? AND token = ?",
+      [userId, hashedToken],
       (err, results) => {
         if (err) reject(err);
-        else resolve(results);
+        else resolve(results[0]);
       }
     );
   });
@@ -233,8 +181,21 @@ async function updateUserToken(userId, hashedToken, expirationTime) {
 async function updateUserPassword(userId, hashedPassword) {
   return new Promise((resolve, reject) => {
     connection.query(
-      "UPDATE users SET password = ?, passwordResetToken = NULL, passwordResetTokenExpires = NULL WHERE id = ?",
+      "UPDATE users SET password = ? WHERE id = ?",
       [hashedPassword, userId],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      }
+    );
+  });
+}
+
+async function invalidatePasswordResetToken(tokenId) {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "UPDATE password_reset_tokens SET is_used = TRUE WHERE id = ?",
+      [tokenId],
       (err, results) => {
         if (err) reject(err);
         else resolve(results);

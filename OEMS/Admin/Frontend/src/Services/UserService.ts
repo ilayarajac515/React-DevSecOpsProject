@@ -12,15 +12,9 @@ interface ForgotPasswordResponse {
     message: string;
     status: boolean;
 }
-interface ResetPasswordResponse {
-    token: string;
-    tokenExpires: string;
-}
 
-interface ResetResponse {
-    id: string;
-    passwordResetToken: string;
-    passwordResetTokenExpires: string;
+interface ResetPasswordResponse {
+    message: string;
 }
 
 export const signUp = async (
@@ -34,9 +28,9 @@ export const signUp = async (
 export const login = async (email: string, password: string): Promise<User> => {
     try {
         const { data } = await axios.post(`${API_URL}/login`, { email, password });
-        const { token, name, emailId, id } = data;
-        document.cookie = `token=${token}; max-age=${30 * 24 * 60 * 60}; path=/;`;
-        return { name, emailId, id };
+        const { userId } = data;
+        document.cookie = `token=${userId}; max-age=${30 * 24 * 60 * 60}; path=/;`;
+        return { name: "", emailId: email, id: userId };
     } catch (error) {
         console.error('Error logging in:', error);
         throw error;
@@ -46,53 +40,49 @@ export const login = async (email: string, password: string): Promise<User> => {
 export const logout = async (): Promise<void> => {
     try {
         await axios.post(`${API_URL}/logout`);
-        document.cookie = `token=; max-age=${30 * 24 * 60 * 60}; path=/;`;
-        document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        document.cookie = `token=; max-age=0; path=/;`;
     } catch (error) {
         console.error('Error logging out:', error);
         throw error;
     }
 };
 
-const getCookie = (name: string): string | null => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-    return null;
-};
-
 export const getToken = (): string | null => {
-    return getCookie('token');
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+        const [name, value] = cookie.split('=');
+        if (name === 'token') return value;
+    }
+    return null;
 };
 
 export const forgotPass = async (email: string): Promise<ForgotPasswordResponse> => {
     try {
         const { data } = await axios.post(`${API_URL}/forgot-password`, { email });
-        const { message , status } = data;
-        return {message ,status };
+        return data;
     } catch (error) {
         console.error('Failed to send mail:', error);
         throw error;
     }
 };
 
-export const resetLink = async (userId: string): Promise<ResetResponse> => {
+export const resetPass = async (userId: string, token: string, password: string, expiry: string): Promise<ResetPasswordResponse> => {
     try {
-      const { data } = await axios.get(`${API_URL}/reset`, { params: { userId } });
-      return data;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      throw error;
-    }
-  };
-
-export const resetPass = async (userId: string, Token: string, password: string): Promise<ResetPasswordResponse> => {
-    try {
-        const { data } = await axios.post(`${API_URL}/reset-password/${userId}/${Token}`, { password });
-        const {token , tokenExpires} = data;
-        return {token , tokenExpires };
+        const { data } = await axios.post(`${API_URL}/reset-password/${userId}/${token}/${expiry}`, { password });
+        return data;
     } catch (error) {
         console.error('Failed to reset password:', error);
         throw error;
     }
 };
+
+export const verifyToken = async (userId: string | undefined, token: string | undefined, expiry: string | undefined) => {
+    try {
+      const { data } = await axios.post(`${API_URL}/verify-token`, { userId, token, expiry });
+      return data;
+    } catch (error) {
+      console.error("Token verification error:", error);
+      throw error;
+    }
+  };
+  
