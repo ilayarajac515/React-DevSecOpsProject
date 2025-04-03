@@ -32,7 +32,7 @@ const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [existError, setExistError] = useState("");
-  
+
   const emailValue = watch("email");
 
   useEffect(() => {
@@ -115,14 +115,16 @@ const SignUpPage = () => {
         {...register("password", { required: "Password is required" })}
         error={!!errors.password}
         helperText={errors.password?.message}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={() => setShowPassword((prev) => !prev)}>
-                {showPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPassword((prev) => !prev)}>
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
 
@@ -140,16 +142,18 @@ const SignUpPage = () => {
         })}
         error={!!errors.confirmPassword}
         helperText={errors.confirmPassword?.message}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-              >
-                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                >
+                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
 
@@ -161,15 +165,15 @@ const SignUpPage = () => {
       >
         Sign Up
       </Button>
-        <Typography>
-          Already have an account?{" "}
-          <span
-            onClick={() => navigate("/sign-in")}
-            style={{ fontSize: "14px", color: "#007bff", cursor: "pointer" }}
-          >
-            Sign In
-          </span>
-        </Typography>
+      <Typography>
+        Already have an account?{" "}
+        <span
+          onClick={() => navigate("/sign-in")}
+          style={{ fontSize: "14px", color: "#007bff", cursor: "pointer" }}
+        >
+          Sign In
+        </span>
+      </Typography>
     </Box>
   );
 };

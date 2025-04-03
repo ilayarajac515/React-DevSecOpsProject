@@ -8,19 +8,17 @@ import {
   Menu,
   Container,
   Avatar,
-  Tooltip,
   MenuItem,
 } from "@mui/material";
 import logo from "../assets/logo.png";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../store/store"; // Import RootState
+import { RootState } from "../store/store";
 import { logout } from "../Services/UserService";
 import { clearUser } from "../slices/userSlice";
 import { useNavigate } from "react-router-dom";
 
-// Function to generate a unique color from the user's name
 const stringToColor = (string: string) => {
-  if (!string) return "#757575"; // Default gray color if name is empty
+  if (!string) return "#757575";
   let hash = 0;
   for (let i = 0; i < string.length; i++) {
     hash = string.charCodeAt(i) + ((hash << 5) - hash);
@@ -34,7 +32,7 @@ const stringToColor = (string: string) => {
 };
 
 function Navbar() {
-  const userName = useSelector((state: RootState) => state.user.name); // ✅ Fix TypeScript issue
+  const userName = useSelector((state: RootState) => state.user.name);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 const dispatch = useDispatch();
   const avatarInitial = userName ? userName.charAt(0).toUpperCase() : "";
@@ -69,13 +67,11 @@ const navigate = useNavigate();
           </Box>
           <Box sx={{ flexGrow: 0 }}>
             {userName && (
-              <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar sx={{ backgroundColor: avatarColor }}>
                     {avatarInitial}
                   </Avatar>
                 </IconButton>
-              </Tooltip>
             )}
             <Menu
               sx={{ mt: "45px" }}

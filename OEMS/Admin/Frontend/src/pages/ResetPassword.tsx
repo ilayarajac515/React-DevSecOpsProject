@@ -117,7 +117,7 @@ const ResetPassword = () => {
         <>
           <TextField
             sx={{ width: "100%" }}
-            id="new password"
+            id="new-password"
             type={showPassword ? "text" : "password"}
             label="New Password"
             variant="outlined"
@@ -125,35 +125,45 @@ const ResetPassword = () => {
             {...register("password", { required: "Password is required" })}
             error={!!errors.password}
             helperText={errors.password?.message}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword((prev) => !prev)}>
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
           <TextField
             sx={{ width: "100%" }}
-            id="password"
+            id="confirm-password"
             type={showPassword ? "text" : "password"}
-            label="Password"
+            label="Confirm New Password"
             variant="outlined"
             placeholder="Confirm New password"
-            {...register("confirmPassword", { required: "Password is required" })}
-            error={!!errors.password}
-            helperText={errors.password?.message}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword((prev) => !prev)}>
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            {...register("confirmPassword", {
+              required: "Password is required",
+            })}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
