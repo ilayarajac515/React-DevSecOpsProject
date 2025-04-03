@@ -4,12 +4,15 @@ import {
   TextField,
   Typography,
   Alert,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { resetPass, verifyToken } from "../Services/UserService";
 import { toast } from "react-toastify";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 type FormValues = {
   password: string;
@@ -18,7 +21,8 @@ type FormValues = {
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const { userId, token, expiry } = useParams<Record<string, string | undefined>>();
+  const { userId, token, expiry } =
+    useParams<Record<string, string | undefined>>();
 
   const {
     register,
@@ -29,6 +33,7 @@ const ResetPassword = () => {
 
   const [existError, setExistError] = useState("");
   const [isTokenValid, setIsTokenValid] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const passwordValue = watch("password");
   const confirmPasswordValue = watch("confirmPassword");
@@ -59,7 +64,10 @@ const ResetPassword = () => {
     }
   }, [passwordValue, confirmPasswordValue]);
 
-  const onSubmit: SubmitHandler<FormValues> = async ({ password, confirmPassword }) => {
+  const onSubmit: SubmitHandler<FormValues> = async ({
+    password,
+    confirmPassword,
+  }) => {
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -109,26 +117,44 @@ const ResetPassword = () => {
         <>
           <TextField
             sx={{ width: "100%" }}
-            id="new-password"
-            type="password"
+            id="new password"
+            type={showPassword ? "text" : "password"}
             label="New Password"
             variant="outlined"
-            placeholder="New Password"
+            placeholder="Your password"
             {...register("password", { required: "Password is required" })}
-            error={!!errors.password || !!existError}
-            helperText={errors.password?.message || existError}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword((prev) => !prev)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <TextField
             sx={{ width: "100%" }}
-            id="confirm-password"
-            type="password"
-            label="Confirm Password"
+            id="password"
+            type={showPassword ? "text" : "password"}
+            label="Password"
             variant="outlined"
-            placeholder="Confirm New Password"
-            {...register("confirmPassword", { required: "Confirm Password is required" })}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
+            placeholder="Confirm New password"
+            {...register("confirmPassword", { required: "Password is required" })}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword((prev) => !prev)}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <Button
