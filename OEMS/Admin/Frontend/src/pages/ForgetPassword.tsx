@@ -1,19 +1,49 @@
-import { Box, Button, TextField, Typography, CircularProgress, Paper } from "@mui/material";
-import { useState, ChangeEvent } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { forgotPass } from "../Services/UserService";
+import { toast } from "react-toastify";
 
-const ForgetPassword: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-  const [status, setStatus] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+type FormValues = {
+  email: string;
+};
 
-  const handleSubmit = async () => {
+const ForgetPassword = () => {
+  const navigate = useNavigate();
+  
+  const [existError, setExistError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>();
+  const emailValue = watch('email');
+
+  useEffect(() => {
+    if (existError) {
+      setExistError("");
+    }
+  }, [emailValue]);
+
+  const onSubmit: SubmitHandler<FormValues> = async ({ email }) => {
     setLoading(true);
     try {
-      const response = await forgotPass(email);
-      setStatus(response.status);
-    } catch (error) {
-      console.error("Error:", error);
+      await forgotPass(email);
+      setExistError("");
+      toast.success("Password reset link sent!");
+      reset();
+    } catch (err: any) {
+      setExistError(err.response?.data?.error || "Something went wrong!");
     } finally {
       setLoading(false);
     }
@@ -21,48 +51,75 @@ const ForgetPassword: React.FC = () => {
 
   return (
     <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="100vh"
-      bgcolor="#f5f5f5"
-      px={2}
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+      sx={{
+        width: { xs: "90%", sm: "400px", md: "450px" },
+        height: "auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        gap: "20px",
+        padding: "40px",
+        marginTop: "50px",
+        border: "1px solid #ddd",
+        borderRadius: "12px",
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+        backgroundColor: "white",
+        mx: "auto",
+      }}
     >
-      <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, width: "100%", borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom align="center">
-          Forgot Password
-        </Typography>
-        <Typography variant="body2" color="textSecondary" align="center" paragraph>
-          Enter your email to receive a password reset link.
-        </Typography>
-
-        <TextField
-          type="email"
-          label="Email"
-          value={email}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-          fullWidth
-          margin="normal"
-          required
-        />
-
-        {status && !loading && (
-          <Typography color="success.main" align="center" sx={{ mt: 1 }}>
-            Password reset link sent!
-          </Typography>
-        )}
-
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 2 }}
+      <Typography variant="h5" sx={{ fontWeight: "bold", color: "#333" }}>
+        Forgot Password
+      </Typography>
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        align="center"
+        sx={{ width: "100%" }}
+      >
+        Enter your email to receive a password reset link.
+      </Typography>
+      <TextField
+        sx={{ width: "100%" }}
+        id="email"
+        type="email"
+        label="Email"
+        variant="outlined"
+        placeholder="Your email"
+        {...register("email", {
+          required: "Email is required",
+          pattern: {
+            value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+            message: "Invalid email format",
+          },
+        })}
+        error={!!errors.email || !!existError}
+        helperText={errors.email?.message || existError}
+      />
+      <Button
+        sx={{ width: "100%", padding: "12px", fontSize: "16px" }}
+        variant="contained"
+        color="primary"
+        type="submit"
+        disabled={loading}
+      >
+        {loading ? "Sending..." : "Send Reset Link"}
+      </Button>
+      <Typography>
+        Back to{" "}
+        <span
+          onClick={() => navigate("/sign-in")}
+          style={{
+            fontSize: "14px",
+            color: "#007bff",
+            cursor: "pointer",
+          }}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : "Send Reset Link"}
-        </Button>
-      </Paper>
+          Sign In
+        </span>
+      </Typography>
     </Box>
   );
 };
