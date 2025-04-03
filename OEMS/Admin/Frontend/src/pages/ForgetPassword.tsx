@@ -1,4 +1,10 @@
-import { Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  TextField,
+  Typography,
+} from "@mui/material";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { forgotPass } from "../Services/UserService";
@@ -6,19 +12,18 @@ import { forgotPass } from "../Services/UserService";
 const ForgetPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
-  const [status, setStatus] = useState<boolean>(false);
+  const [status, setStatus] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
   const handleSubmit = async () => {
+    setSubmitted(true);
     setLoading(true);
 
     try {
       const response = await forgotPass(email);
-    //   if(status){
-    //     setStatus(false)
-    //   }
-        setStatus(response.status);
-        setLoading(false);
+      setStatus(response.status);
+      setLoading(false);
     } catch (error) {
       console.error("Error sending email:", error);
       setLoading(false);
@@ -33,7 +38,6 @@ const ForgetPassword = () => {
     <Box
       sx={{
         width: { xs: "90%", sm: "400px", md: "450px" },
-        height: "auto",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -58,24 +62,33 @@ const ForgetPassword = () => {
         label="Email"
         variant="outlined"
         placeholder="Your email"
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-      />
-      {
-      status && !loading && (
-            <Typography variant="body1" sx={{ fontWeight: "400", color: "#4CAF50" }}>
-              ✅ Reset link has been sent to your email.
-            </Typography>
-          )
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setEmail(e.target.value)
         }
+      />
+      {submitted && !loading && status !== null && (
+        <Typography
+          variant="body1"
+          sx={{
+            fontWeight: "400",
+            color: status ? "#4CAF50" : "#D32F2F",
+            textAlign: "center",
+          }}
+        >
+          {status
+            ? "✅ A reset link has been sent to your email."
+            : "⚠️ The email address is not valid or not registered."}
+        </Typography>
+      )}
 
       <Button
         sx={{ width: "100%", padding: "12px", fontSize: "16px" }}
         variant="contained"
         color="primary"
         onClick={handleSubmit}
-        disabled={loading} // Disable button when loading
+        disabled={loading}
       >
-        {loading ? <CircularProgress color="primary" size={24}  /> : "Submit"}
+        {loading ? <CircularProgress color="primary" size={24} /> : "Submit"}
       </Button>
 
       <Button

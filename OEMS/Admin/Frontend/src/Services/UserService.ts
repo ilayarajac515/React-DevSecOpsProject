@@ -17,6 +17,12 @@ interface ResetPasswordResponse {
     tokenExpires: string;
 }
 
+interface ResetResponse {
+    id: string;
+    passwordResetToken: string;
+    passwordResetTokenExpires: string;
+}
+
 export const signUp = async (
     name: string,
     email: string,
@@ -63,14 +69,22 @@ export const forgotPass = async (email: string): Promise<ForgotPasswordResponse>
     try {
         const { data } = await axios.post(`${API_URL}/forgot-password`, { email });
         const { message , status } = data;
-        console.log(message,status);
-        
         return {message ,status };
     } catch (error) {
         console.error('Failed to send mail:', error);
         throw error;
     }
 };
+
+export const resetLink = async (userId: string): Promise<ResetResponse> => {
+    try {
+      const { data } = await axios.get(`${API_URL}/reset`, { params: { userId } });
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    }
+  };
 
 export const resetPass = async (userId: string, Token: string, password: string): Promise<ResetPasswordResponse> => {
     try {

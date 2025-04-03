@@ -74,7 +74,7 @@ router.post("/forgot-password", async (req, res) => {
   try {
     const user = await findUserByEmail(email);
     if (!user) {
-      return res.status(404).json({ status: "User not found" });
+      return res.json({ status: "User not found", status: false });
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
@@ -82,6 +82,8 @@ router.post("/forgot-password", async (req, res) => {
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
+      console.log("hash:", hashedToken);
+      console.log("reset:", resetToken);
     const expirationTime = Date.now() + 10 * 60 * 1000;
 
     await updateUserToken(user.id, hashedToken, expirationTime);
@@ -98,7 +100,7 @@ router.post("/forgot-password", async (req, res) => {
       from: "Karthivishva45@gmail.com",
       to: email,
       subject: "Reset your password",
-      text: `Click the link to reset your password: http://localhost:5173/reset-password/${user.id}/${resetToken}`,
+      text: `Click the link to reset your password: http://localhost:5173/reset-password/${user.id}/${hashedToken}`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -111,6 +113,30 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
+router.get('/reset', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  try {
+    const [rows] = await connection.promise().query(
+      'SELECT id, passwordResetToken, passwordResetTokenExpires FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Error fetching data' });
+  }
+});
+
+
 router.post("/reset-password/:userId/:token", async (req, res) => {
   const { userId, token } = req.params;
   const { password } = req.body;
@@ -120,22 +146,19 @@ router.post("/reset-password/:userId/:token", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
+    const hashedToken = token;
+    console.log(hashedToken);
     if (
       !user.passwordResetToken ||
       user.passwordResetToken !== hashedToken ||
       user.passwordResetTokenExpires < Date.now()
     ) {
-      console.log("not matching");
+      console.log("Token is invalid or expired");
+      await clearExpiredToken(userId);
       return res.status(400).json({ error: "Invalid or expired token" });
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
     await updateUserPassword(user.id, hashedPassword);
-
-    res.json({ status: "Password updated successfully" , token: user.passwordResetToken , tokenExpires: user.passwordResetTokenExpires });
   } catch (error) {
     console.error("Error resetting password:", error);
     res.status(500).json({ error: "Server error" });
@@ -173,6 +196,19 @@ async function createUser(name, email, password) {
     connection.query(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
       [name, email, password],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      }
+    );
+  });
+}
+
+async function clearExpiredToken(userId) {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "UPDATE users SET passwordResetToken = NULL, passwordResetTokenExpires = NULL WHERE id = ? AND passwordResetTokenExpires < ?",
+      [userId, Date.now()],
       (err, results) => {
         if (err) reject(err);
         else resolve(results);
