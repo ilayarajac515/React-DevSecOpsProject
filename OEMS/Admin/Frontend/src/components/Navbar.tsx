@@ -6,7 +6,6 @@ import {
   IconButton,
   Typography,
   Menu,
-  Container,
   Avatar,
   MenuItem,
 } from "@mui/material";
@@ -56,11 +55,11 @@ const navigate = useNavigate();
     navigate("/sign-in");
   }
   return (
-    <AppBar position="static">
-      <Container maxWidth="xl">
+    <AppBar position="static" elevation={0}  >
         <Toolbar
           disableGutters
-          sx={{ display: "flex", justifyContent: "space-between" }}
+          
+          sx={{ display: "flex", justifyContent: "space-between" , paddingX:"1.3rem"}}
         >
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <img src={logo} height="40px" alt="Logo" />
@@ -95,7 +94,6 @@ const navigate = useNavigate();
             </Menu>
           </Box>
         </Toolbar>
-      </Container>
     </AppBar>
   );
 }
