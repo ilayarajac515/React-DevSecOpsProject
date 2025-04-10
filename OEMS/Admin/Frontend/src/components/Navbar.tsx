@@ -1,66 +1,101 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import logo from '../../public/logo.png'
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+import { useState } from "react";
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  Avatar,
+  MenuItem,
+} from "@mui/material";
+import logo from "../assets/logo.png";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { logout } from "../Services/UserService";
+import { clearUser } from "../slices/userSlice";
+import { useNavigate } from "react-router-dom";
+
+const stringToColor = (string: string) => {
+  if (!string) return "#757575";
+  let hash = 0;
+  for (let i = 0; i < string.length; i++) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let color = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += ("00" + value.toString(16)).slice(-2);
+  }
+  return color;
+};
 
 function Navbar() {
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  
+  const userName = useSelector((state: RootState) => state.user.name);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+const dispatch = useDispatch();
+  const avatarInitial = userName ? userName.charAt(0).toUpperCase() : "";
+  const avatarColor = userName ? stringToColor(userName) : "";
+const navigate = useNavigate();
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
-  const handleCloseUserMenu = () => {
+
+  const handleLogout = () =>{
+    logout();
+    dispatch(clearUser());
+
+  }
+  const handleCloseMenu = () => {
     setAnchorElUser(null);
   };
-
+  const handleUserLogout = () =>{
+    handleCloseMenu();
+    handleLogout();
+    navigate("/sign-in");
+  }
   return (
-    <AppBar position="static" >
-      <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <img src={logo} height="40px" alt="" />
+    <AppBar position="static" elevation={0}  >
+        <Toolbar
+          disableGutters
+          
+          sx={{ display: "flex", justifyContent: "space-between" , paddingX:"1.3rem"}}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <img src={logo} height="40px" alt="Logo" />
           </Box>
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip>
+            {userName && (
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar sx={{ backgroundColor: avatarColor }}>
+                    {avatarInitial}
+                  </Avatar>
+                </IconButton>
+            )}
             <Menu
-              sx={{ mt: '45px' }}
+              sx={{ mt: "45px" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               keepMounted
               transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
+              onClose={handleCloseMenu}
             >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
+                <MenuItem onClick={handleUserLogout}>
+                  <Typography sx={{ textAlign: "center" }} >Logout</Typography>
                 </MenuItem>
-              ))}
             </Menu>
           </Box>
         </Toolbar>
-      </Container>
     </AppBar>
   );
 }
+
 export default Navbar;
