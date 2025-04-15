@@ -43,7 +43,7 @@ function Navbar() {
     setAuth({ authorized: false, name: null , email: null});
     localStorage.removeItem("accessToken");
   };
-  console.log(authorized, name, setAuth, email);
+
   const handleCloseMenu = () => {
     setAnchorElUser(null);
   };
