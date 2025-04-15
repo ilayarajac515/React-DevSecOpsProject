@@ -4,6 +4,12 @@ interface ForgotPasswordResponse {
     message: string;
     status: boolean;
 }
+
+interface CheckAuthResponse {
+    authorized: boolean;
+    name?: string;
+}
+
 interface ResetPasswordResponse {
     message: string;
 }
@@ -53,4 +59,14 @@ export const verifyToken = async (userId: string | undefined, token: string | un
     console.error("Token verification error:", error);
     throw error;
   }
+};
+
+export const checkAuth = async (): Promise<CheckAuthResponse> => {
+    try {
+        const { data } = await axiosInstance.get<CheckAuthResponse>('/check-auth');
+        return data;
+    } catch (error) {
+        console.error("Auth check failed:", error);
+        return { authorized: false };
+    }
 };
