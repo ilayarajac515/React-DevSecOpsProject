@@ -10,10 +10,11 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { login } from "../Services/UserService";
 import { useDispatch } from "react-redux";
-import { setUser } from "../slices/userSlice";
 import { toast } from "react-toastify";
+import { login } from "../slices/userSlice";
+import { AppDispatch } from "../store/store";
+import { useAuth } from "../GlobalContext/GlobalContext";
 
 type FormValues = {
   email: string;
@@ -30,11 +31,12 @@ const SignInPage = () => {
     formState: { errors },
   } = useForm<FormValues>();
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [showPassword, setShowPassword] = useState(false);
   const [existError, setExistError] = useState("");
   const emailValue = watch("email");
   const passwordValue = watch("password");
+  const { setAuth } = useAuth();
 
   useEffect(() => {
     if (existError) {
@@ -49,11 +51,9 @@ const SignInPage = () => {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     const { email, password } = data;
     try {
-      const result = await login(email, password);
+      const result = await dispatch(login({ email, password })).unwrap();
+      setAuth({ authorized: true, name: result.name });
       setExistError("");
-      console.log(result.id,result.name,result.emailId);
-      
-      dispatch(setUser(result.name));
       reset();
       navigate("/");
       toast.success("Sign in Successfully!");

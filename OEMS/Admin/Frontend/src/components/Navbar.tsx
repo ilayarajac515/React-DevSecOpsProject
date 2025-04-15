@@ -11,10 +11,10 @@ import {
 } from "@mui/material";
 import logo from "../assets/logo.png";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../store/store";
-import { logout } from "../Services/UserService";
-import { clearUser } from "../slices/userSlice";
+import { AppDispatch, RootState } from "../store/store";
+import { clearUser, logout } from "../slices/userSlice";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../GlobalContext/GlobalContext";
 
 const stringToColor = (string: string) => {
   if (!string) return "#757575";
@@ -31,69 +31,74 @@ const stringToColor = (string: string) => {
 };
 
 function Navbar() {
-  const userName = useSelector((state: RootState) => state.user.name);
+  const users = useSelector((state: RootState) => state.user);
+  const {authorized, name, setAuth} = useAuth();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-const dispatch = useDispatch();
-  const avatarInitial = userName ? userName.charAt(0).toUpperCase() : "";
-  const avatarColor = userName ? stringToColor(userName) : "";
-const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const avatarInitial = name ? name.charAt(0).toUpperCase() : "";
+  const avatarColor = name ? stringToColor(name) : "";
+  const navigate = useNavigate();
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
 
-  const handleLogout = () =>{
-    logout();
+  const handleLogout = () => {
+    dispatch(logout(users.email!));
     dispatch(clearUser());
+    setAuth({ authorized: false, name: null });
+  };
 
-  }
   const handleCloseMenu = () => {
     setAnchorElUser(null);
   };
-  const handleUserLogout = () =>{
+  const handleUserLogout = () => {
     handleCloseMenu();
     handleLogout();
     navigate("/sign-in");
-  }
+  };
   return (
-    <AppBar position="static" elevation={0}  >
-        <Toolbar
-          disableGutters
-          
-          sx={{ display: "flex", justifyContent: "space-between" , paddingX:"1.3rem"}}
-        >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <img src={logo} height="40px" alt="Logo" />
-          </Box>
-          <Box sx={{ flexGrow: 0 }}>
-            {userName && (
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar sx={{ backgroundColor: avatarColor }}>
-                    {avatarInitial}
-                  </Avatar>
-                </IconButton>
-            )}
-            <Menu
-              sx={{ mt: "45px" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseMenu}
-            >
-                <MenuItem onClick={handleUserLogout}>
-                  <Typography sx={{ textAlign: "center" }} >Logout</Typography>
-                </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
+    <AppBar position="static" elevation={0}>
+      <Toolbar
+        disableGutters
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          paddingX: "1.3rem",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <img src={logo} height="40px" alt="Logo" />
+        </Box>
+        <Box sx={{ flexGrow: 0 }}>
+          {name && authorized && (
+            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+              <Avatar sx={{ backgroundColor: avatarColor }}>
+                {avatarInitial}
+              </Avatar>
+            </IconButton>
+          )}
+          <Menu
+            sx={{ mt: "45px" }}
+            id="menu-appbar"
+            anchorEl={anchorElUser}
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            open={Boolean(anchorElUser)}
+            onClose={handleCloseMenu}
+          >
+            <MenuItem onClick={handleUserLogout}>
+              <Typography sx={{ textAlign: "center" }}>Logout</Typography>
+            </MenuItem>
+          </Menu>
+        </Box>
+      </Toolbar>
     </AppBar>
   );
 }

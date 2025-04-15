@@ -2,8 +2,20 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
 import { connection } from "../server.js";
-import { generateTokenResponse } from "../Token/Token.js";
+import {
+  authenticateJWT,
+  authenticateSession,
+} from "../Middleware/auth.mid.js";
+
+import {
+  BAD_REQUEST,
+  SERVER_ERROR,
+  STATUS_OK,
+  UNAUTHORIZED,
+} from "../Constants/httpStatus.js";
 
 const router = Router();
 
@@ -15,59 +27,124 @@ router.post("/register", async (req, res) => {
     let user = await findUserByEmail(email);
  
     if (user) {
-      return res.status(400).json({ error: "User already exists" });
+      return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
  
     const hashedPassword = await bcrypt.hash(password, 10);
  
     await createUser(name, email, hashedPassword);
  
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(STATUS_OK).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 });
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
- 
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Email and password are required" });
+  }
   try {
-    let user = await findUserByEmail(email);
-   
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ error: "Invalid credentials" });
+    const user = await findUserByEmail(email);
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+      return res.status(UNAUTHORIZED).json({ error: "Invalid credentials" });
     }
-    console.log(user);
- 
-    const tokenResponse = generateTokenResponse(user);
- 
-    if (!tokenResponse || !tokenResponse.token) {
-      throw new Error("Token generation failed");
-    }
- 
-    res.cookie("token", tokenResponse.token, {
+    const sessionId = uuidv4();
+    const accessToken = jwt.sign({ id: user.name }, process.env.SECRET_KEY, {
+      expiresIn: "10m",
+    });
+    const refreshToken = jwt.sign({ id: user.name }, process.env.REFRESH_KEY, {
+      expiresIn: "30d",
+    });
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const expiryTime = expiresAt.toISOString().slice(0, 19).replace("T", " ");
+
+    const updateQuery = `
+    UPDATE users SET sessionId = ?, expiryTime = ? WHERE email = ?
+  `;
+    connection.query(
+      updateQuery,
+      [sessionId, expiryTime, email],
+      (updateErr, updateResult) => {
+        if (updateErr) {
+          console.error(updateErr);
+          return res
+            .status(SERVER_ERROR)
+            .json({ error: "Database error while updating session" });
+        }
+      }
+    );
+
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
- 
-    res.json({
-      token: tokenResponse.token,
-      id: user.id,
-      name: user.name,
-      emailId: user.email,
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
-  } catch (error) {
-    console.error("Error logging in:", error);
-    res.status(500).json({ error: "Server error" });
+
+    res.cookie("sessionId", sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.json({ name: user.name, accessToken, email: user.email });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(SERVER_ERROR).json({ error: "Internal server error" });
   }
 });
 
+router.post("/refresh", (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) return res.sendStatus(UNAUTHORIZED);
+
+  jwt.verify(refreshToken, process.env.REFRESH_KEY, (err, user) => {
+    if (err) return res.sendStatus(UNAUTHORIZED);
+
+    const newAccessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
+      expiresIn: "10m",
+    });
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.json({ accessToken: newAccessToken });
+  });
+});
+
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({ message: "Logout successful" });
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(BAD_REQUEST).json({ message: "Email is required" });
+  }
+  connection.query(
+    "UPDATE users SET sessionId = NULL, expiryTime = NULL WHERE email = ?",
+    [email],
+    (err, results) => {
+      if (err) {
+        console.error("Error updating session info:", err);
+        return res.status(SERVER_ERROR).json({ error: "Server error" });
+      }
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      res.clearCookie("sessionId");
+      res.sendStatus(STATUS_OK);
+    }
+  );
 });
 
 router.post("/forgot-password", async (req, res) => {
@@ -75,7 +152,7 @@ router.post("/forgot-password", async (req, res) => {
 
   try {
     const user = await findUserByEmail(email);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(UNAUTHORIZED).json({ error: "User not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto
@@ -102,7 +179,7 @@ router.post("/forgot-password", async (req, res) => {
     res.json({ message: "Password reset email sent" });
   } catch (error) {
     console.error("Forgot password error:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 });
 
@@ -112,21 +189,21 @@ router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
 
   try {
     const user = await findUserById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(UNAUTHORIZED).json({ error: "User not found" });
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const tokenRecord = await getPasswordResetToken(userId, hashedToken);
 
     if (!tokenRecord) {
-      return res.status(400).json({ error: "Invalid token" });
+      return res.status(BAD_REQUEST).json({ error: "Invalid token" });
     }
 
     if (tokenRecord.is_used) {
-      return res.status(400).json({ error: "Token has already been used" });
+      return res.status(BAD_REQUEST).json({ error: "Token has already been used" });
     }
 
     if (Date.now() > parseInt(expiry) || tokenRecord.expiration_time < Date.now()) {
-      return res.status(400).json({ error: "Token has expired" });
+      return res.status(BAD_REQUEST).json({ error: "Token has expired" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -136,7 +213,7 @@ router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
     res.json({ message: "Password reset successful" });
   } catch (error) {
     console.error("Reset password error:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 });
 
@@ -145,27 +222,27 @@ router.post("/verify-token", async (req, res) => {
 
   try {
     const user = await findUserById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(UNAUTHORIZED).json({ error: "User not found" });
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const tokenRecord = await getPasswordResetToken(userId, hashedToken);
 
     if (!tokenRecord) {
-      return res.status(400).json({ error: "Invalid token" });
+      return res.status(BAD_REQUEST).json({ error: "Invalid token" });
     }
 
     if (tokenRecord.is_used) {
-      return res.status(400).json({ error: "Token has already been used" });
+      return res.status(BAD_REQUEST).json({ error: "Token has already been used" });
     }
 
     if (Date.now() > parseInt(expiry) || tokenRecord.expiration_time < Date.now()) {
-      return res.status(400).json({ error: "Token has expired" });
+      return res.status(BAD_REQUEST).json({ error: "Token has expired" });
     }
 
     res.json({ status: true, message: "Token is valid" });
   } catch (error) {
     console.error("Token verification error:", error);
-    res.status(500).json({ error: "Server error" });
+    res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 });
 

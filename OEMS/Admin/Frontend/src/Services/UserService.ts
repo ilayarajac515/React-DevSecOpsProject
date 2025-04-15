@@ -1,18 +1,9 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api/users';
-
-interface User {
-    name: string;
-    emailId: string;
-    id: string;
-}
+import axiosInstance from "../api/axiosInstance";
 
 interface ForgotPasswordResponse {
     message: string;
     status: boolean;
 }
-
 interface ResetPasswordResponse {
     message: string;
 }
@@ -22,32 +13,7 @@ export const signUp = async (
     email: string,
     password: string,
 ): Promise<void> => {
-    await axios.post(`${API_URL}/register`, { name, email, password });
-};
-
-export const login = async (email: string, password: string): Promise<User> => {
-    try {
-        const { data } = await axios.post(`${API_URL}/login`, { email, password });
-        const { token, name, emailId, id} = data;
-        document.cookie = `token=${token}; max-age=${30 * 24 * 60 * 60}; path=/;`;
-        return {name, emailId, id};
-        
-    } catch (error) {
-        console.error('Error logging in:', error);
-        throw error;
-    }
-};
-
-export const logout = async () => {
-    try {
-        await axios.post(`${API_URL}/logout`);
-        document.cookie = `token=; max-age=${30 * 24 * 60 * 60}; path=/;`;
-
-        document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-    } catch (error) {
-        console.error('Error logging out:', error);
-        throw error;
-    }
+    await axiosInstance.post('/register', { name, email, password });
 };
 
 export const getToken = (): string | null => {
@@ -61,7 +27,7 @@ export const getToken = (): string | null => {
 
 export const forgotPass = async (email: string): Promise<ForgotPasswordResponse> => {
     try {
-        const { data } = await axios.post(`${API_URL}/forgot-password`, { email });
+        const { data } = await axiosInstance.post('/forgot-password', { email });
         return data;
     } catch (error) {
         console.error('Failed to send mail:', error);
@@ -71,7 +37,7 @@ export const forgotPass = async (email: string): Promise<ForgotPasswordResponse>
 
 export const resetPass = async (userId: string, token: string, password: string, expiry: string): Promise<ResetPasswordResponse> => {
     try {
-        const { data } = await axios.post(`${API_URL}/reset-password/${userId}/${token}/${expiry}`, { password });
+        const { data } = await axiosInstance.post(`/reset-password/${userId}/${token}/${expiry}`, { password });
         return data;
     } catch (error) {
         console.error('Failed to reset password:', error);
@@ -81,11 +47,10 @@ export const resetPass = async (userId: string, token: string, password: string,
 
 export const verifyToken = async (userId: string | undefined, token: string | undefined, expiry: string | undefined) => {
   try {
-    const { data } = await axios.post(`${API_URL}/verify-token`, { userId, token, expiry });
+    const { data } = await axiosInstance.post('/verify-token', { userId, token, expiry });
     return data;
   } catch (error) {
     console.error("Token verification error:", error);
     throw error;
   }
 };
-
