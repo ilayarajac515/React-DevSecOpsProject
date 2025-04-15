@@ -25,7 +25,8 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     if (error.response && error.response.status === 401) {
-      if (!originalRequest._retry) {
+      const token = localStorage.getItem("accessToken");
+      if (!originalRequest._retry && token) {
         originalRequest._retry = true;
         try {
           const refreshResponse = await axiosInstance.post(
