@@ -45,8 +45,6 @@ const SignInPage = () => {
     navigate("/Forget-password");
   };
 
-  console.log(existError);
-
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     const { email, password } = data;
     try {
