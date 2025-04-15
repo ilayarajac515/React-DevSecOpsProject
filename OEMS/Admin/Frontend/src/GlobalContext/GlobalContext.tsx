@@ -44,7 +44,6 @@ import React, {
           const fetch = localStorage.getItem("accessToken");
           if(fetch){
             const data = await fetchAuthStatus();
-            console.log(data.authorized, data.name);
             if (data.authorized) {
               setAuth({ authorized: true, name: data.name ?? null , email: data.email ?? null});
             } else {
