@@ -4,10 +4,15 @@ interface ForgotPasswordResponse {
     message: string;
     status: boolean;
 }
-
+interface LoginResponse {
+    name: string;
+    email: string;
+    accessToken: string;
+  }
 interface CheckAuthResponse {
     authorized: boolean;
     name?: string;
+    email?: string;
 }
 
 interface ResetPasswordResponse {
@@ -21,6 +26,39 @@ export const signUp = async (
 ): Promise<void> => {
     await axiosInstance.post('/register', { name, email, password });
 };
+
+export const loginUser = async (
+    email: string,
+    password: string
+  ): Promise<LoginResponse> => {
+    try {
+      const { data } = await axiosInstance.post<LoginResponse>(
+        "/login",
+        { email, password },
+        { withCredentials: true }
+      );
+      return data;
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      throw error.response?.data || new Error("Login failed");
+    }
+  };
+  
+  export const logoutUser = async (
+    email: string
+  ): Promise<void> => {
+    try {
+      const { data } = await axiosInstance.post<void>(
+        "/logout",
+        { email },
+        { withCredentials: true }
+      );
+      return data;
+    } catch (error: any) {
+      console.error("Logout failed:", error);
+      throw error.response?.data || new Error("Logout failed");
+    }
+  };
 
 export const getToken = (): string | null => {
     const cookies = document.cookie.split('; ');

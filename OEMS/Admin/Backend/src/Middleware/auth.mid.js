@@ -19,7 +19,7 @@ export const authenticateJWT = (req, res, next) => {
         .status(UNAUTHORIZED)
         .json({ message: "Invalid or expired token" });
     }
-    req.jwtUser = user;
+    req.jwtUser = user.id;
     next();
   });
 };
@@ -66,7 +66,7 @@ export const authenticateSession = (req, res, next) => {
           .status(UNAUTHORIZED)
           .json({ message: "Session expired or invalid" });
       }
-      req.user = session.name;
+      req.user = session.email;
       next();
     }
   );

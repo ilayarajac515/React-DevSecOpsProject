@@ -10,12 +10,14 @@ import React, {
   interface AuthState {
     authorized: boolean;
     name: string | null;
-    setAuth: (auth: { authorized: boolean; name: string | null }) => void;
+    email: string | null;
+    setAuth: (auth: { authorized: boolean; name: string | null; email: string | null }) => void;
   }
   
   const defaultAuthState: AuthState = {
     authorized: false,
     name: null,
+    email: null,
     setAuth: () => {},
   };
   
@@ -29,25 +31,29 @@ import React, {
     const [auth, setAuthState] = useState<Omit<AuthState, "setAuth">>({
       authorized: false,
       name: null,
+      email: null,
     });
   
-    const setAuth = (authData: { authorized: boolean; name: string | null }) => {
+    const setAuth = (authData: { authorized: boolean; name: string | null; email: string | null }) => {
       setAuthState(authData);
     };
   
     useEffect(() => {
       const loadAuth = async () => {
         try {
-          const data = await fetchAuthStatus();
-  
-          if (data.authorized) {
-            setAuth({ authorized: true, name: data.name ?? null });
-          } else {
-            setAuth({ authorized: false, name: null });
+          const fetch = localStorage.getItem("accessToken");
+          if(fetch){
+            const data = await fetchAuthStatus();
+            console.log(data.authorized, data.name);
+            if (data.authorized) {
+              setAuth({ authorized: true, name: data.name ?? null , email: data.email ?? null});
+            } else {
+              setAuth({ authorized: false, name: null, email: null });
+            }
           }
         } catch (error) {
           console.error("Auth check failed:", error);
-          setAuth({ authorized: false, name: null });
+          setAuth({ authorized: false, name: null, email: null });
         }
       };
   

@@ -10,11 +10,9 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { login } from "../slices/userSlice";
-import { AppDispatch } from "../store/store";
 import { useAuth } from "../GlobalContext/GlobalContext";
+import { loginUser } from "../Services/UserService";
 
 type FormValues = {
   email: string;
@@ -31,7 +29,6 @@ const SignInPage = () => {
     formState: { errors },
   } = useForm<FormValues>();
 
-  const dispatch = useDispatch<AppDispatch>();
   const [showPassword, setShowPassword] = useState(false);
   const [existError, setExistError] = useState("");
   const emailValue = watch("email");
@@ -51,8 +48,9 @@ const SignInPage = () => {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     const { email, password } = data;
     try {
-      const result = await dispatch(login({ email, password })).unwrap();
-      setAuth({ authorized: true, name: result.name });
+      const result = await loginUser(email, password);
+      setAuth({ authorized: true, name: result.name , email: result.email});
+      localStorage.setItem("accessToken", result.accessToken);
       setExistError("");
       reset();
       navigate("/");

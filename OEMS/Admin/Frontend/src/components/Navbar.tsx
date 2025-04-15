@@ -10,9 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import logo from "../assets/logo.png";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../store/store";
-import { clearUser, logout } from "../slices/userSlice";
+import { logoutUser } from "../Services/UserService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../GlobalContext/GlobalContext";
 
@@ -31,11 +29,9 @@ const stringToColor = (string: string) => {
 };
 
 function Navbar() {
-  const users = useSelector((state: RootState) => state.user);
-  const {authorized, name, setAuth} = useAuth();
+  const {authorized, name, setAuth, email} = useAuth();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const dispatch = useDispatch<AppDispatch>();
-  const avatarInitial = name ? name.charAt(0).toUpperCase() : "";
+  const avatarInitial = name ? name?.charAt(0).toUpperCase() : "";
   const avatarColor = name ? stringToColor(name) : "";
   const navigate = useNavigate();
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -43,11 +39,11 @@ function Navbar() {
   };
 
   const handleLogout = () => {
-    dispatch(logout(users.email!));
-    dispatch(clearUser());
-    setAuth({ authorized: false, name: null });
+    logoutUser(email!);
+    setAuth({ authorized: false, name: null , email: null});
+    localStorage.removeItem("accessToken");
   };
-
+  console.log(authorized, name, setAuth, email);
   const handleCloseMenu = () => {
     setAnchorElUser(null);
   };

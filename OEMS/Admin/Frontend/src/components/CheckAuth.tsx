@@ -1,16 +1,15 @@
 import { ReactNode } from "react";
-import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
-import { RootState } from "../store/store";
+import { useAuth } from "../GlobalContext/GlobalContext";
 
 interface CheckAuthProps {
   children: ReactNode;
 }
 
 function CheckAuth({ children }: CheckAuthProps) {
-    const user = useSelector((state: RootState) => state.user);
+    const { authorized } = useAuth();
     const location = useLocation();
-    const isAuthenticated = !!user.name;
+    const isAuthenticated = !!authorized;
   
     const publicRoutes = ["/sign-in", "/sign-up"];
     const isPublicRoute = publicRoutes.includes(location.pathname);
