@@ -45,6 +45,8 @@ const SignInPage = () => {
     navigate("/Forget-password");
   };
 
+  console.log(existError);
+
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     const { email, password } = data;
     try {
@@ -56,7 +58,11 @@ const SignInPage = () => {
       navigate("/");
       toast.success("Sign in Successfully!");
     } catch (err: any) {
-      setExistError(err.response.data.error);
+      const message =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Invalid email or password";
+      setExistError(message);
     }
   };
 
