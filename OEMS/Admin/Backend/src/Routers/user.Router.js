@@ -19,21 +19,20 @@ import {
 
 const router = Router();
 
- 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
- 
+
   try {
     let user = await findUserByEmail(email);
- 
+
     if (user) {
       return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
- 
+
     const hashedPassword = await bcrypt.hash(password, 10);
- 
+
     await createUser(name, email, hashedPassword);
- 
+
     res.status(STATUS_OK).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error);
@@ -41,12 +40,19 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.get("/check-auth", authenticateJWT, authenticateSession, async(req, res) => {
-   if(req.user && req.jwtUser){
-    return res.status(STATUS_OK).json({ authorized: true, name: req.jwtUser, email: req.user });
-   }
-   return res.status(UNAUTHORIZED).json({ authorized: false });
-})
+router.get(
+  "/check-auth",
+  authenticateJWT,
+  authenticateSession,
+  async (req, res) => {
+    if (req.user && req.jwtUser) {
+      return res
+        .status(STATUS_OK)
+        .json({ authorized: true, name: req.jwtUser, email: req.user });
+    }
+    return res.status(UNAUTHORIZED).json({ authorized: false });
+  }
+);
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -159,7 +165,8 @@ router.post("/forgot-password", async (req, res) => {
 
   try {
     const user = await findUserByEmail(email);
-    if (!user) return res.status(UNAUTHORIZED).json({ error: "User not found" });
+    if (!user)
+      return res.status(UNAUTHORIZED).json({ error: "User not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto
@@ -196,7 +203,8 @@ router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
 
   try {
     const user = await findUserById(userId);
-    if (!user) return res.status(UNAUTHORIZED).json({ error: "User not found" });
+    if (!user)
+      return res.status(UNAUTHORIZED).json({ error: "User not found" });
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const tokenRecord = await getPasswordResetToken(userId, hashedToken);
@@ -206,10 +214,15 @@ router.post("/reset-password/:userId/:token/:expiry", async (req, res) => {
     }
 
     if (tokenRecord.is_used) {
-      return res.status(BAD_REQUEST).json({ error: "Token has already been used" });
+      return res
+        .status(BAD_REQUEST)
+        .json({ error: "Token has already been used" });
     }
 
-    if (Date.now() > parseInt(expiry) || tokenRecord.expiration_time < Date.now()) {
+    if (
+      Date.now() > parseInt(expiry) ||
+      tokenRecord.expiration_time < Date.now()
+    ) {
       return res.status(BAD_REQUEST).json({ error: "Token has expired" });
     }
 
@@ -229,7 +242,8 @@ router.post("/verify-token", async (req, res) => {
 
   try {
     const user = await findUserById(userId);
-    if (!user) return res.status(UNAUTHORIZED).json({ error: "User not found" });
+    if (!user)
+      return res.status(UNAUTHORIZED).json({ error: "User not found" });
 
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const tokenRecord = await getPasswordResetToken(userId, hashedToken);
@@ -239,10 +253,15 @@ router.post("/verify-token", async (req, res) => {
     }
 
     if (tokenRecord.is_used) {
-      return res.status(BAD_REQUEST).json({ error: "Token has already been used" });
+      return res
+        .status(BAD_REQUEST)
+        .json({ error: "Token has already been used" });
     }
 
-    if (Date.now() > parseInt(expiry) || tokenRecord.expiration_time < Date.now()) {
+    if (
+      Date.now() > parseInt(expiry) ||
+      tokenRecord.expiration_time < Date.now()
+    ) {
       return res.status(BAD_REQUEST).json({ error: "Token has expired" });
     }
 
@@ -252,8 +271,6 @@ router.post("/verify-token", async (req, res) => {
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 });
-
-
 
 async function findUserByEmail(email) {
   return new Promise((resolve, reject) => {

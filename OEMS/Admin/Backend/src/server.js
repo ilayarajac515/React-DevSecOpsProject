@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import userRouter from "./Routers/user.Router.js";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
@@ -24,6 +25,12 @@ connection.connect((err) => {
 
 const app = express();
 app.use(bodyParser.json());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(

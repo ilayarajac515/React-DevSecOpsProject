@@ -41,7 +41,7 @@ export const authenticateSession = (req, res, next) => {
       }
 
       const session = results[0];
-      const expiry = new Date(session.expiryTime);
+      const expiry = new Date(session?.expiryTime);
       const expiryTime = expiry.getTime();
 
       if (isNaN(expiryTime)) {
