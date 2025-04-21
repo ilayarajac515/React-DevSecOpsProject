@@ -40,20 +40,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.get(
-  "/check-auth",
-  authenticateJWT,
-  authenticateSession,
-  async (req, res) => {
-    if (req.user && req.jwtUser) {
-      return res
-        .status(STATUS_OK)
-        .json({ authorized: true, name: req.jwtUser, email: req.user });
-    }
-    return res.status(UNAUTHORIZED).json({ authorized: false });
-  }
-);
-
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -94,20 +80,20 @@ router.post("/login", async (req, res) => {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "Lax",
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "Lax",
     });
 
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "Lax",
     });
 
     res.json({ name: user.name, accessToken, email: user.email });
@@ -116,6 +102,29 @@ router.post("/login", async (req, res) => {
     res.status(SERVER_ERROR).json({ error: "Internal server error" });
   }
 });
+
+router.get("/csrf-token", (req, res) => {
+  res.cookie("XSRF-TOKEN", req.csrfToken(), {
+    httpOnly: false,
+    sameSite: "Lax",
+    secure: false,
+  });
+  res.status(200).json({ message: "CSRF token set" });
+});
+
+router.get(
+  "/check-auth",
+  authenticateJWT,
+  authenticateSession,
+  async (req, res) => {
+    if (req.user && req.jwtUser) {
+      return res
+        .status(STATUS_OK)
+        .json({ authorized: true, name: req.jwtUser, email: req.user });
+    }
+    return res.status(UNAUTHORIZED).json({ authorized: false });
+  }
+);
 
 router.post("/refresh", (req, res) => {
   const refreshToken = req.cookies.refreshToken;
@@ -130,8 +139,8 @@ router.post("/refresh", (req, res) => {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: false,
+      sameSite: "Lax",
     });
 
     res.json({ accessToken: newAccessToken });
@@ -155,6 +164,8 @@ router.post("/logout", (req, res) => {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
       res.clearCookie("sessionId");
+      res.clearCookie("_csrf"); 
+      res.clearCookie("XSRF-TOKEN");
       res.sendStatus(STATUS_OK);
     }
   );
