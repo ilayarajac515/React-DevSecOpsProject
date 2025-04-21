@@ -7,12 +7,8 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import csurf from "csurf";
 import mysql from "mysql2";
-import path from "path";
-import { fileURLToPath } from "url";
 
 dotenv.config();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export const connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -56,13 +52,6 @@ const csrfProtection = csurf({
 app.use(csrfProtection);
 
 app.use("/api/users", userRouter);
-
-const frontendPath = path.join(__dirname, "../frontend/dist");
-app.use(express.static(frontendPath));
-
-app.all("/{*any}", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -24,6 +24,7 @@ export const signUp = async (
     email: string,
     password: string,
 ): Promise<void> => {
+    await fetchCsrfToken();
     await axiosInstance.post('/register', { name, email, password });
 };
 
