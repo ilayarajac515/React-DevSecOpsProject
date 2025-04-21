@@ -12,15 +12,6 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
-    const csrfToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1];
- 
-    if (csrfToken) {
-      config.headers["X-CSRF-Token"] = csrfToken;
-    }
- 
     return config;
   },
   (error) => {

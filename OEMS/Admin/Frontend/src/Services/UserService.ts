@@ -24,7 +24,6 @@ export const signUp = async (
     email: string,
     password: string,
 ): Promise<void> => {
-    await fetchCsrfToken();
     await axiosInstance.post('/register', { name, email, password });
 };
 
@@ -33,7 +32,6 @@ export const loginUser = async (
     password: string
   ): Promise<LoginResponse> => {
     try {
-      await fetchCsrfToken();
       const { data } = await axiosInstance.post<LoginResponse>(
         "/login",
         { email, password },
@@ -50,7 +48,6 @@ export const loginUser = async (
     email: string
   ): Promise<void> => {
     try {
-      await fetchCsrfToken();
       const { data } = await axiosInstance.post<void>(
         "/logout",
         { email },
@@ -99,14 +96,6 @@ export const verifyToken = async (userId: string | undefined, token: string | un
   } catch (error) {
     console.error("Token verification error:", error);
     throw error;
-  }
-};
-
-export const fetchCsrfToken = async (): Promise<void> => {
-  try {
-    await axiosInstance.get("/csrf-token", { withCredentials: true });
-  } catch (err) {
-    console.error("Failed to fetch CSRF token", err);
   }
 };
 

@@ -5,7 +5,6 @@ import userRouter from "./Routers/user.Router.js";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import csurf from "csurf";
 import mysql from "mysql2";
 
 dotenv.config();
@@ -42,14 +41,6 @@ app.use(
     origin: ["http://localhost:5173"],
   })
 );
-const csrfProtection = csurf({
-  cookie: {
-    httpOnly: true,
-    sameSite: "Lax",
-    secure: false,
-  },
-});
-app.use(csrfProtection);
 
 app.use("/api/users", userRouter);
 

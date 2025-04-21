@@ -8,14 +8,8 @@ import ResetPassword from "./pages/ResetPassword";
 import FormListingPage from "./pages/FormListingPage";
 import CheckAuth from "./components/CheckAuth";
 import PageNotFound from "./pages/PageNotFound";
-import { fetchCsrfToken } from "./Services/UserService";
-import { useEffect } from "react";
 
 const App = () => {
-
-  useEffect(() => {
-    fetchCsrfToken();
-  }, []);
 
   return (
     <Box>

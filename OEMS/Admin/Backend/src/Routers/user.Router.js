@@ -103,15 +103,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/csrf-token", (req, res) => {
-  res.cookie("XSRF-TOKEN", req.csrfToken(), {
-    httpOnly: false,
-    sameSite: "Lax",
-    secure: false,
-  });
-  res.status(200).json({ message: "CSRF token set" });
-});
-
 router.get(
   "/check-auth",
   authenticateJWT,
