@@ -12,7 +12,7 @@ import {
 import logo from "../assets/logo.png";
 import { logoutUser } from "../Services/UserService";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../GlobalContext/GlobalContext";
+import { useAuth } from "../context/GlobalContext";
 
 const stringToColor = (string: string) => {
   if (!string) return "#757575";
