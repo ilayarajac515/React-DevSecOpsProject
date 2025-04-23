@@ -119,7 +119,7 @@ const FormListingPage = () => {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{ marginBottom: "10px", fontWeight: "bold" }}>
+        <DialogTitle sx={{fontWeight: "bold" }}>
           Create Field
         </DialogTitle>
 
@@ -129,14 +129,12 @@ const FormListingPage = () => {
               display: "flex",
               flexDirection: "column",
               gap: 2,
-              mt: 1,
             }}
           >
             <TextField
               select
               label="Type"
               fullWidth
-              sx={{ marginTop: "10px" }}
               {...register("type")}
             >
               <MenuItem value="text">Text</MenuItem>
@@ -220,7 +218,7 @@ const FormListingPage = () => {
             )}
           </DialogContent>
 
-          <DialogActions>
+          <DialogActions sx={{padding:"30px"}}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="contained" disableElevation>
               Save
