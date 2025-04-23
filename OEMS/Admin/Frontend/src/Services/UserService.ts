@@ -104,7 +104,6 @@ export const checkAuth = async (): Promise<CheckAuthResponse> => {
         const { data } = await axiosInstance.get<CheckAuthResponse>('/check-auth');
         return data;
     } catch (error) {
-        console.error("Auth check failed:", error);
         return { authorized: false };
     }
 };
