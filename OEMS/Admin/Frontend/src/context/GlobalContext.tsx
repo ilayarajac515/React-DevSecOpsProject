@@ -69,13 +69,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error("Auth check failed:", error);
         setAuth({ authorized: false, name: null, email: null });
       }
     };
-    if (location.pathname !== "/") {
+    
       loadAuth();
-    }
   }, [setAuth]);
 
   return (
