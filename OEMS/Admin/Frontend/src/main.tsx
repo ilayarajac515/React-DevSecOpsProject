@@ -3,10 +3,14 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import "./index.css";
 import App from "./App";
 import { AuthProvider } from "./context/GlobalContext";
+import { LicenseInfo } from '@mui/x-license-pro';
+
+LicenseInfo.setLicenseKey(
+  "e0d9bb8070ce0054c9d9ecb6e82cb58fTz0wLEU9MzI0NzIxNDQwMDAwMDAsUz1wcmVtaXVtLExNPXBlcnBldHVhbCxLVj0y"
+);
 
 const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);

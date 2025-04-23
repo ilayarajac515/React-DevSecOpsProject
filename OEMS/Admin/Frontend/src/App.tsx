@@ -8,6 +8,7 @@ import ResetPassword from "./pages/ResetPassword";
 import FormListingPage from "./pages/FormListingPage";
 import CheckAuth from "./components/CheckAuth";
 import PageNotFound from "./pages/PageNotFound";
+import FieldListingPage from "./pages/FieldListingPage";
 
 const App = () => {
 
@@ -21,6 +22,14 @@ const App = () => {
             element={
               <CheckAuth>
                 <FormListingPage />
+              </CheckAuth>
+            }
+          />
+          <Route
+            path="/field-listing-page"
+            element={
+              <CheckAuth>
+                <FieldListingPage />
               </CheckAuth>
             }
           />
