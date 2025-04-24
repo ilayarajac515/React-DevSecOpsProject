@@ -1,10 +1,10 @@
 import axios from "axios";
- 
+
 const axiosInstance = axios.create({
   baseURL: "http://localhost:5000/api/users",
   withCredentials: true,
 });
- 
+
 axiosInstance.interceptors.request.use(
   (config) => {
     config.withCredentials = true;
@@ -18,18 +18,24 @@ axiosInstance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
- 
+
 const isAuthEndpoint = (url: string) =>
-  url.includes("/sign-in") || url.includes("/sign-up") || url.includes("/forget-password") ;
- 
+  url.includes("/login") ||
+  url.includes("/register") ||
+  url.includes("/forgot-password");
+
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
-    if (error.response && error.response.status === 401 && !isAuthEndpoint(originalRequest.url)) {
-      if (!originalRequest._retry) {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !isAuthEndpoint(originalRequest.url)
+    ) {
+      if (!originalRequest._retry && !isAuthEndpoint(originalRequest.url)) {
         originalRequest._retry = true;
         try {
           const refreshResponse = await axiosInstance.post(
@@ -52,5 +58,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
- 
+
 export default axiosInstance;
