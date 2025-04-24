@@ -20,7 +20,7 @@ axiosInstance.interceptors.request.use(
 );
  
 const isAuthEndpoint = (url: string) =>
-  url.includes("/login");
+  url.includes("/sign-in") || url.includes("/sign-up") || url.includes("/forget-password") ;
  
 axiosInstance.interceptors.response.use(
   (response) => {
