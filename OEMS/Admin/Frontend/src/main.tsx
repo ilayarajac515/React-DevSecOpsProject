@@ -7,6 +7,7 @@ import "./index.css";
 import App from "./App";
 import { AuthProvider } from "./context/GlobalContext";
 import { LicenseInfo } from '@mui/x-license-pro';
+import 'react-quill/dist/quill.snow.css';
 
 LicenseInfo.setLicenseKey(
   "e0d9bb8070ce0054c9d9ecb6e82cb58fTz0wLEU9MzI0NzIxNDQwMDAwMDAsUz1wcmVtaXVtLExNPXBlcnBldHVhbCxLVj0y"

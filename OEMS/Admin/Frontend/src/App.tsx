@@ -9,6 +9,7 @@ import FormListingPage from "./pages/FormListingPage";
 import CheckAuth from "./components/CheckAuth";
 import PageNotFound from "./pages/PageNotFound";
 import FieldListingPage from "./pages/FieldListingPage";
+import AssessmentPage from "./pages/AssesmentPage";
 
 const App = () => {
 
@@ -47,6 +48,12 @@ const App = () => {
               <CheckAuth>
                 <SignUpPage />
               </CheckAuth>
+            }
+          />
+          <Route
+            path="/assesment-page"
+            element={
+                <AssessmentPage />
             }
           />
           <Route path="/forget-password" element={<ForgetPassword />} />
