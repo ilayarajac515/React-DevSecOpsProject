@@ -120,7 +120,7 @@ const FormListingPage = () => {
         maxWidth="sm"
       >
         <DialogTitle sx={{fontWeight: "bold" }}>
-          Create Field
+          Create Form
         </DialogTitle>
 
         <form onSubmit={handleSubmit(onSubmit)}>

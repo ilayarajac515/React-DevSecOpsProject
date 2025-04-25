@@ -1,0 +1,158 @@
+import {
+  Box,
+  Typography,
+  Divider,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  TextField,
+  Button,
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+
+const AssessmentPage = () => {
+  const [fields, setFields] = useState<any[]>([]);
+  const { register, handleSubmit, control } = useForm();
+
+  useEffect(() => {
+    const stored = localStorage.getItem("formFields");
+    if (stored) {
+      setFields(JSON.parse(stored));
+    }
+  }, []);
+
+  const onSubmit = (data: any) => {
+    const result: Record<string, any> = {};
+    fields.forEach((field, index) => {
+      result[field.label] = data[`field_${index}`];
+      if (field.fieldType === "rta") {
+        const questionsAndAnswers = field.rta?.questions.map((question: string, qIndex: number) => {
+          return {
+            question: question,
+            answer: data[`field_${index}_question_${qIndex}`],
+          };
+        });
+        result[field.label] = questionsAndAnswers;
+      }
+    });
+    console.log("Formatted data:", result);
+  };
+
+  const toRoman = (num: number) => {
+    const romanNumerals: string[] = [
+      "i", "ii", "iii", "iv", "v", "vi", "vii", "vii", "ix", "x",
+      "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx"
+    ];
+    return romanNumerals[num - 1] || num;
+  };
+
+  return (
+    <Box
+      p={4}
+      sx={{ backgroundColor: "#f9f9f9", borderRadius: 2 }}
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <Typography variant="h4" gutterBottom fontWeight="bold">
+        Dynamic Assessment
+      </Typography>
+
+      <Divider sx={{ my: 2 }} />
+
+      {fields.map((field, index) => (
+        <Box key={field.id || index} my={3}>
+          <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+            {index + 1}. {field.label}
+          </Typography>
+
+          {field.fieldType === "text" ? (
+            <TextField
+              type={field.fieldType}
+              placeholder={field.placeholder || ""}
+              fullWidth
+              variant="outlined"
+              size="small"
+              {...register(`field_${index}`)}
+            />
+          ) : field.fieldType === "textArea" ? (
+            <TextField
+              placeholder={field.placeholder || ""}
+              fullWidth
+              multiline
+              rows={10}
+              variant="outlined"
+              size="small"
+              {...register(`field_${index}`)}
+            />
+          ) : field.fieldType === "radio" ? (
+            <Controller
+              name={`field_${index}`}
+              control={control}
+              defaultValue=""
+              render={({ field: radioField }) => (
+                <RadioGroup {...radioField}>
+                  {field.options?.map((opt: string, idx: number) => (
+                    <FormControlLabel
+                      key={idx}
+                      value={opt}
+                      control={<Radio />}
+                      label={opt}
+                    />
+                  ))}
+                </RadioGroup>
+              )}
+            />
+          ) : field.fieldType === "rta" ? (
+            <Box>
+              <Box
+                className="ck-content"
+                sx={{
+                  backgroundColor: "white",
+                  border: "1px solid #ddd",
+                  borderRadius: "5px",
+                  overflowX: "auto",
+                  marginBottom: "20px",
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: field.rta.content,
+                }}
+              />
+              {field.rta?.questions && field.rta.questions.length > 0 && (
+                <Box sx={{paddingX:"16px"}}>
+                  {field.rta.questions.map((question: string, qIndex: number) => (
+                    <Box key={qIndex} sx={{ marginBottom: "16px" }}>
+                      <Typography variant="body1" fontWeight="bold">
+                        {toRoman(qIndex + 1)}. {question}
+                      </Typography>
+                      <TextField
+                        placeholder={`Your answer for ${toRoman(qIndex + 1)}`}
+                        fullWidth
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        size="small"
+                        {...register(`field_${index}_question_${qIndex}`)}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Unsupported field type
+            </Typography>
+          )}
+        </Box>
+      ))}
+
+      <Divider sx={{ my: 2 }} />
+      <Button variant="contained" color="success" type="submit">
+        Submit
+      </Button>
+    </Box>
+  );
+};
+
+export default AssessmentPage;

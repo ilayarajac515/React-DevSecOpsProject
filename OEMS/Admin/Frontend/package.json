@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^9.5.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.1",
@@ -19,9 +21,12 @@
     "@mui/x-license-pro": "^6.10.2",
     "@reduxjs/toolkit": "^2.6.1",
     "axios": "^1.8.4",
+    "quill": "^2.0.3",
+    "quill-better-table": "^1.2.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.55.0",
+    "react-quill": "^2.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.4.1",
     "react-toastify": "^11.0.5",
