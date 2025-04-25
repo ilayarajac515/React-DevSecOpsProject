@@ -105,14 +105,11 @@ const FieldListingPage = () => {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [editId, setEditId] = useState<number | null>(null);
-  console.log(rows);
-  useEffect(() => {
-    console.log("changed");
-  }, [rows]);
 
   useEffect(() => {
-    const res: any = localStorage.getItem("formFields");
-    setRows(JSON.parse(res));
+    const res = localStorage.getItem("formFields");
+    const parsed = res ? JSON.parse(res) : [];
+    setRows(parsed);
   }, []);
 
   const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
@@ -164,12 +161,10 @@ const FieldListingPage = () => {
           : null,
     };
 
-    let updatedRows;
-    if (editId) {
-      updatedRows = rows.map((r) => (r.id === editId ? updatedField : r));
-    } else {
-      updatedRows = [...rows, updatedField];
-    }
+    const updatedRows = editId
+      ? rows.map((r) => (r.id === editId ? updatedField : r))
+      : [...rows, updatedField];
+
     setRows(updatedRows);
     localStorage.setItem("formFields", JSON.stringify(updatedRows));
 
@@ -270,7 +265,7 @@ const FieldListingPage = () => {
                   defaultValue=""
                   render={({ field: { onChange, value } }) => (
                     <CKEditor
-                      editor={ClassicEditor as unknown as any}
+                      editor={ClassicEditor as any}
                       data={value}
                       onChange={(_, editor) => {
                         const data = editor.getData();
@@ -296,7 +291,7 @@ const FieldListingPage = () => {
                     <TextField
                       label={`Question ${index + 1}`}
                       fullWidth
-                      {...register(`questions.${index}.question` as const)} // Bind the question fields
+                      {...register(`questions.${index}.question` as const)}
                     />
                     <IconButton
                       onClick={() => removeRta(index)}
