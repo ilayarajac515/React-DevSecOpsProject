@@ -19,10 +19,10 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-const isAuthEndpoint = (url: string) =>
-  url.includes("/login") ||
-  url.includes("/register") ||
-  url.includes("/forgot-password");
+const isAuthEndpoint = (url: string = "") => {
+  const endpoints = ["/login", "/sign-in", "/register", "/forgot-password"];
+  return endpoints.some((endpoint) => url.includes(endpoint));
+};
 
 axiosInstance.interceptors.response.use(
   (response) => {
@@ -35,11 +35,11 @@ axiosInstance.interceptors.response.use(
       error.response.status === 401 &&
       !isAuthEndpoint(originalRequest.url)
     ) {
-      if (!originalRequest._retry && !isAuthEndpoint(originalRequest.url)) {
+      if (!originalRequest._retry) {
         originalRequest._retry = true;
         try {
           const refreshResponse = await axiosInstance.post(
-            "/refresh",
+            "/refresh-token",
             {},
             { withCredentials: true }
           );

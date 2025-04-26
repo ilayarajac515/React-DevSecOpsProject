@@ -58,6 +58,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const loadAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        setAuth({ authorized: false, name: null, email: null });
+        return;
+      }
+  
       try {
         const token = localStorage.getItem("accessToken");
 
@@ -74,6 +80,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else {
             setAuth({ authorized: false, name: null, email: null });
           }
+        const data = await fetchAuthStatus();
+        const userName = data.name ?? null;
+        if (data.authorized) {
+          setAuth({
+            authorized: true,
+            name: userName,
+            email: data.email ?? null,
+          });
         } else {
           setAuth({ authorized: false, name: null, email: null });
         }
@@ -86,6 +100,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     loadAuth();
   }, [setAuth]);
+  
+    loadAuth();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ ...auth, setAuth }}>
