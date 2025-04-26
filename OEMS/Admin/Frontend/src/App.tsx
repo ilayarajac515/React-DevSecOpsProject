@@ -10,9 +10,10 @@ import CheckAuth from "./components/CheckAuth";
 import PageNotFound from "./pages/PageNotFound";
 import FieldListingPage from "./pages/FieldListingPage";
 import AssessmentPage from "./pages/AssesmentPage";
+import CandidateLogin from "./pages/CandidateLogin";
+import CheckAuthCandidate from "./components/CheckAuthCandidate";
 
 const App = () => {
-
   return (
     <Box>
       <Navbar />
@@ -51,17 +52,19 @@ const App = () => {
             }
           />
           <Route
-            path="/assesment-page"
+            path="/assessment-page"
             element={
+              <CheckAuthCandidate>
                 <AssessmentPage />
+              </CheckAuthCandidate>
             }
           />
+          <Route path="/candidate-login" element={<CandidateLogin />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route
             path="/reset-password/:userId/:token/:expiry"
             element={<ResetPassword />}
           />
-
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Container>

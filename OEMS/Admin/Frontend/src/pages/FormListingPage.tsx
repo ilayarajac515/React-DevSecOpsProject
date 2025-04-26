@@ -171,7 +171,7 @@ const FormListingPage = () => {
                 <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                   Options
                 </Typography>
-                {fields.map((field, index) => (
+                { fields.map((field, index) => (
                   <Box
                     key={field.id}
                     sx={{
