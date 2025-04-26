@@ -10,9 +10,14 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import AgreeToTermsDialog from "../components/AgreeToTermsDialog";
+import { useCallback } from "react";
 
 const AssessmentPage = () => {
   const [fields, setFields] = useState<any[]>([]);
+  const [openDialog, setOpenDialog] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const { register, handleSubmit, control } = useForm();
 
   useEffect(() => {
@@ -22,17 +27,43 @@ const AssessmentPage = () => {
     }
   }, []);
 
+  const handleAgree = useCallback(() => {
+    if (termsAccepted) {
+      localStorage.setItem("termsAccepted", "true"); // <--- Save to localStorage
+      setOpenDialog(false);
+    } else {
+      alert("Please accept the terms to continue.");
+    }
+  }, [termsAccepted]);
+  useEffect(() => {
+    const stored = localStorage.getItem("formFields");
+    if (stored) {
+      setFields(JSON.parse(stored));
+    }
+
+    const agreed = localStorage.getItem("termsAccepted");
+    if (agreed === "true") {
+      setOpenDialog(false); // <--- don't show dialog again
+    }
+  }, []);
+
+  const handleTermsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTermsAccepted(event.target.checked);
+  };
+
   const onSubmit = (data: any) => {
     const result: Record<string, any> = {};
     fields.forEach((field, index) => {
       result[field.label] = data[`field_${index}`];
       if (field.fieldType === "rta") {
-        const questionsAndAnswers = field.rta?.questions.map((question: string, qIndex: number) => {
-          return {
-            question: question,
-            answer: data[`field_${index}_question_${qIndex}`],
-          };
-        });
+        const questionsAndAnswers = field.rta?.questions.map(
+          (question: string, qIndex: number) => {
+            return {
+              question: question,
+              answer: data[`field_${index}_question_${qIndex}`],
+            };
+          }
+        );
         result[field.label] = questionsAndAnswers;
       }
     });
@@ -41,11 +72,41 @@ const AssessmentPage = () => {
 
   const toRoman = (num: number) => {
     const romanNumerals: string[] = [
-      "i", "ii", "iii", "iv", "v", "vi", "vii", "vii", "ix", "x",
-      "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx"
+      "i",
+      "ii",
+      "iii",
+      "iv",
+      "v",
+      "vi",
+      "vii",
+      "viii",
+      "ix",
+      "x",
+      "xi",
+      "xii",
+      "xiii",
+      "xiv",
+      "xv",
+      "xvi",
+      "xvii",
+      "xviii",
+      "xix",
+      "xx",
     ];
     return romanNumerals[num - 1] || num;
   };
+
+  if (openDialog) {
+    return (
+      <AgreeToTermsDialog
+        open={openDialog}
+        onClose={() => {}}
+        onAgree={handleAgree}
+        termsAccepted={termsAccepted}
+        handleTermsChange={handleTermsChange}
+      />
+    );
+  }
 
   return (
     <Box
@@ -119,23 +180,25 @@ const AssessmentPage = () => {
                 }}
               />
               {field.rta?.questions && field.rta.questions.length > 0 && (
-                <Box sx={{paddingX:"16px"}}>
-                  {field.rta.questions.map((question: string, qIndex: number) => (
-                    <Box key={qIndex} sx={{ marginBottom: "16px" }}>
-                      <Typography variant="body1" fontWeight="bold">
-                        {toRoman(qIndex + 1)}. {question}
-                      </Typography>
-                      <TextField
-                        placeholder={`Your answer for ${toRoman(qIndex + 1)}`}
-                        fullWidth
-                        multiline
-                        rows={3}
-                        variant="outlined"
-                        size="small"
-                        {...register(`field_${index}_question_${qIndex}`)}
-                      />
-                    </Box>
-                  ))}
+                <Box sx={{ paddingX: "16px" }}>
+                  {field.rta.questions.map(
+                    (question: string, qIndex: number) => (
+                      <Box key={qIndex} sx={{ marginBottom: "16px" }}>
+                        <Typography variant="body1" fontWeight="bold">
+                          {toRoman(qIndex + 1)}. {question}
+                        </Typography>
+                        <TextField
+                          placeholder={`Your answer for ${toRoman(qIndex + 1)}`}
+                          fullWidth
+                          multiline
+                          rows={3}
+                          variant="outlined"
+                          size="small"
+                          {...register(`field_${index}_question_${qIndex}`)}
+                        />
+                      </Box>
+                    )
+                  )}
                 </Box>
               )}
             </Box>

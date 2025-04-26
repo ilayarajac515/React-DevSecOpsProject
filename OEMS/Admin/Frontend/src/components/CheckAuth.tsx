@@ -7,6 +7,11 @@ interface CheckAuthProps {
 }
 
 function CheckAuth({ children }: CheckAuthProps) {
+  const { authorized, loading } = useAuth();
+  const location = useLocation();
+
+  const publicRoutes = ["/sign-in", "/sign-up"];
+  const privateRoutes = ["/", "/field-listing-page"];
     const { authorized } = useAuth();
     const location = useLocation();
     const isAuthenticated = !!authorized;
@@ -21,7 +26,24 @@ function CheckAuth({ children }: CheckAuthProps) {
       return <Navigate to="/" replace />;
     }
   
-    return <>{children}</>;
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+  const isPrivateRoute = privateRoutes.includes(location.pathname);
+
+  if (loading) {
+    return null; // or a loading spinner
   }
-  
+
+  const isAuthenticated = !!authorized;
+
+  if (!isAuthenticated && isPrivateRoute) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  if (isAuthenticated && isPublicRoute) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 export default CheckAuth;

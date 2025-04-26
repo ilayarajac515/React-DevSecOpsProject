@@ -1,5 +1,14 @@
-import React, { FC } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Checkbox, FormControlLabel } from "@mui/material";
+import React from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+} from "@mui/material";
 
 interface AgreeToTermsDialogProps {
   open: boolean;
@@ -9,7 +18,7 @@ interface AgreeToTermsDialogProps {
   handleTermsChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const AgreeToTermsDialog: FC<AgreeToTermsDialogProps> = ({
+const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
   open,
   onClose,
   onAgree,
@@ -23,7 +32,7 @@ const AgreeToTermsDialog: FC<AgreeToTermsDialogProps> = ({
         <Typography variant="body1">
           Please read the following instructions and warnings before proceeding:
         </Typography>
-        <Typography variant="body2" sx={{ color: "red" }}>
+        <Typography variant="body2" sx={{ color: "red", mt: 2 }}>
           Warning: This form contains sensitive information. Ensure you understand the privacy policies before submitting.
         </Typography>
         <FormControlLabel
@@ -31,6 +40,7 @@ const AgreeToTermsDialog: FC<AgreeToTermsDialogProps> = ({
             <Checkbox checked={termsAccepted} onChange={handleTermsChange} name="terms" />
           }
           label="I agree to the terms and conditions"
+          sx={{ mt: 2 }}
         />
       </DialogContent>
       <DialogActions>
