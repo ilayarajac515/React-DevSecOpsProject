@@ -10,7 +10,6 @@ function CheckAuth({ children }: CheckAuthProps) {
     const { authorized } = useAuth();
     const location = useLocation();
     const isAuthenticated = !!authorized;
-  
     const publicRoutes = ["/sign-in", "/sign-up"];
     const isPublicRoute = publicRoutes.includes(location.pathname);
   

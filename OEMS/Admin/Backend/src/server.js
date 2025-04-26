@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import userRouter from "./Routers/user.Router.js";
+import formRouter from "./Routers/form.Router.js";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
@@ -43,6 +44,7 @@ app.use(
 );
 
 app.use("/api/users", userRouter);
+app.use("/api/mock_form", formRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
