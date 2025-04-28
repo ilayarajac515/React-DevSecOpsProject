@@ -99,7 +99,7 @@ export const deleteField = (req, res) => {
 
 export const addField = (req, res) => {
   const { formId } = req.params;
-  const { type, label, placeholder, textArea, options, questions, rta } =
+  const { fieldId, type, label, placeholder, textArea, options, questions, rta } =
     req.body;
 
   if (!formId || !type || !label || !placeholder) {
@@ -107,8 +107,6 @@ export const addField = (req, res) => {
       .status(BAD_REQUEST)
       .json({ message: "Required fields are missing" });
   }
-
-  const fieldId = uuidv4();
 
   const query = `
       INSERT INTO FieldTable (fieldId, formId, type, label, placeholder, textArea, options, questions, rta)
@@ -142,7 +140,7 @@ export const addField = (req, res) => {
 };
 
 export const createForm = (req, res) => {
-  const { label, description, manager, startContent, endContent, duration } = req.body;
+  const { formId, label, description, manager, startContent, endContent, duration } = req.body;
 
   if (!label || !duration || !manager) {
     return res
@@ -150,7 +148,6 @@ export const createForm = (req, res) => {
       .json({ message: "Missing required fields" });
   }
 
-  const formId = uuidv4();
   const createdAt = new Date().toLocaleDateString("en-GB").split("/").join("-");
 
   connection.query(
@@ -262,7 +259,7 @@ export const deleteForm = (req, res) => {
 
 export const submitForm = (req, res) => {
     const { formId } = req.params;
-    const { value, ip, userEmail, startTime, endTime, duration } = req.body;
+    const { responseId, value, ip, userEmail, startTime, endTime, duration } = req.body;
   
     if (!formId || !value || !ip || !userEmail) {
       return res
@@ -270,7 +267,6 @@ export const submitForm = (req, res) => {
         .json({ message: "Required fields are missing" });
     }
   
-    const responseId = uuidv4();
     const submittedAt = new Date()
       .toLocaleDateString("en-GB")
       .split("/")
