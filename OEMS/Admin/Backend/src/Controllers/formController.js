@@ -142,12 +142,12 @@ export const addField = (req, res) => {
 };
 
 export const createForm = (req, res) => {
-  const { label, description, manager,  startContent, endContent, duration } = req.body;
+  const { label, description, manager, startContent, endContent, duration } = req.body;
 
-  if (!label || !duration) {
+  if (!label || !duration || !manager) {
     return res
       .status(BAD_REQUEST)
-      .json({ message: "Label and duration are required" });
+      .json({ message: "Missing required fields" });
   }
 
   const formId = uuidv4();
