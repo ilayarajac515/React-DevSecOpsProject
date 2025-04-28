@@ -28,6 +28,7 @@ interface Submission {
 interface Form {
   formId: string;
   label: string;
+  manager: string;
   description?: string;
   duration: string;
   startContent?: string;

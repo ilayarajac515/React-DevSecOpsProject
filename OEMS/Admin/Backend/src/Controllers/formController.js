@@ -142,7 +142,7 @@ export const addField = (req, res) => {
 };
 
 export const createForm = (req, res) => {
-  const { label, description, startContent, endContent, duration } = req.body;
+  const { label, description, manager,  startContent, endContent, duration } = req.body;
 
   if (!label || !duration) {
     return res
@@ -154,8 +154,8 @@ export const createForm = (req, res) => {
   const createdAt = new Date().toLocaleDateString("en-GB").split("/").join("-");
 
   connection.query(
-    `INSERT INTO FormTable (formId, label, description, startContent, endContent, duration, createdAt)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO FormTable (formId, label, description, startContent, endContent, duration, manager, createdAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       formId,
       label || null,
@@ -163,6 +163,7 @@ export const createForm = (req, res) => {
       startContent || null,
       endContent || null,
       duration,
+      manager,
       createdAt,
     ],
     (err, results) => {
