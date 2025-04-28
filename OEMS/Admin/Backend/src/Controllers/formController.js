@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from "uuid";
 import { connection } from "../server.js";
+import jwt from "jsonwebtoken";
 import {
   BAD_REQUEST,
   SERVER_ERROR,
@@ -115,8 +115,10 @@ export const addField = (req, res) => {
   const { formId } = req.params;
   const { fieldId, type, label, placeholder, textArea, options, questions, rta } =
     req.body;
-
-  if (!formId || !type || !label || !placeholder) {
+    console.log(req.body);
+    console.log(formId);
+    
+    if (!formId || !type || !label) {
     return res
       .status(BAD_REQUEST)
       .json({ message: "Required fields are missing" });

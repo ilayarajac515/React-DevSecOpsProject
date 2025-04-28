@@ -28,7 +28,7 @@ const App = () => {
             }
           />
           <Route
-            path="/field-listing-page"
+            path="/field-listing-page/:formId"
             element={
               <CheckAuth>
                 <FieldListingPage />
