@@ -2,11 +2,11 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn } from '@reduxjs/toolkit/query';
 
 interface Field {
-  fieldId: string;
-  formId: string;
+  fieldId?: string;
+  formId?: string;
   type?: string;
   label: string;
-  placeholder: string;
+  placeholder?: string;
   textArea: string;
   options: any;
   questions: any;
@@ -14,11 +14,11 @@ interface Field {
 }
 
 interface Submission {
-  responseId: string;
-  formId: string;
+  responseId?: string;
+  formId?: string;
   value: any;
   ip: string;
-  submittedAt: string;
+  submittedAt?: string;
   userEmail: string;
   startTime?: string;
   endTime?: string;
