@@ -27,6 +27,20 @@ export const getFields = (req, res) => {
   );
 };
 
+export const getForms = (req, res) => {
+  connection.query(
+    "SELECT * FROM FormTable",
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching forms:", err);
+        return res.status(SERVER_ERROR).json({ error: "Server error" });
+      }
+
+      res.status(STATUS_OK).json(results);
+    }
+  );
+};
+
 export const updateField = (req, res) => {
   const { formId, fieldId } = req.params;
   const { label, placeholder, textArea, options, questions, rta } = req.body;
