@@ -11,7 +11,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { DataGridPro, GridColDef, GridRowsProp } from "@mui/x-data-grid-pro";
@@ -20,14 +20,17 @@ import SwapVertIcon from "@mui/icons-material/SwapVert";
 import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
+import { useAddFieldMutation, useEditFieldMutation, useGetFieldsByFormIdQuery } from "../modules/form_slice";
+import { v4 as uuid} from "uuid";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 type Option = {
   value: string;
 };
 type Question = {
   question: string;
 };
-
+ 
 type FormValues = {
   type: string;
   label: string;
@@ -40,10 +43,10 @@ type FormValues = {
 
 const FieldListingPage = () => {
   const Logoptions: string[] = ["edit", "delete"];
-
+ 
   const columns: GridColDef[] = [
     { field: "label", headerName: "Label", width: 1100 },
-    { field: "fieldType", headerName: "Field Type", width: 150 },
+    { field: "type", headerName: "Field Type", width: 150 },
     {
       field: "actions",
       headerName: "",
@@ -61,7 +64,7 @@ const FieldListingPage = () => {
       ),
     },
   ];
-
+ 
   const handleCreate = () => {
     reset({
       type: "",
@@ -75,7 +78,7 @@ const FieldListingPage = () => {
     setEditId(null);
     setOpen(true);
   };
-
+ 
   const handleEdit = (row: any) => {
     reset({
       type: row.fieldType,
@@ -95,37 +98,29 @@ const FieldListingPage = () => {
     setEditId(row.id);
     setOpen(true);
   };
-
+ 
   const handleDelete = (id: number) => {
     const updatedRows = rows.filter((row) => row.id !== id);
     setRows(updatedRows);
     localStorage.setItem("formFields", JSON.stringify(updatedRows));
   };
-
+ 
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [editId, setEditId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const res = localStorage.getItem("formFields");
-    const parsed = res ? JSON.parse(res) : [];
-    setRows(parsed);
-  }, []);
-
-  const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
-    {
-      defaultValues: {
-        options: [{ value: "" }],
-        questions: [{ question: "" }],
-      },
-    }
-  );
-
+ 
+  const { register, handleSubmit, reset, watch, control } = useForm<FormValues>({
+    defaultValues: {
+      options: [{ value: "" }],
+      questions: [{ question: "" }],
+    },
+  });
+ 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "options",
   });
-
+ 
   const {
     fields: rtaFields,
     append: appendRta,
@@ -135,15 +130,36 @@ const FieldListingPage = () => {
     control,
     name: "questions",
   });
-
+ 
   const selectedType = watch("type");
-
-  const onSubmit = (data: FormValues) => {
+ 
+  // Import and use the addField mutation
+  const { formId }= useParams();
+  const [addField] = useAddFieldMutation();
+  const [editField] = useEditFieldMutation();
+  const { data } = useGetFieldsByFormIdQuery(formId ?? "");
+  useEffect(() => {
+    if (data) {
+      // Assuming 'data' is an array of fields and it's in the correct format for the DataGrid
+      const formattedData = data.map((field: any) => ({
+        id: field.id, // Assuming the field has an 'id' property
+        label: field.label || "—",
+        type: field.type || "Not Provided", // Adjust if necessary
+        // Other necessary data
+      }));
+      setRows(formattedData);
+    }
+  }, [data]);
+  console.log(data);
+  
+  const onSubmit = async (data: FormValues) => {
     const updatedField = {
-      id: editId ?? Date.now(),
+      id: uuid(),
+      fieldId: uuid(),
+      formId: formId,
       label: data.label || "—",
       placeholder: data.placeholder || "-",
-      fieldType: data.type,
+      type: data.type,
       options:
         data.type === "radio"
           ? data.options.map((opt) => opt.value.trim()).filter(Boolean)
@@ -160,19 +176,26 @@ const FieldListingPage = () => {
             }
           : null,
     };
-
-    const updatedRows = editId
-      ? rows.map((r) => (r.id === editId ? updatedField : r))
-      : [...rows, updatedField];
-
-    setRows(updatedRows);
-    localStorage.setItem("formFields", JSON.stringify(updatedRows));
-
-    setOpen(false);
-    reset();
-    setEditId(null);
+    
+ 
+    // Call the addField mutation to submit the data
+    
+    try {
+      const response = await addField({
+        formId: formId ?? "", // Provide the actual formId here
+        data: updatedField,
+      }).unwrap(); // .unwrap() is used to handle the success and error of the mutation
+      console.log("Field submitted:", response);
+      setRows((prevRows) => [...prevRows, updatedField]);
+      localStorage.setItem("formFields", JSON.stringify([...rows, updatedField]));
+      setOpen(false);
+      reset();
+      setEditId(null);
+    } catch (err) {
+      console.error("Error submitting field:", err);
+    }
   };
-
+ 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
       <Box
@@ -213,7 +236,7 @@ const FieldListingPage = () => {
           disableRowSelectionOnClick
         />
       </Box>
-
+ 
       <Dialog
         open={open}
         onClose={() => {
@@ -227,7 +250,7 @@ const FieldListingPage = () => {
         <DialogTitle sx={{ marginBottom: "10px", fontWeight: "bold" }}>
           {editId ? "Edit Field" : "Create Field"}
         </DialogTitle>
-
+ 
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -246,9 +269,9 @@ const FieldListingPage = () => {
               <MenuItem value="radio">Radio</MenuItem>
               <MenuItem value="rta">Rich Text Area</MenuItem>
             </TextField>
-
+ 
             <TextField label="Label" fullWidth {...register("label")} />
-
+ 
             {selectedType === "text" && (
               <TextField
                 label="Placeholder"
@@ -256,7 +279,7 @@ const FieldListingPage = () => {
                 {...register("placeholder")}
               />
             )}
-
+ 
             {selectedType === "rta" && (
               <Box>
                 <Controller
@@ -274,7 +297,7 @@ const FieldListingPage = () => {
                     />
                   )}
                 />
-
+ 
                 <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                   Questions
                 </Typography>
@@ -323,7 +346,7 @@ const FieldListingPage = () => {
                 </Button>
               </Box>
             )}
-
+ 
             {selectedType === "radio" && (
               <Box>
                 <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
@@ -366,7 +389,7 @@ const FieldListingPage = () => {
               </Box>
             )}
           </DialogContent>
-
+ 
           <DialogActions sx={{ padding: "20px" }}>
             <Button
               onClick={() => {
@@ -388,5 +411,11 @@ const FieldListingPage = () => {
     </Box>
   );
 };
-
+ 
 export default FieldListingPage;
+
+
+
+
+
+

@@ -7,22 +7,22 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  MenuItem,
-  IconButton,
 } from "@mui/material";
-import { useForm, useFieldArray } from "react-hook-form";
-import { useState } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for routing
 import DataTable from "../components/DataTable";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { GridColDef } from "@mui/x-data-grid";
-import LongMenu from "../components/LogMenu"; 
-
+import LongMenu from "../components/LogMenu";
+import { useAuth } from "../context/GlobalContext";
+import { useAddFormMutation, useGetFormsQuery } from "../modules/form_slice";
+import { v4 as uuid } from 'uuid';
+ 
 const columns: GridColDef[] = [
-  { field: "formName", headerName: "Form Name", width: 250 },
-  { field: "type", headerName: "Type", width: 250 },
-  { field: "status", headerName: "Status", width: 250 },
+  { field: "label", headerName: "Form Name", width: 250 },
+  { field: "description", headerName: "Description", width: 250 },
   { field: "submissions", headerName: "Submissions", width: 250 },
+  { field: "duration", headerName: "Duration", width: 250 },
   { field: "manager", headerName: "Manager", width: 250 },
   {
     field: "actions",
@@ -35,59 +35,61 @@ const columns: GridColDef[] = [
     renderCell: () => <LongMenu />,
   },
 ];
-
-const rows = [
-  { id: 1, formName: "Leave Request", type: "HR", status: "Active", submissions: 23, manager: "Jon Snow" },
-  { id: 2, formName: "IT Support", type: "IT", status: "Inactive", submissions: 12, manager: "Cersei Lannister" },
-  { id: 3, formName: "Travel Request", type: "Admin", status: "Active", submissions: 5, manager: "Jaime Lannister" },
-  { id: 4, formName: "Asset Request", type: "IT", status: "Active", submissions: 7, manager: "Arya Stark" },
-  { id: 5, formName: "Feedback", type: "HR", status: "Inactive", submissions: 16, manager: "Daenerys Targaryen" },
-  { id: 6, formName: "Reimbursement", type: "Finance", status: "Active", submissions: 3, manager: "Markandeyan" },
-  { id: 7, formName: "Security Access", type: "Admin", status: "Active", submissions: 11, manager: "Ferrara Clifford" },
-  { id: 8, formName: "Exit Interview", type: "HR", status: "Inactive", submissions: 4, manager: "Rossini Frances" },
-  { id: 9, formName: "Performance Review", type: "HR", status: "Active", submissions: 6, manager: "Roxie Harvey" },
-  { id: 10, formName: "Leave Approval", type: "HR", status: "Active", submissions: 14, manager: "Thiru Murugan" },
-];
-
-type Option = {
-  value: string;
-};
-
+ 
 type FormValues = {
-  type: string;
   label: string;
-  typeToLabelOrientation: string;
-  placeHolder: string;
-  helpText: string;
-  options: Option[];
+  description: string;
+  startContent: string;
+  endContent: string;
+  duration: string;
+  manager: string;
 };
-
+ 
 const FormListingPage = () => {
+  const { data, isLoading } = useGetFormsQuery();
+  const [addForm] = useAddFormMutation();
   const [open, setOpen] = useState(false);
-
-  const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
-    {
-      defaultValues: {
-        options: [{ value: "" }],
-      },
+  const [formRows, setFormRows] = useState<any[]>([]);
+  const { name } = useAuth();
+  const navigate = useNavigate(); // Initialize useNavigate hook
+ 
+  const { register, handleSubmit, reset } = useForm<FormValues>();
+ 
+  // Set formRows with fetched data
+  useEffect(() => {
+    if (data) {
+      const rowsWithIds = data.map((form: any) => ({
+        ...form,
+        id: form.formId ?? uuid(), // Ensure each form has a unique id
+      }));
+      setFormRows(rowsWithIds);
     }
-  );
-
-  const { fields, append, replace, remove } = useFieldArray({
-    control,
-    name: "options",
-  });
-
-  const selectedType = watch("type");
-
+  }, [data]);
+ 
   const onSubmit = (data: FormValues) => {
-    console.log("Submitted:", data);
+    const newForm = {
+      id: uuid(),
+      formId: uuid(),
+      label: data.label,
+      description: data.description,
+      startContent: data.startContent,
+      endContent: data.endContent,
+      duration: data.duration,
+      manager: name ?? '',
+    };
+    addForm(newForm);
+    setFormRows((prev) => [...prev, newForm]);
     setOpen(false);
     reset();
   };
-
+ 
+  const handleRowClick = (formId: string) => {
+    navigate(`/field-listing-page/${formId}`);
+  };
+ 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -108,21 +110,27 @@ const FormListingPage = () => {
           Create Form
         </Button>
       </Box>
-
+ 
       <Box sx={{ marginTop: "30px" }}>
-      <DataTable columns={columns} rows={rows} />
+        {isLoading ? (
+          <Typography>Loading...</Typography>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={formRows}
+            onRowClick={(params: any) => handleRowClick(params.row.formId)}  // Handle row click to navigate
+          />
+        )}
       </Box>
-
+ 
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle sx={{fontWeight: "bold" }}>
-          Create Form
-        </DialogTitle>
-
+        <DialogTitle sx={{ fontWeight: "bold" }}>Create Form</DialogTitle>
+ 
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
             sx={{
@@ -131,97 +139,41 @@ const FormListingPage = () => {
               gap: 2,
             }}
           >
+            <TextField label="Form Name" {...register("label", { required: true })} fullWidth />
             <TextField
-              select
-              label="Type"
+              label="Description"
+              {...register("description", { required: true })}
               fullWidth
-              {...register("type")}
-            >
-              <MenuItem value="text">Text</MenuItem>
-              <MenuItem value="number">Number</MenuItem>
-              <MenuItem value="radio">Radio</MenuItem>
-            </TextField>
-
-            <TextField label="Label" fullWidth {...register("label")} />
-
-            <TextField
-              label="Type to Label Orientation"
-              fullWidth
-              {...register("typeToLabelOrientation")}
-            />
-
-            {selectedType === "text" && (
-              <TextField
-                label="Placeholder"
-                fullWidth
-                {...register("placeHolder")}
-              />
-            )}
-
-            <TextField
-              label="HelpText"
               multiline
               rows={3}
-              fullWidth
-              {...register("helpText")}
             />
-
-            { selectedType === "radio" && (
-              <Box>
-                <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
-                  Options
-                </Typography>
-                { fields.map((field, index) => (
-                  <Box
-                    key={field.id}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <TextField
-                      label={`Option ${index + 1}`}
-                      fullWidth
-                      {...register(`options.${index}.value` as const)}
-                    />
-                    <IconButton
-                      onClick={() => remove(index)}
-                      color="error"
-                      disabled={fields.length === 1} 
-                    >
-                      <RemoveCircleOutlineIcon />
-                    </IconButton>
-                  </Box>
-                ))}
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="success"
-                  startIcon={<AddIcon />}
-                  onClick={() => append({ value: "" })}
-                  sx={{ mt: 1, mr: 1 }}
-                >
-                  Add Option
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="error"
-                  onClick={() => replace([{ value: "" }])}
-                  sx={{ mt: 1 }}
-                >
-                  Reset Options
-                </Button>
-              </Box>
-            )}
+            <TextField
+              label="Start Content"
+              {...register("startContent", { required: true })}
+              fullWidth
+              multiline
+              rows={3}
+            />
+            <TextField
+              label="End Content"
+              {...register("endContent", { required: true })}
+              fullWidth
+              multiline
+              rows={3}
+            />
+            <TextField
+              label="Duration"
+              {...register("duration", { required: true })}
+              placeholder="In Minutes"
+              required
+              fullWidth
+            />
           </DialogContent>
-
-          <DialogActions sx={{padding:"30px"}}>
+ 
+          <DialogActions sx={{ padding: "30px" }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="contained" disableElevation>
-              Save
+              Create Form
             </Button>
           </DialogActions>
         </form>
@@ -229,5 +181,5 @@ const FormListingPage = () => {
     </Box>
   );
 };
-
+ 
 export default FormListingPage;
