@@ -97,6 +97,11 @@ export const formSlice = createApi({
       invalidatesTags: ['Forms'],
     }),
 
+    getFormById: builder.query<Form, string>({
+      query: (formId) => `form/${formId}`,
+      providesTags: (_result, _error, formId) => [{ type: 'Forms', id: formId }],
+    }),    
+
     updateForm: builder.mutation<{ message: string }, { data: Omit<Form, 'createdAt'> }>({
       query: ({ data }) => ({
         url: `form/${data.formId}`,
@@ -118,6 +123,11 @@ export const formSlice = createApi({
       query: (formId) => `form/${formId}/fields`,
       providesTags: (_result, _error, formId) => [{ type: 'Fields', id: formId }],
     }),
+
+    getField: builder.query<Field, { formId: string; fieldId: string }>({
+      query: ({ formId, fieldId }) => `form/${formId}/field/${fieldId}`,
+      providesTags: (_result, _error, { fieldId }) => [{ type: 'Fields', id: fieldId }],
+    }),    
 
     addField: builder.mutation<{ message: string; fieldId: string }, { formId: string; data: Field }>({
       query: ({ formId, data }) => ({
@@ -164,6 +174,8 @@ export const formSlice = createApi({
 
 export const {
   useGetFormsQuery,
+  useGetFieldQuery,
+  useGetFormByIdQuery,
   useAddFormMutation,
   useUpdateFormMutation,
   useDeleteFormMutation,
