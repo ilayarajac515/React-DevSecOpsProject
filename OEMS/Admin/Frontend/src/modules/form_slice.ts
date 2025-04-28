@@ -3,7 +3,6 @@ import type { BaseQueryFn } from '@reduxjs/toolkit/query';
 
 interface Field {
   fieldId: string;
-  formId: string;
   type?: string;
   label: string;
   placeholder?: string;
@@ -89,7 +88,7 @@ export const formSlice = createApi({
       providesTags: ['Forms'],
     }),
 
-    addForm: builder.mutation<{ message: string; formId: string }, Omit<Form, 'formId' | 'createdAt'>>({
+    addForm: builder.mutation<{ message: string; formId: string }, Omit<Form, 'createdAt'>>({
       query: (formData) => ({
         url: 'form',
         method: 'POST',
@@ -98,9 +97,9 @@ export const formSlice = createApi({
       invalidatesTags: ['Forms'],
     }),
 
-    updateForm: builder.mutation<{ message: string }, { formId: string; data: Omit<Form, 'formId' | 'createdAt'> }>({
-      query: ({ formId, data }) => ({
-        url: `form/${formId}`,
+    updateForm: builder.mutation<{ message: string }, { data: Omit<Form, 'createdAt'> }>({
+      query: ({ data }) => ({
+        url: `form/${data.formId}`,
         method: 'PUT',
         body: data,
       }),
@@ -129,9 +128,9 @@ export const formSlice = createApi({
       invalidatesTags: (_result, _error, { formId }) => [{ type: 'Fields', id: formId }],
     }),
 
-    editField: builder.mutation<Field, { formId: string; fieldId: string; data: Field }>({
-      query: ({ formId, fieldId, data }) => ({
-        url: `form/${formId}/field/${fieldId}`,
+    editField: builder.mutation<Field, { formId: string; data: Field }>({
+      query: ({ formId, data }) => ({
+        url: `form/${formId}/field/${data.fieldId}`,
         method: 'PUT',
         body: data,
       }),
