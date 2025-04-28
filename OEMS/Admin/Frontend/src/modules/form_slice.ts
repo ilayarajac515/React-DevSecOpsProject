@@ -52,23 +52,32 @@ const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (args, api
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
+
     const refreshResult = await baseQuery(
-      { url: "form/refresh-token", method: 'POST' },
+      { url: 'form/refresh-token', method: 'POST' },
       api,
       extraOptions
     );
 
+    if (refreshResult.data) {
+      const newAccessToken = (refreshResult.data as RefreshResponse).accessToken;
+      localStorage.setItem('accessToken', newAccessToken);
 
-    const data = refreshResult.data as RefreshResponse;
+      const retryHeaders = new Headers();
+      retryHeaders.set('Authorization', `Bearer ${newAccessToken}`);
 
-    if (data?.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken);
-      result = await baseQuery(args, api, extraOptions);
+      const retryArgs = typeof args === 'string' ? { url: args } : { ...args };
+      retryArgs.headers = retryHeaders;
+
+      result = await baseQuery(retryArgs, api, extraOptions);
+    } else {
+      console.error('Token refresh failed');
     }
   }
 
   return result;
 };
+
 
 export const formSlice = createApi({
   reducerPath: 'form_api',
