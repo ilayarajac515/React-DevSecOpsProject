@@ -7,10 +7,10 @@ interface Field {
   type?: string;
   label: string;
   placeholder?: string;
-  textArea: string;
-  options: any;
-  questions: any;
-  rta: string;
+  textArea?: string;
+  options?: any;
+  questions?: any;
+  rta?: any;
 }
 
 interface Submission {

@@ -65,7 +65,7 @@ export const updateField = (req, res) => {
       textArea,
       JSON.stringify(options),
       JSON.stringify(questions),
-      rta,
+      JSON.stringify(rta),
       formId,
       fieldId,
     ],
@@ -138,7 +138,7 @@ export const addField = (req, res) => {
       textArea || null,
       JSON.stringify(options || {}),
       JSON.stringify(questions || {}),
-      rta || null,
+      JSON.stringify(rta || {}),
     ],
     (err, results) => {
       if (err) {
