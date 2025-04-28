@@ -26,7 +26,7 @@ interface Submission {
 }
 
 interface Form {
-  formId: string;
+  formId?: string;
   label: string;
   manager: string;
   description?: string;
