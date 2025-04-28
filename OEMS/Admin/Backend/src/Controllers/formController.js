@@ -148,10 +148,8 @@ export const createForm = (req, res) => {
       .json({ message: "Missing required fields" });
   }
 
-  const createdAt = new Date().toLocaleDateString("en-GB").split("/").join("-");
-
   connection.query(
-    `INSERT INTO FormTable (formId, label, description, startContent, endContent, duration, manager, createdAt)
+    `INSERT INTO FormTable (formId, label, description, startContent, endContent, duration, manager)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       formId,
@@ -160,8 +158,7 @@ export const createForm = (req, res) => {
       startContent || null,
       endContent || null,
       duration,
-      manager,
-      createdAt,
+      manager
     ],
     (err, results) => {
       if (err) {
@@ -219,7 +216,7 @@ export const refreshToken = (req, res) => {
     if (err) return res.sendStatus(UNAUTHORIZED);
 
     const newAccessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
-      expiresIn: "1m",
+      expiresIn: "15m",
     });
 
     res.cookie("accessToken", newAccessToken, {
@@ -267,14 +264,9 @@ export const submitForm = (req, res) => {
         .json({ message: "Required fields are missing" });
     }
   
-    const submittedAt = new Date()
-      .toLocaleDateString("en-GB")
-      .split("/")
-      .join("-");
-  
     const query = `
-        INSERT INTO ValueTable (responseId, formId, value, ip, submittedAt, userEmail, startTime, endTime, duration)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ValueTable (responseId, formId, value, ip, userEmail, startTime, endTime, duration)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
   
     connection.query(
@@ -284,7 +276,6 @@ export const submitForm = (req, res) => {
         formId,
         JSON.stringify(value),
         ip,
-        submittedAt,
         userEmail,
         startTime || null,
         endTime || null,

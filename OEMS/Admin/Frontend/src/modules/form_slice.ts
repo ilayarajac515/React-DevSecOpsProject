@@ -18,7 +18,6 @@ interface Submission {
   formId: string;
   value: any;
   ip: string;
-  submittedAt?: string;
   userEmail: string;
   startTime?: string;
   endTime?: string;
@@ -33,7 +32,6 @@ interface Form {
   duration: string;
   startContent?: string;
   endContent?: string;
-  createdAt?: string;
 }
 
 type RefreshResponse = {
