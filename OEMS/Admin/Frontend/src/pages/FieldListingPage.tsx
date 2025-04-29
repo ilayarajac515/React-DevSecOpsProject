@@ -141,9 +141,6 @@ const FieldListingPage = () => {
       swapField({ formId: formId ?? "", fields: mutableFields });
     }
   }, [targettedIndex]);
-  
-  console.log(rows);
-  
 
   const handleDelete = (row: any) => {
     deleteField({ formId: formId!, fieldId: row.fieldId! });
