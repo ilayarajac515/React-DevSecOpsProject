@@ -19,7 +19,7 @@ export default function DataTable({ columns, rows, onRowClick }: DataTableProps)
         borderRadius: '0px 20px 0px 0px',
       }}
     >
-      <Box>
+      <Box sx={{height: "630px" }}>
         <DataGrid
           rows={rows}
           columns={columns}

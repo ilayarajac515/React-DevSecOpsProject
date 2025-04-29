@@ -20,7 +20,7 @@ const App = () => {
       <Container maxWidth="xl">
         <Routes>
           <Route
-            path="/"
+            path="/form-listing-page"
             element={
               <CheckAuth>
                 <FormListingPage />
@@ -28,7 +28,7 @@ const App = () => {
             }
           />
           <Route
-            path="/field-listing-page/:formId"
+            path="/field-listing-page/:form/:formId"
             element={
               <CheckAuth>
                 <FieldListingPage />
@@ -36,7 +36,7 @@ const App = () => {
             }
           />
           <Route
-            path="/sign-in"
+            path="/"
             element={
               <CheckAuth>
                 <SignInPage />
