@@ -20,7 +20,7 @@ import SwapVertIcon from "@mui/icons-material/SwapVert";
 import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { useAddFieldMutation, useEditFieldMutation, useGetFieldsByFormIdQuery, useLazyGetFieldQuery } from "../modules/form_slice";
+import { useAddFieldMutation, useDeleteFieldMutation, useEditFieldMutation, useGetFieldsByFormIdQuery, useLazyGetFieldQuery } from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
  
@@ -58,7 +58,7 @@ const FieldListingPage = () => {
       renderCell: (params) => (
         <LongMenu
           handleEdit={() => handleEdit(params.row)}
-          handleDelete={() => handleDelete(params.row.id)}
+          handleDelete={() => handleDelete(params.row)}
           Logoptions={Logoptions}
         />
       ),
@@ -77,12 +77,6 @@ const FieldListingPage = () => {
     });
     setEditId(null);
     setOpen(true);
-  };
- 
-  const handleDelete = (id: number) => {
-    const updatedRows = rows.filter((row) => row.id !== id);
-    setRows(updatedRows);
-    localStorage.setItem("formFields", JSON.stringify(updatedRows));
   };
  
   const [open, setOpen] = useState(false);
@@ -115,6 +109,7 @@ const FieldListingPage = () => {
  
   const { formId } = useParams();
   const [addField] = useAddFieldMutation();
+  const [deleteField] = useDeleteFieldMutation();
   const [triggerGetField] = useLazyGetFieldQuery();
   const [editField] = useEditFieldMutation();
   const { data } = useGetFieldsByFormIdQuery(formId ?? "");
@@ -123,6 +118,11 @@ const FieldListingPage = () => {
       setRows(data);
     }
   }, [data]);
+
+  const handleDelete = (row: any) => {
+     deleteField({formId: formId!, fieldId: row.fieldId!});
+     setEditId(null);
+  };
  
   const handleEdit = async (row: any) => {
     setEditId(row.fieldId);
