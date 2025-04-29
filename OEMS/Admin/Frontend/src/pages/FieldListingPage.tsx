@@ -21,11 +21,13 @@ import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import {
+  Field,
   useAddFieldMutation,
   useDeleteFieldMutation,
   useEditFieldMutation,
   useGetFieldsByFormIdQuery,
   useLazyGetFieldQuery,
+  useReplaceFieldsMutation,
 } from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
@@ -88,6 +90,7 @@ const FieldListingPage = () => {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [editId, setEditId] = useState<string | null>(null);
+  const [targettedIndex, setTargettedIndex] = useState<number | null>();
 
   const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
     {
@@ -125,12 +128,22 @@ const FieldListingPage = () => {
   const [deleteField] = useDeleteFieldMutation();
   const [triggerGetField] = useLazyGetFieldQuery();
   const [editField] = useEditFieldMutation();
+  const [swapField] = useReplaceFieldsMutation();
   const { data } = useGetFieldsByFormIdQuery(formId ?? "");
   useEffect(() => {
     if (data) {
       setRows(data);
     }
   }, [data]);
+  useEffect(() => {
+    if (rows && rows.length > 0) {
+      const mutableFields: Field[] = rows.map(({ formId, ...rest }) => ({ ...rest })) as Field[];
+      swapField({ formId: formId ?? "", fields: mutableFields });
+    }
+  }, [targettedIndex]);
+  
+  console.log(rows);
+  
 
   const handleDelete = (row: any) => {
     deleteField({ formId: formId!, fieldId: row.fieldId! });
@@ -248,6 +261,7 @@ const FieldListingPage = () => {
           onRowOrderChange={(params: GridRowOrderChangeParams) => {
             const draggedRow = params.row;
             const targetIndex = params.targetIndex;
+            setTargettedIndex(targetIndex);
             const currentIndex = rows.findIndex((r) => r.id === draggedRow.id);
             if (currentIndex === -1 || targetIndex === -1) return;
             const updatedRows = [...rows];
