@@ -8,44 +8,52 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import AgreeToTermsDialog from "../components/AgreeToTermsDialog";
-import { useCallback } from "react";
+import { useGetFieldsByFormIdQuery } from "../modules/form_slice";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 const AssessmentPage = () => {
+  const [ip, setIP] = useState("");
+  const getData = async () => {
+    const res = await axios.get("https://api.ipify.org/?format=json");
+    console.log(res.data);
+    setIP(res.data.ip);
+  };
+ 
+  useEffect(() => {
+    getData();
+  }, []);
+  
+  const { formId } = useParams();
   const [fields, setFields] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const { data } = useGetFieldsByFormIdQuery(formId ?? "");
 
   const { register, handleSubmit, control } = useForm();
 
   useEffect(() => {
-    const stored = localStorage.getItem("formFields");
-    if (stored) {
-      setFields(JSON.parse(stored));
+    if (data) {
+      setFields(data);
     }
-  }, []);
+
+    const agreed = localStorage.getItem("termsAccepted");
+    if (agreed === "true") {
+      setOpenDialog(false);
+    }
+  }, [data]);
 
   const handleAgree = useCallback(() => {
     if (termsAccepted) {
-      localStorage.setItem("termsAccepted", "true"); // <--- Save to localStorage
+      localStorage.setItem("termsAccepted", "true");
       setOpenDialog(false);
     } else {
       alert("Please accept the terms to continue.");
     }
   }, [termsAccepted]);
-  useEffect(() => {
-    const stored = localStorage.getItem("formFields");
-    if (stored) {
-      setFields(JSON.parse(stored));
-    }
-
-    const agreed = localStorage.getItem("termsAccepted");
-    if (agreed === "true") {
-      setOpenDialog(false); // <--- don't show dialog again
-    }
-  }, []);
 
   const handleTermsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTermsAccepted(event.target.checked);
@@ -53,47 +61,30 @@ const AssessmentPage = () => {
 
   const onSubmit = (data: any) => {
     const result: Record<string, any> = {};
+
     fields.forEach((field, index) => {
-      result[field.label] = data[`field_${index}`];
-      if (field.fieldType === "rta") {
-        const questionsAndAnswers = field.rta?.questions.map(
-          (question: string, qIndex: number) => {
-            return {
-              question: question,
-              answer: data[`field_${index}_question_${qIndex}`],
-            };
-          }
+      if (field.type === "rta") {
+        const questionsAndAnswers = field.rta?.questions?.map(
+          (question: string, qIndex: number) => ({
+            question,
+            answer: data[`field_${index}_question_${qIndex}`],
+          })
         );
         result[field.label] = questionsAndAnswers;
+      } else {
+        result[field.label] = data[`field_${index}`];
       }
     });
+
     console.log("Formatted data:", result);
   };
 
   const toRoman = (num: number) => {
     const romanNumerals: string[] = [
-      "i",
-      "ii",
-      "iii",
-      "iv",
-      "v",
-      "vi",
-      "vii",
-      "viii",
-      "ix",
-      "x",
-      "xi",
-      "xii",
-      "xiii",
-      "xiv",
-      "xv",
-      "xvi",
-      "xvii",
-      "xviii",
-      "xix",
-      "xx",
+      "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
+      "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
     ];
-    return romanNumerals[num - 1] || num;
+    return romanNumerals[num - 1] || num.toString();
   };
 
   if (openDialog) {
@@ -127,16 +118,16 @@ const AssessmentPage = () => {
             {index + 1}. {field.label}
           </Typography>
 
-          {field.fieldType === "text" ? (
+          {field.type === "text" ? (
             <TextField
-              type={field.fieldType}
+              type="text"
               placeholder={field.placeholder || ""}
               fullWidth
               variant="outlined"
               size="small"
               {...register(`field_${index}`)}
             />
-          ) : field.fieldType === "textArea" ? (
+          ) : field.type === "textArea" ? (
             <TextField
               placeholder={field.placeholder || ""}
               fullWidth
@@ -146,25 +137,27 @@ const AssessmentPage = () => {
               size="small"
               {...register(`field_${index}`)}
             />
-          ) : field.fieldType === "radio" ? (
+          ) : field.type === "radio" ? (
             <Controller
               name={`field_${index}`}
               control={control}
               defaultValue=""
               render={({ field: radioField }) => (
                 <RadioGroup {...radioField}>
-                  {field.options?.map((opt: string, idx: number) => (
-                    <FormControlLabel
-                      key={idx}
-                      value={opt}
-                      control={<Radio />}
-                      label={opt}
-                    />
-                  ))}
+                  {(Array.isArray(field.options) ? field.options : [])?.map(
+                    (opt: string, idx: number) => (
+                      <FormControlLabel
+                        key={idx}
+                        value={opt}
+                        control={<Radio />}
+                        label={opt}
+                      />
+                    )
+                  )}
                 </RadioGroup>
               )}
             />
-          ) : field.fieldType === "rta" ? (
+          ) : field.type === "rta" ? (
             <Box>
               <Box
                 className="ck-content"
@@ -176,29 +169,27 @@ const AssessmentPage = () => {
                   marginBottom: "20px",
                 }}
                 dangerouslySetInnerHTML={{
-                  __html: field.rta.content,
+                  __html: field.rta?.content || "",
                 }}
               />
-              {field.rta?.questions && field.rta.questions.length > 0 && (
+              {field.rta?.questions?.length > 0 && (
                 <Box sx={{ paddingX: "16px" }}>
-                  {field.rta.questions.map(
-                    (question: string, qIndex: number) => (
-                      <Box key={qIndex} sx={{ marginBottom: "16px" }}>
-                        <Typography variant="body1" fontWeight="bold">
-                          {toRoman(qIndex + 1)}. {question}
-                        </Typography>
-                        <TextField
-                          placeholder={`Your answer for ${toRoman(qIndex + 1)}`}
-                          fullWidth
-                          multiline
-                          rows={3}
-                          variant="outlined"
-                          size="small"
-                          {...register(`field_${index}_question_${qIndex}`)}
-                        />
-                      </Box>
-                    )
-                  )}
+                  {field.rta.questions.map((question: string, qIndex: number) => (
+                    <Box key={qIndex} sx={{ marginBottom: "16px" }}>
+                      <Typography variant="body1" fontWeight="bold">
+                        {toRoman(qIndex + 1)}. {question}
+                      </Typography>
+                      <TextField
+                        placeholder={`Your answer for ${toRoman(qIndex + 1)}`}
+                        fullWidth
+                        multiline
+                        rows={3}
+                        variant="outlined"
+                        size="small"
+                        {...register(`field_${index}_question_${qIndex}`)}
+                      />
+                    </Box>
+                  ))}
                 </Box>
               )}
             </Box>

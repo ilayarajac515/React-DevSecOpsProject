@@ -50,7 +50,7 @@ function Navbar() {
   const handleUserLogout = () => {
     handleCloseMenu();
     handleLogout();
-    navigate("/sign-in");
+    navigate("/");
   };
   return (
     <AppBar position="static" elevation={0}>

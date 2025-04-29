@@ -3,16 +3,19 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Box } from "@mui/material";
-
+import { Box, ListItemIcon } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
 
 type LongMenuProps = {
   handleEdit: () => void;
   handleDelete: () => void;
-  Logoptions:string[];
+  handleCopyUrl?: () => void;
+  Logoptions: string[];
 };
 
-const LongMenu = ({ handleEdit, handleDelete, Logoptions = [] }: LongMenuProps) => {
+const LongMenu = ({ handleEdit, handleDelete, handleCopyUrl, Logoptions = [] }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -48,7 +51,7 @@ const LongMenu = ({ handleEdit, handleDelete, Logoptions = [] }: LongMenuProps) 
           paper: {
             style: {
               maxHeight: "40ch",
-              width: "40ch",
+              width: "25ch",
             },
           },
         }}
@@ -60,8 +63,24 @@ const LongMenu = ({ handleEdit, handleDelete, Logoptions = [] }: LongMenuProps) 
               handleClose();
               if (option === "edit") handleEdit();
               if (option === "delete") handleDelete();
+              if (handleCopyUrl && option === "copy public url") handleCopyUrl();
             }}
           >
+            {option === "edit" && (
+              <ListItemIcon>
+                <EditIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "delete" && (
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "copy public url" && (
+              <ListItemIcon>
+                <FileCopyIcon fontSize="small" />
+              </ListItemIcon>
+            )}
             {option}
           </MenuItem>
         ))}
@@ -69,4 +88,5 @@ const LongMenu = ({ handleEdit, handleDelete, Logoptions = [] }: LongMenuProps) 
     </Box>
   );
 };
+
 export default LongMenu;
