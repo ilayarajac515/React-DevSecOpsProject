@@ -16,7 +16,7 @@ function CheckAuth({ children }: CheckAuthProps) {
   const [delayedLoading, setDelayedLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDelayedLoading(false), 650); // 800ms delay
+    const timer = setTimeout(() => setDelayedLoading(false), 650);
     return () => clearTimeout(timer);
   }, [loading]);
 

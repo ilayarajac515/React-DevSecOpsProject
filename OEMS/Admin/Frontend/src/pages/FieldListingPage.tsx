@@ -92,8 +92,13 @@ const FieldListingPage = () => {
   const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
     {
       defaultValues: {
+        type: "",
+        label: "",
+        placeholder: "",
+        textArea: "",
         options: [{ value: "" }],
         questions: [{ question: "" }],
+        rta: "",
       },
     }
   );
@@ -253,8 +258,6 @@ const FieldListingPage = () => {
           disableRowSelectionOnClick
         />
       </Box>
-
-      {/* Dialog for creating/editing fields */}
       <Dialog
         open={open}
         onClose={() => {
@@ -273,30 +276,42 @@ const FieldListingPage = () => {
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
-            <TextField
-              disabled={editId ? true : false}
-              select
-              label="Type"
-              fullWidth
-              sx={{ marginTop: "10px" }}
-              value={watch("type")}
-              {...register("type")}
-            >
-              <MenuItem value="text">Text</MenuItem>
-              <MenuItem value="textArea">Text Area</MenuItem>
-              <MenuItem value="radio">Radio</MenuItem>
-              <MenuItem value="rta">Rich Text Area</MenuItem>
-            </TextField>
+            <Controller
+              name="type"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  disabled={!!editId}
+                  select
+                  label="Type"
+                  fullWidth
+                  sx={{ marginTop: "10px" }}
+                >
+                  <MenuItem value="text">Text</MenuItem>
+                  <MenuItem value="textArea">Text Area</MenuItem>
+                  <MenuItem value="radio">Radio</MenuItem>
+                  <MenuItem value="rta">Rich Text Area</MenuItem>
+                </TextField>
+              )}
+            />
 
-            <TextField label="Label" fullWidth {...register("label")} />
-
-            {selectedType === "text" && (
               <TextField
-                label="Placeholder"
+                label="Label"
+                value={watch("label")}
                 fullWidth
-                {...register("placeholder")}
+                {...register("label", { required: true })}
               />
-            )}
+
+
+{(selectedType === "text" || selectedType === "textArea") && (
+  <TextField
+    label="Placeholder"
+    fullWidth
+    {...register("placeholder", { required: true })}
+  />
+)}
 
             {selectedType === "rta" && (
               <Box>
@@ -383,7 +398,7 @@ const FieldListingPage = () => {
                     <TextField
                       label={`Option ${index + 1}`}
                       fullWidth
-                      {...register(`options.${index}.value` as const)}
+                      {...register(`options.${index}.value` as const , { required: true })}
                     />
                     <IconButton
                       onClick={() => remove(index)}
