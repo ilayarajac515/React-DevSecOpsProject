@@ -23,6 +23,7 @@ import {
 } from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
 import DeleteFormDialog from "../components/DeleteFormDialog";
+import { toast } from "react-toastify";
 
 type FormValues = {
   label: string;
@@ -54,7 +55,7 @@ const FormListingPage = () => {
     }
   }, [data]);
 
-  const Logoptions: string[] = ["edit", "delete"];
+  const Logoptions: string[] = ["edit", "delete" , "copy public url"];
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
@@ -78,6 +79,7 @@ const FormListingPage = () => {
           <LongMenu
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
+            handleCopyUrl ={()=> handleCopyUrl(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
@@ -143,7 +145,12 @@ const FormListingPage = () => {
     setOpen(false);
     reset();
   };
-
+  const handleCopyUrl = (row: any) => {
+    const url = `http://localhost:5173/assessment-page/${row.formId}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link copied successfully!")
+  };
+  
   const handleRowClick = (row: any) => {
     navigate(`/field-listing-page/${row.label}/${row.formId}`);
   };

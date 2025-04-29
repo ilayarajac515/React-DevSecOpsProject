@@ -52,7 +52,7 @@ const App = () => {
             }
           />
           <Route
-            path="/assessment-page"
+            path="/assessment-page/:formId"
             element={
               <CheckAuthCandidate>
                 <AssessmentPage />

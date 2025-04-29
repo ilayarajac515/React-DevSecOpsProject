@@ -12,8 +12,6 @@ function CheckAuthCandidate({ children }: CheckAuthProps) {
     const token = localStorage.getItem("candidateToken");
     setIsAuthenticated(!!token);
   }, []);
-
-  console.log(isAuthenticated);
   if (isAuthenticated === null) {
     
     return null;
