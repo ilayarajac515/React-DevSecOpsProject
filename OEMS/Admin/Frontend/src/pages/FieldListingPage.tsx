@@ -11,7 +11,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { DataGridPro, GridColDef, GridRowsProp } from "@mui/x-data-grid-pro";
@@ -20,10 +20,10 @@ import SwapVertIcon from "@mui/icons-material/SwapVert";
 import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { useAddFieldMutation, useEditFieldMutation, useGetFieldsByFormIdQuery } from "../modules/form_slice";
-import { v4 as uuid} from "uuid";
+import { useAddFieldMutation, useEditFieldMutation, useGetFieldsByFormIdQuery, useLazyGetFieldQuery } from "../modules/form_slice";
+import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
+ 
 type Option = {
   value: string;
 };
@@ -40,7 +40,7 @@ type FormValues = {
   questions: Question[];
   rta: any;
 };
-
+ 
 const FieldListingPage = () => {
   const Logoptions: string[] = ["edit", "delete"];
  
@@ -79,26 +79,6 @@ const FieldListingPage = () => {
     setOpen(true);
   };
  
-  const handleEdit = (row: any) => {
-    reset({
-      type: row.fieldType,
-      label: row.label,
-      placeholder: row.placeholder || "",
-      textArea: row.fieldType === "textArea" ? row.textArea || "" : "",
-      options:
-        row.fieldType === "radio"
-          ? row.options?.map((value: string) => ({ value })) || [{ value: "" }]
-          : [{ value: "" }],
-      rta: row.fieldType === "rta" ? row.rta.content : "",
-      questions:
-        row.fieldType === "rta"
-          ? row.rta.questions.map((q: string) => ({ question: q }))
-          : [{ question: "" }],
-    });
-    setEditId(row.id);
-    setOpen(true);
-  };
- 
   const handleDelete = (id: number) => {
     const updatedRows = rows.filter((row) => row.id !== id);
     setRows(updatedRows);
@@ -107,7 +87,7 @@ const FieldListingPage = () => {
  
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<GridRowsProp>([]);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
  
   const { register, handleSubmit, reset, watch, control } = useForm<FormValues>({
     defaultValues: {
@@ -133,29 +113,50 @@ const FieldListingPage = () => {
  
   const selectedType = watch("type");
  
-  // Import and use the addField mutation
-  const { formId }= useParams();
+  const { formId } = useParams();
   const [addField] = useAddFieldMutation();
+  const [triggerGetField] = useLazyGetFieldQuery();
   const [editField] = useEditFieldMutation();
   const { data } = useGetFieldsByFormIdQuery(formId ?? "");
   useEffect(() => {
     if (data) {
-      // Assuming 'data' is an array of fields and it's in the correct format for the DataGrid
-      const formattedData = data.map((field: any) => ({
-        id: field.id, // Assuming the field has an 'id' property
-        label: field.label || "—",
-        type: field.type || "Not Provided", // Adjust if necessary
-        // Other necessary data
-      }));
-      setRows(formattedData);
+      setRows(data);
     }
   }, [data]);
-  console.log(data);
-  
+ 
+  const handleEdit = async (row: any) => {
+    setEditId(row.fieldId);
+    setOpen(true);
+    try {
+      const result = await triggerGetField({
+        formId: formId!,
+        fieldId: row.fieldId,
+      }).unwrap();
+ 
+      reset({
+        type: result?.type,
+        label: result?.label,
+        placeholder: result?.placeholder || "",
+        textArea: result?.type === "textArea" ? result?.textArea || "" : "",
+        options:
+          result?.type === "radio"
+            ? result?.options?.map((value: string) => ({ value })) || [{ value: "" }]
+            : [{ value: "" }],
+        rta: result?.type === "rta" ? result?.rta?.content : "",
+        questions:
+          result?.type === "rta"
+            ? result?.rta?.questions?.map((q: string) => ({ question: q }))
+            : [{ question: "" }],
+      });
+    } catch (err) {
+      console.error("Failed to load field data:", err);
+    }
+  };
+ 
   const onSubmit = async (data: FormValues) => {
-    const updatedField = {
+    const newField = {
       id: uuid(),
-      fieldId: uuid(),
+      fieldId: editId ?? uuid(),
       formId: formId,
       label: data.label || "—",
       placeholder: data.placeholder || "-",
@@ -176,21 +177,28 @@ const FieldListingPage = () => {
             }
           : null,
     };
-    
  
-    // Call the addField mutation to submit the data
-    
     try {
-      const response = await addField({
-        formId: formId ?? "", // Provide the actual formId here
-        data: updatedField,
-      }).unwrap(); // .unwrap() is used to handle the success and error of the mutation
-      console.log("Field submitted:", response);
-      setRows((prevRows) => [...prevRows, updatedField]);
-      localStorage.setItem("formFields", JSON.stringify([...rows, updatedField]));
-      setOpen(false);
-      reset();
-      setEditId(null);
+      if(editId){
+        await editField({
+          formId: formId ?? "",
+          data: newField,
+        })
+        setRows((prevRows) => [...prevRows, newField]);
+        setOpen(false);
+        reset();
+        setEditId(null);
+      }
+      else{
+        await addField({
+          formId: formId ?? "",
+          data: newField,
+        }).unwrap();
+        setRows((prevRows) => [...prevRows, newField]);
+        setOpen(false);
+        reset();
+        setEditId(null);
+      }
     } catch (err) {
       console.error("Error submitting field:", err);
     }
@@ -231,12 +239,12 @@ const FieldListingPage = () => {
             updatedRows.splice(currentIndex, 1);
             updatedRows.splice(targetIndex, 0, draggedRow);
             setRows(updatedRows);
-            localStorage.setItem("formFields", JSON.stringify(updatedRows));
           }}
           disableRowSelectionOnClick
         />
       </Box>
  
+      {/* Dialog for creating/editing fields */}
       <Dialog
         open={open}
         onClose={() => {
@@ -252,9 +260,7 @@ const FieldListingPage = () => {
         </DialogTitle>
  
         <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
               disabled={editId ? true : false}
               select
@@ -402,7 +408,7 @@ const FieldListingPage = () => {
             >
               Cancel
             </Button>
-            <Button type="submit" variant="contained" color="primary">
+            <Button type="submit"  variant="contained" color="primary">
               {editId ? "Update" : "Create"}
             </Button>
           </DialogActions>
@@ -413,9 +419,5 @@ const FieldListingPage = () => {
 };
  
 export default FieldListingPage;
-
-
-
-
-
-
+ 
+ 
