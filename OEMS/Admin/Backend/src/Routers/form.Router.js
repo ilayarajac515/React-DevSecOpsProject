@@ -18,6 +18,7 @@ router.post("/form", formController.createForm);
 router.put("/form/:formId", formController.updateForm);
 router.delete("/form/:formId", formController.deleteForm);
 router.post("/form/:formId/submit", formController.submitForm);
+router.put("/form/:formId/fields", formController.replaceFields);
 router.get("/form/:formId/submissions", formController.getSubmissions);
  
 export default router;
