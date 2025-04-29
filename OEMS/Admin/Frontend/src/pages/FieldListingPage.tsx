@@ -115,7 +115,7 @@ const FieldListingPage = () => {
 
   const selectedType = watch("type");
 
-  const { formId , form} = useParams();
+  const { formId, form } = useParams();
   const [addField] = useAddFieldMutation();
   const [deleteField] = useDeleteFieldMutation();
   const [triggerGetField] = useLazyGetFieldQuery();
@@ -145,7 +145,6 @@ const FieldListingPage = () => {
         type: result?.type,
         label: result?.label,
         placeholder: result?.placeholder || "",
-        textArea: result?.type === "textArea" ? result?.textArea || "" : "",
         options:
           result?.type === "radio"
             ? result?.options?.map((value: string) => ({ value })) || [
