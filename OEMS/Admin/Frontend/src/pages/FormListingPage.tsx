@@ -22,6 +22,7 @@ import {
   useGetFormsQuery,
 } from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
+import DeleteFormDialog from "../components/DeleteFormDialog";
 
 type FormValues = {
   label: string;
@@ -42,6 +43,8 @@ const FormListingPage = () => {
   const [formRows, setFormRows] = useState<any[]>([]);
   const { name } = useAuth();
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<any>(null);
 
   const { register, handleSubmit, reset } = useForm<FormValues>();
 
@@ -73,7 +76,7 @@ const FormListingPage = () => {
           }}
         >
           <LongMenu
-            handleDelete={() => handleDelete(params.row)}
+            handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
             Logoptions={Logoptions}
           />
@@ -82,9 +85,15 @@ const FormListingPage = () => {
     },
   ];
 
+  const handleDeleteClick = (row: any) => {
+    setSelectedForm(row);
+    setDeleteDialogOpen(true);
+  };
+
   const handleDelete = async (row: any) => {
     try {
       await deleteForm(row.formId).unwrap();
+      setDeleteDialogOpen(false);
     } catch (err) {
       console.error("Failed to delete form:", err);
     }
@@ -169,7 +178,7 @@ const FormListingPage = () => {
           <DataTable
             columns={columns}
             rows={formRows}
-            onRowClick={(params: any) => handleRowClick(params.row)} // Handle row click to navigate
+            onRowClick={(params: any) => handleRowClick(params.row)}
           />
         )}
       </Box>
@@ -230,11 +239,20 @@ const FormListingPage = () => {
           <DialogActions sx={{ padding: "30px" }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="contained" disableElevation>
-              Create Form
+              {editId ? "Edit Form" : "Create Form"}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
+      <DeleteFormDialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setSelectedForm(null);
+        }}
+        selectedForm ={selectedForm}
+        onDelete={() => handleDelete(selectedForm)}
+      />
     </Box>
   );
 };

@@ -43,7 +43,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   const setAuth = useCallback(
-    (authData: { authorized: boolean; name: string | null; email: string | null }) => {
+    (authData: {
+      authorized: boolean;
+      name: string | null;
+      email: string | null;
+    }) => {
       setAuthState(() => ({ ...authData, loading: false }));
     },
     []
@@ -53,7 +57,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loadAuth = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token) {
-        setAuthState({ authorized: false, name: null, email: null, loading: false });
+        setAuthState({
+          authorized: false,
+          name: null,
+          email: null,
+          loading: false,
+        });
         return;
       }
 
@@ -67,10 +76,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             loading: false,
           });
         } else {
-          setAuthState({ authorized: false, name: null, email: null, loading: false });
+          setAuthState({
+            authorized: false,
+            name: null,
+            email: null,
+            loading: false,
+          });
         }
       } catch (error) {
-        setAuthState({ authorized: false, name: null, email: null, loading: false });
+        setAuthState({
+          authorized: false,
+          name: null,
+          email: null,
+          loading: false,
+        });
       }
     };
 
