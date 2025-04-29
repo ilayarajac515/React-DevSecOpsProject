@@ -184,7 +184,11 @@ const FieldListingPage = () => {
           formId: formId ?? "",
           data: newField,
         })
-        setRows((prevRows) => [...prevRows, newField]);
+        setRows((prevRows) =>
+          prevRows.map((row) =>
+            row.fieldId === editId ? newField : row
+          )
+        );
         setOpen(false);
         reset();
         setEditId(null);

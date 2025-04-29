@@ -285,7 +285,7 @@ export const refreshToken = (req, res) => {
     if (err) return res.sendStatus(UNAUTHORIZED);
  
     const newAccessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
-      expiresIn: "15m",
+      expiresIn: "1d",
     });
  
     res.cookie("accessToken", newAccessToken, {
