@@ -6,12 +6,13 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import { checkAuth as fetchAuthStatus } from "../Services/UserService"; 
+import { checkAuth as fetchAuthStatus } from "../Services/UserService";
 
 interface AuthState {
   authorized: boolean;
   name: string | null;
   email: string | null;
+  loading: boolean;
   setAuth: (auth: {
     authorized: boolean;
     name: string | null;
@@ -23,6 +24,7 @@ const defaultAuthState: AuthState = {
   authorized: false,
   name: null,
   email: null,
+  loading: true,
   setAuth: () => {},
 };
 
@@ -37,15 +39,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authorized: false,
     name: null,
     email: null,
+    loading: true,
   });
 
   const setAuth = useCallback(
-    (authData: {
-      authorized: boolean;
-      name: string | null;
-      email: string | null;
-    }) => {
-      setAuthState(authData);
+    (authData: { authorized: boolean; name: string | null; email: string | null }) => {
+      setAuthState(() => ({ ...authData, loading: false }));
     },
     []
   );
@@ -54,29 +53,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loadAuth = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token) {
-        setAuth({ authorized: false, name: null, email: null });
+        setAuthState({ authorized: false, name: null, email: null, loading: false });
         return;
       }
-  
+
       try {
         const data = await fetchAuthStatus();
-        const userName = data.name ?? null;
         if (data.authorized) {
-          setAuth({
+          setAuthState({
             authorized: true,
-            name: userName,
+            name: data.name ?? null,
             email: data.email ?? null,
+            loading: false,
           });
         } else {
-          setAuth({ authorized: false, name: null, email: null });
+          setAuthState({ authorized: false, name: null, email: null, loading: false });
         }
       } catch (error) {
-        setAuth({ authorized: false, name: null, email: null });
+        setAuthState({ authorized: false, name: null, email: null, loading: false });
       }
     };
-  
+
     loadAuth();
-  }, []);
+  }, [setAuth]);
 
   return (
     <AuthContext.Provider value={{ ...auth, setAuth }}>

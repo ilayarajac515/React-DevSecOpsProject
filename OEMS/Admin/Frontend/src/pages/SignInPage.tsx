@@ -53,7 +53,7 @@ const SignInPage = () => {
       localStorage.setItem("accessToken", result.accessToken);
       setExistError("");
       reset();
-      navigate("/");
+      navigate("/form-listing-page");
       toast.success("Sign in Successfully!");
     } catch (err: any) {
       const message =

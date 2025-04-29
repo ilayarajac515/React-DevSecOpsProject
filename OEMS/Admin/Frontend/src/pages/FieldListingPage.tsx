@@ -20,17 +20,23 @@ import SwapVertIcon from "@mui/icons-material/SwapVert";
 import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { useAddFieldMutation, useDeleteFieldMutation, useEditFieldMutation, useGetFieldsByFormIdQuery, useLazyGetFieldQuery } from "../modules/form_slice";
+import {
+  useAddFieldMutation,
+  useDeleteFieldMutation,
+  useEditFieldMutation,
+  useGetFieldsByFormIdQuery,
+  useLazyGetFieldQuery,
+} from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
- 
+
 type Option = {
   value: string;
 };
 type Question = {
   question: string;
 };
- 
+
 type FormValues = {
   type: string;
   label: string;
@@ -40,10 +46,10 @@ type FormValues = {
   questions: Question[];
   rta: any;
 };
- 
+
 const FieldListingPage = () => {
   const Logoptions: string[] = ["edit", "delete"];
- 
+
   const columns: GridColDef[] = [
     { field: "label", headerName: "Label", width: 1100 },
     { field: "type", headerName: "Field Type", width: 150 },
@@ -64,7 +70,7 @@ const FieldListingPage = () => {
       ),
     },
   ];
- 
+
   const handleCreate = () => {
     reset({
       type: "",
@@ -78,23 +84,25 @@ const FieldListingPage = () => {
     setEditId(null);
     setOpen(true);
   };
- 
+
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [editId, setEditId] = useState<string | null>(null);
- 
-  const { register, handleSubmit, reset, watch, control } = useForm<FormValues>({
-    defaultValues: {
-      options: [{ value: "" }],
-      questions: [{ question: "" }],
-    },
-  });
- 
+
+  const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
+    {
+      defaultValues: {
+        options: [{ value: "" }],
+        questions: [{ question: "" }],
+      },
+    }
+  );
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "options",
   });
- 
+
   const {
     fields: rtaFields,
     append: appendRta,
@@ -104,10 +112,10 @@ const FieldListingPage = () => {
     control,
     name: "questions",
   });
- 
+
   const selectedType = watch("type");
- 
-  const { formId } = useParams();
+
+  const { formId , form} = useParams();
   const [addField] = useAddFieldMutation();
   const [deleteField] = useDeleteFieldMutation();
   const [triggerGetField] = useLazyGetFieldQuery();
@@ -120,10 +128,10 @@ const FieldListingPage = () => {
   }, [data]);
 
   const handleDelete = (row: any) => {
-     deleteField({formId: formId!, fieldId: row.fieldId!});
-     setEditId(null);
+    deleteField({ formId: formId!, fieldId: row.fieldId! });
+    setEditId(null);
   };
- 
+
   const handleEdit = async (row: any) => {
     setEditId(row.fieldId);
     setOpen(true);
@@ -132,7 +140,7 @@ const FieldListingPage = () => {
         formId: formId!,
         fieldId: row.fieldId,
       }).unwrap();
- 
+
       reset({
         type: result?.type,
         label: result?.label,
@@ -140,7 +148,9 @@ const FieldListingPage = () => {
         textArea: result?.type === "textArea" ? result?.textArea || "" : "",
         options:
           result?.type === "radio"
-            ? result?.options?.map((value: string) => ({ value })) || [{ value: "" }]
+            ? result?.options?.map((value: string) => ({ value })) || [
+                { value: "" },
+              ]
             : [{ value: "" }],
         rta: result?.type === "rta" ? result?.rta?.content : "",
         questions:
@@ -152,7 +162,7 @@ const FieldListingPage = () => {
       console.error("Failed to load field data:", err);
     }
   };
- 
+
   const onSubmit = async (data: FormValues) => {
     const newField = {
       id: uuid(),
@@ -177,23 +187,20 @@ const FieldListingPage = () => {
             }
           : null,
     };
- 
+
     try {
-      if(editId){
+      if (editId) {
         await editField({
           formId: formId ?? "",
           data: newField,
-        })
+        });
         setRows((prevRows) =>
-          prevRows.map((row) =>
-            row.fieldId === editId ? newField : row
-          )
+          prevRows.map((row) => (row.fieldId === editId ? newField : row))
         );
         setOpen(false);
         reset();
         setEditId(null);
-      }
-      else{
+      } else {
         await addField({
           formId: formId ?? "",
           data: newField,
@@ -207,7 +214,7 @@ const FieldListingPage = () => {
       console.error("Error submitting field:", err);
     }
   };
- 
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
       <Box
@@ -221,7 +228,7 @@ const FieldListingPage = () => {
           borderRadius: "10px",
         }}
       >
-        <Typography sx={{ fontWeight: "bold" }}>Form Builder</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>{form}</Typography>
         <Button variant="contained" disableElevation onClick={handleCreate}>
           Create Field
         </Button>
@@ -247,7 +254,7 @@ const FieldListingPage = () => {
           disableRowSelectionOnClick
         />
       </Box>
- 
+
       {/* Dialog for creating/editing fields */}
       <Dialog
         open={open}
@@ -262,9 +269,11 @@ const FieldListingPage = () => {
         <DialogTitle sx={{ marginBottom: "10px", fontWeight: "bold" }}>
           {editId ? "Edit Field" : "Create Field"}
         </DialogTitle>
- 
+
         <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
             <TextField
               disabled={editId ? true : false}
               select
@@ -279,9 +288,9 @@ const FieldListingPage = () => {
               <MenuItem value="radio">Radio</MenuItem>
               <MenuItem value="rta">Rich Text Area</MenuItem>
             </TextField>
- 
+
             <TextField label="Label" fullWidth {...register("label")} />
- 
+
             {selectedType === "text" && (
               <TextField
                 label="Placeholder"
@@ -289,7 +298,7 @@ const FieldListingPage = () => {
                 {...register("placeholder")}
               />
             )}
- 
+
             {selectedType === "rta" && (
               <Box>
                 <Controller
@@ -307,7 +316,7 @@ const FieldListingPage = () => {
                     />
                   )}
                 />
- 
+
                 <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
                   Questions
                 </Typography>
@@ -356,7 +365,7 @@ const FieldListingPage = () => {
                 </Button>
               </Box>
             )}
- 
+
             {selectedType === "radio" && (
               <Box>
                 <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
@@ -399,7 +408,7 @@ const FieldListingPage = () => {
               </Box>
             )}
           </DialogContent>
- 
+
           <DialogActions sx={{ padding: "20px" }}>
             <Button
               onClick={() => {
@@ -412,7 +421,7 @@ const FieldListingPage = () => {
             >
               Cancel
             </Button>
-            <Button type="submit"  variant="contained" color="primary">
+            <Button type="submit" variant="contained" color="primary">
               {editId ? "Update" : "Create"}
             </Button>
           </DialogActions>
@@ -421,7 +430,5 @@ const FieldListingPage = () => {
     </Box>
   );
 };
- 
+
 export default FieldListingPage;
- 
- 
