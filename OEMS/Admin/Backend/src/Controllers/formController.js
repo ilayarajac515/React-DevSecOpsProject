@@ -145,6 +145,31 @@ export const addField = (req, res) => {
   );
 };
 
+export const getFormById = (req, res) => {
+  const { formId } = req.params;
+
+  if (!formId) {
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+  }
+
+  connection.query(
+    "SELECT * FROM FormTable WHERE formId = ?",
+    [formId],
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching form:", err);
+        return res.status(SERVER_ERROR).json({ error: "Server error" });
+      }
+
+      if (results.length === 0) {
+        return res.status(NOT_FOUND).json({ message: "Form not found" });
+      }
+
+      res.status(STATUS_OK).json(results[0]);
+    }
+  );
+};
+
 export const createForm = (req, res) => {
   const {
     formId,

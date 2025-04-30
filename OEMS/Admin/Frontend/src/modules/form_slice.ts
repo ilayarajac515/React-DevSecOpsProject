@@ -112,6 +112,11 @@ export const formSlice = createApi({
       invalidatesTags: ['Forms'],
     }),
 
+    getFormById: builder.query<Form, string>({
+      query: (formId) => `form/${formId}`,
+      providesTags: (_result, _error, formId) => [{ type: 'Forms', id: formId }],
+    }),
+
     getFieldsByFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/fields`,
       providesTags: (_result, _error, formId) => [{ type: 'Fields', id: formId }],
@@ -175,6 +180,7 @@ export const {
   useAddFormMutation,
   useUpdateFormMutation,
   useDeleteFormMutation,
+  useGetFormByIdQuery,
   useGetFieldsByFormIdQuery,
   useAddFieldMutation,
   useEditFieldMutation,
