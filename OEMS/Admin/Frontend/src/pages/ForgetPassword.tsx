@@ -110,7 +110,7 @@ const ForgetPassword = () => {
       <Typography>
         Back to{" "}
         <span
-          onClick={() => navigate("/sign-in")}
+          onClick={() => navigate("/")}
           style={{
             fontSize: "14px",
             color: "#007bff",
