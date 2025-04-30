@@ -55,7 +55,7 @@ const FormListingPage = () => {
     }
   }, [data]);
 
-  const Logoptions: string[] = ["edit", "delete" , "copy public url"];
+  const Logoptions: string[] = ["edit", "delete", "copy public url"];
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
@@ -79,7 +79,7 @@ const FormListingPage = () => {
           <LongMenu
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
-            handleCopyUrl ={()=> handleCopyUrl(params.row)}
+            handleCopyUrl={() => handleCopyUrl(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
@@ -148,11 +148,25 @@ const FormListingPage = () => {
   const handleCopyUrl = (row: any) => {
     const url = `http://localhost:5173/assessment-page/${row.formId}`;
     navigator.clipboard.writeText(url);
-    toast.success("Link copied successfully!")
+    toast.success("Link copied successfully!");
   };
-  
+
   const handleRowClick = (row: any) => {
     navigate(`/field-listing-page/${row.label}/${row.formId}`);
+  };
+
+  const handleCreate = () => {
+    reset({
+      label: "",
+      description: "",
+      startContent: "",
+      endContent: "",
+      duration: "",
+      manager: "",
+    });
+    setEditId(null);
+    reset();
+    setOpen(true);
   };
 
   return (
@@ -172,7 +186,7 @@ const FormListingPage = () => {
         <Button
           variant="contained"
           disableElevation
-          onClick={() => setOpen(true)}
+          onClick={() => handleCreate()}
         >
           Create Form
         </Button>
@@ -225,7 +239,7 @@ const FormListingPage = () => {
               {...register("startContent", { required: true })}
               fullWidth
               multiline
-              rows={3}
+              rows={10}
             />
             <TextField
               label="End Content"
@@ -257,7 +271,7 @@ const FormListingPage = () => {
           setDeleteDialogOpen(false);
           setSelectedForm(null);
         }}
-        selectedForm ={selectedForm}
+        selectedForm={selectedForm}
         onDelete={() => handleDelete(selectedForm)}
       />
     </Box>

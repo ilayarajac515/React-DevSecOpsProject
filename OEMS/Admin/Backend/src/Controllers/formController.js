@@ -27,31 +27,6 @@ export const getFields = (req, res) => {
   );
 };
 
-export const getFormById = (req, res) => {
-  const { formId } = req.params;
-
-  if (!formId) {
-    return res.status(BAD_REQUEST).json({ message: "formId is required" });
-  }
-
-  connection.query(
-    "SELECT * FROM FormTable WHERE formId = ?",
-    [formId],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching form:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
-      }
-
-      if (results.length === 0) {
-        return res.status(NOT_FOUND).json({ message: "Form not found" });
-      }
-
-      res.status(STATUS_OK).json(results[0]);
-    }
-  );
-};
-
 export const getForms = (req, res) => {
   connection.query("SELECT * FROM FormTable", (err, results) => {
     if (err) {
@@ -61,33 +36,6 @@ export const getForms = (req, res) => {
 
     res.status(STATUS_OK).json(results);
   });
-};
-
-export const getField = (req, res) => {
-  const { formId, fieldId } = req.params;
-
-  if (!formId || !fieldId) {
-    return res
-      .status(BAD_REQUEST)
-      .json({ message: "formId and fieldId are required" });
-  }
-
-  connection.query(
-    "SELECT * FROM FieldTable WHERE formId = ? AND fieldId = ?",
-    [formId, fieldId],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching field:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
-      }
-
-      if (results.length === 0) {
-        return res.status(NOT_FOUND).json({ message: "Field not found" });
-      }
-
-      res.status(STATUS_OK).json(results[0]);
-    }
-  );
 };
 
 export const updateField = (req, res) => {

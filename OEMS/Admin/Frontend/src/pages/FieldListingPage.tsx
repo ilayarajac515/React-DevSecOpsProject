@@ -26,7 +26,6 @@ import {
   useDeleteFieldMutation,
   useEditFieldMutation,
   useGetFieldsByFormIdQuery,
-  useLazyGetFieldQuery,
   useReplaceFieldsMutation,
 } from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
@@ -126,7 +125,6 @@ const FieldListingPage = () => {
   const { formId, form } = useParams();
   const [addField] = useAddFieldMutation();
   const [deleteField] = useDeleteFieldMutation();
-  const [triggerGetField] = useLazyGetFieldQuery();
   const [editField] = useEditFieldMutation();
   const [swapField] = useReplaceFieldsMutation();
   const { data } = useGetFieldsByFormIdQuery(formId ?? "");
@@ -150,31 +148,22 @@ const FieldListingPage = () => {
   const handleEdit = async (row: any) => {
     setEditId(row.fieldId);
     setOpen(true);
-    try {
-      const result = await triggerGetField({
-        formId: formId!,
-        fieldId: row.fieldId,
-      }).unwrap();
-
       reset({
-        type: result?.type,
-        label: result?.label,
-        placeholder: result?.placeholder || "",
+        type: row?.type,
+        label: row?.label,
+        placeholder: row?.placeholder || "",
         options:
-          result?.type === "radio"
-            ? result?.options?.map((value: string) => ({ value })) || [
+        row?.type === "radio"
+            ? row?.options?.map((value: string) => ({ value })) || [
                 { value: "" },
               ]
             : [{ value: "" }],
-        rta: result?.type === "rta" ? result?.rta?.content : "",
+        rta: row?.type === "rta" ? row?.rta?.content : "",
         questions:
-          result?.type === "rta"
-            ? result?.rta?.questions?.map((q: string) => ({ question: q }))
+        row?.type === "rta"
+            ? row?.rta?.questions?.map((q: string) => ({ question: q }))
             : [{ question: "" }],
       });
-    } catch (err) {
-      console.error("Failed to load field data:", err);
-    }
   };
 
   const onSubmit = async (data: FormValues) => {
