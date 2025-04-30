@@ -50,8 +50,8 @@ const LongMenu = ({ handleEdit, handleDelete, handleCopyUrl, Logoptions = [] }: 
         slotProps={{
           paper: {
             style: {
-              maxHeight: "40ch",
-              width: "25ch",
+              maxHeight: "unset",
+              maxWidth: "unset",
             },
           },
         }}

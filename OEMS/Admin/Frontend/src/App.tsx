@@ -67,6 +67,7 @@ const App = () => {
               }
             />
             <Route path="/candidate-login" element={<CandidateLogin />} />
+            <Route path="/candidate-login/:formId" element={<CandidateLogin />} />
             <Route path="/forget-password" element={<ForgetPassword />} />
             <Route
               path="/reset-password/:userId/:token/:expiry"

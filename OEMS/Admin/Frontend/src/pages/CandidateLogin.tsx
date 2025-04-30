@@ -9,7 +9,7 @@ import {
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 type FormValues = {
   email: string;
@@ -37,10 +37,12 @@ const CandidateLogin = () => {
     }
   }, [emailValue, passwordValue]);
 
+  const {formId} = useParams();
+
   useEffect(() => {
     const token = localStorage.getItem("candidateToken");
     if (token) {
-      navigate("/assessment-page");
+      navigate(`/assessment-page/${formId}`);
     }
   }, [loggedIn, navigate]);
 
