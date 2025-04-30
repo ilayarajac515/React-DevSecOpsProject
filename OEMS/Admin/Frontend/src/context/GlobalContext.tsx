@@ -6,6 +6,7 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
+import { useLocation } from "react-router-dom";
 import { checkAuth as fetchAuthStatus } from "../Services/UserService";
 
 interface AuthState {
@@ -41,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     email: null,
     loading: true,
   });
+  const location = useLocation();
 
   const setAuth = useCallback(
     (authData: {
@@ -54,6 +56,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 
   useEffect(() => {
+    const publicPaths = ["/", "/register", "/forgot-password"];
+    const currentPath = location.pathname;
+  
+    if (publicPaths.includes(currentPath)) {
+      setAuthState((prev) => ({ ...prev, loading: false }));
+      return;
+    }
     const loadAuth = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token) {
