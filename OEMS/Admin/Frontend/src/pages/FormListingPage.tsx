@@ -146,7 +146,7 @@ const FormListingPage = () => {
     reset();
   };
   const handleCopyUrl = (row: any) => {
-    const url = `http://localhost:5173/assessment-page/${row.formId}`;
+    const url = `http://localhost:5173/candidate-login/${row.formId}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied successfully!");
   };
