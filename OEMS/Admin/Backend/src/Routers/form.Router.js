@@ -8,6 +8,7 @@ router.use(authenticateJWT,authenticateSession);
  
 router.get("/form/:formId/fields", formController.getFields);
 router.get('/forms', formController.getForms);
+router.get("/form/:formId", formController.getFormById);
 router.post("/form/refresh-token", formController.refreshToken);
 router.put("/form/:formId/field/:fieldId", formController.updateField);
 router.delete("/form/:formId/field/:fieldId", formController.deleteField);
