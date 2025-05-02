@@ -1,4 +1,5 @@
 import { Router } from "express";
+import handler from "express-async-handler";
 import {
   registerUser,
   loginUser,
@@ -6,8 +7,8 @@ import {
   resetPassword,
   verifyToken,
   refreshToken,
-  logoutUser
-} from "../Controllers/user.controller.js"
+  logoutUser,
+} from "../Controllers/user.controller.js";
 import {
   STATUS_OK,
   UNAUTHORIZED,
@@ -16,18 +17,19 @@ import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js"
 
 const router = Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:userId/:token/:expiry", resetPassword);
-router.post("/verify-token", verifyToken);
-router.post("/refresh-token", refreshToken);
-router.post("/logout", logoutUser);
+router.post("/register", handler(registerUser));
+router.post("/login", handler(loginUser));
+router.post("/forgot-password", handler(forgotPassword));
+router.post("/reset-password/:userId/:token/:expiry", handler(resetPassword));
+router.post("/verify-token", handler(verifyToken));
+router.post("/refresh-token", handler(refreshToken));
+router.post("/logout", handler(logoutUser));
+
 router.get(
   "/check-auth",
   authenticateJWT,
   authenticateSession,
-  async (req, res) => {
+  handler(async (req, res) => {
     if (req.user && req.jwtUser) {
       return res.status(STATUS_OK).json({
         authorized: true,
@@ -36,7 +38,7 @@ router.get(
       });
     }
     return res.status(UNAUTHORIZED).json({ authorized: false });
-  }
+  })
 );
 
 export default router;

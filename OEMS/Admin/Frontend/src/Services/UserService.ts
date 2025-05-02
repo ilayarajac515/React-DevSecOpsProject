@@ -1,4 +1,3 @@
-import { toast } from "react-toastify";
 import axiosInstance from "../api/axiosInstance";
 
 interface ForgotPasswordResponse {
@@ -9,10 +8,6 @@ interface LoginResponse {
   name: string;
   email: string;
   accessToken: string;
-}
-
-interface UploadImageResponse {
-  imageUrl: string;
 }
 interface CheckAuthResponse {
   authorized: boolean;
