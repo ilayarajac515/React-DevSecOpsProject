@@ -20,6 +20,7 @@ import SwapVertIcon from "@mui/icons-material/SwapVert";
 import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { CustomUploadAdapter } from "../utils/ckeditorUploadAdapter";
 import {
   Field,
   useAddFieldMutation,
@@ -27,6 +28,7 @@ import {
   useEditFieldMutation,
   useGetFieldsByFormIdQuery,
   useReplaceFieldsMutation,
+  useUploadImageMutation,
 } from "../modules/form_slice";
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
@@ -90,7 +92,7 @@ const FieldListingPage = () => {
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [targettedIndex, setTargettedIndex] = useState<number | null>();
-
+  const [uploadImageMutation] = useUploadImageMutation();
   const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
     {
       defaultValues: {
@@ -135,7 +137,9 @@ const FieldListingPage = () => {
   }, [data]);
   useEffect(() => {
     if (rows && rows.length > 0) {
-      const mutableFields: Field[] = rows.map(({ formId, ...rest }) => ({ ...rest })) as Field[];
+      const mutableFields: Field[] = rows.map(({ formId, ...rest }) => ({
+        ...rest,
+      })) as Field[];
       swapField({ formId: formId ?? "", fields: mutableFields });
     }
   }, [targettedIndex]);
@@ -148,22 +152,20 @@ const FieldListingPage = () => {
   const handleEdit = async (row: any) => {
     setEditId(row.fieldId);
     setOpen(true);
-      reset({
-        type: row?.type,
-        label: row?.label,
-        placeholder: row?.placeholder || "",
-        options:
+    reset({
+      type: row?.type,
+      label: row?.label,
+      placeholder: row?.placeholder || "",
+      options:
         row?.type === "radio"
-            ? row?.options?.map((value: string) => ({ value })) || [
-                { value: "" },
-              ]
-            : [{ value: "" }],
-        rta: row?.type === "rta" ? row?.rta?.content : "",
-        questions:
+          ? row?.options?.map((value: string) => ({ value })) || [{ value: "" }]
+          : [{ value: "" }],
+      rta: row?.type === "rta" ? row?.rta?.content : "",
+      questions:
         row?.type === "rta"
-            ? row?.rta?.questions?.map((q: string) => ({ question: q }))
-            : [{ question: "" }],
-      });
+          ? row?.rta?.questions?.map((q: string) => ({ question: q }))
+          : [{ question: "" }],
+    });
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -297,21 +299,20 @@ const FieldListingPage = () => {
               )}
             />
 
+            <TextField
+              label="Label"
+              value={watch("label")}
+              fullWidth
+              {...register("label", { required: true })}
+            />
+
+            {(selectedType === "text" || selectedType === "textArea") && (
               <TextField
-                label="Label"
-                value={watch("label")}
+                label="Placeholder"
                 fullWidth
-                {...register("label", { required: true })}
+                {...register("placeholder", { required: true })}
               />
-
-
-{(selectedType === "text" || selectedType === "textArea") && (
-  <TextField
-    label="Placeholder"
-    fullWidth
-    {...register("placeholder", { required: true })}
-  />
-)}
+            )}
 
             {selectedType === "rta" && (
               <Box>
@@ -323,6 +324,21 @@ const FieldListingPage = () => {
                     <CKEditor
                       editor={ClassicEditor as any}
                       data={value}
+                      onReady={(editor: any) => {
+                        editor.plugins.get(
+                          "FileRepository"
+                        ).createUploadAdapter = (loader: any) => {
+                          return new CustomUploadAdapter(
+                            loader,
+                            async (formData: FormData) => {
+                              const result = await uploadImageMutation(
+                                formData
+                              ).unwrap();
+                              return { imageUrl: result.imageUrl };
+                            }
+                          );
+                        };
+                      }}
                       onChange={(_, editor) => {
                         const data = editor.getData();
                         onChange(data);
@@ -398,7 +414,9 @@ const FieldListingPage = () => {
                     <TextField
                       label={`Option ${index + 1}`}
                       fullWidth
-                      {...register(`options.${index}.value` as const , { required: true })}
+                      {...register(`options.${index}.value` as const, {
+                        required: true,
+                      })}
                     />
                     <IconButton
                       onClick={() => remove(index)}

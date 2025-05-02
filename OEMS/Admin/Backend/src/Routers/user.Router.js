@@ -6,8 +6,8 @@ import {
   resetPassword,
   verifyToken,
   refreshToken,
-  logoutUser,
-} from "../Controllers/userController.js"
+  logoutUser
+} from "../Controllers/user.controller.js"
 import {
   STATUS_OK,
   UNAUTHORIZED,

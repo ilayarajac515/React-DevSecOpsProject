@@ -79,7 +79,7 @@ const ResetPassword = () => {
         const response = await resetPass(userId, token, password, expiry || "");
         if (response.message) {
           toast.success("Password reset successful!");
-          navigate("/sign-in");
+          navigate("/");
         }
       } else {
         toast.error("Invalid or expired token.");

@@ -6,6 +6,7 @@ import {
   STATUS_OK,
   NOT_FOUND,
 } from "../Constants/httpStatus.js";
+import { uploadImageToCloudinary } from "../Utils/cloudinary.helper.js";
 
 export const getFields = (req, res) => {
   const { formId } = req.params;
@@ -424,4 +425,15 @@ export const replaceFields = (req, res) => {
       }
     );
   });
+};
+
+export const uploadImageController = async (req, res) => {
+  const file = req.file;
+
+  if (!file) {
+    return res.status(BAD_REQUEST).send({ message: "No file uploaded." });
+  }
+
+  const imageUrl = await uploadImageToCloudinary(file.buffer);
+  res.send({ imageUrl });
 };

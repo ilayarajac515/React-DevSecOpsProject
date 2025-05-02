@@ -1,12 +1,16 @@
 import { Router } from "express";
-import * as formController from "../Controllers/formController.js"
+import * as formController from "../Controllers/form.controller.js"
+import multer from "multer";
+import handler from "express-async-handler";
 import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
  
 const router = Router();
+const upload = multer();
  
 router.use(authenticateJWT,authenticateSession);
- 
-router.get("/form/:formId/fields", formController.getFields);
+
+router.post("/upload-image", upload.single("image"), handler(formController.uploadImageController));
+router.get("/form/:formId/fields", handler(formController.getFields));
 router.get('/forms', formController.getForms);
 router.get("/form/:formId", formController.getFormById);
 router.post("/form/refresh-token", formController.refreshToken);

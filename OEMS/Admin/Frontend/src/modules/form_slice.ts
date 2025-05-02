@@ -172,6 +172,13 @@ export const formSlice = createApi({
         { type: 'Fields', id: formId },
       ],
     }),
+    uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
+      query: (formData) => ({
+        url: "/upload-image",
+        method: "POST",
+        body: formData,
+      }),
+    }),
   }),
 });
 
@@ -187,5 +194,6 @@ export const {
   useDeleteFieldMutation,
   useGetSubmissionsByFormIdQuery,
   useAddSubmissionMutation,
-  useReplaceFieldsMutation
+  useReplaceFieldsMutation,
+  useUploadImageMutation
 } = formSlice;
