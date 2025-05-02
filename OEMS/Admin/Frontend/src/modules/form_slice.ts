@@ -68,6 +68,7 @@ const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (args, api
 
       result = await baseQuery(retryArgs, api, extraOptions);
     } else {
+      window.location.href = "/";
       console.error('Token refresh failed');
     }
   }

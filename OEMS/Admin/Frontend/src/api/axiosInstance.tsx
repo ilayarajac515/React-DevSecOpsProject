@@ -48,10 +48,12 @@ axiosInstance.interceptors.response.use(
           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
         } catch (refreshError) {
+          window.location.href = "/";
           console.error("Token refresh failed", refreshError);
           return Promise.reject(refreshError);
         }
       } else {
+        window.location.href = "/";
         return Promise.reject(error);
       }
     }
