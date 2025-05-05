@@ -10,7 +10,7 @@ export const authenticateJWT = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
-    return res.status(UNAUTHORIZED).json({ message: "No token provided" });
+    return res.status(BAD_REQUEST).json({ message: "No token provided" });
   }
 
   jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
@@ -28,7 +28,7 @@ export const authenticateSession = (req, res, next) => {
   const sessionId = req.cookies["sessionId"];
   if (!sessionId) {
     return res
-      .status(UNAUTHORIZED)
+      .status(BAD_REQUEST)
       .json({ message: "Session expired or invalid" });
   }
 
@@ -63,7 +63,7 @@ export const authenticateSession = (req, res, next) => {
         );
 
         return res
-          .status(UNAUTHORIZED)
+          .status(BAD_REQUEST)
           .json({ message: "Session expired or invalid" });
       }
       req.user = session.email;

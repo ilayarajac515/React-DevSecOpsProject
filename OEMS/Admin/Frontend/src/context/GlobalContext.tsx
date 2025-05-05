@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 
   useEffect(() => {
-    const publicPaths = ["/", "/register", "/forgot-password"];
+    const publicPaths = ["/register", "/forgot-password"];
     const currentPath = location.pathname;
   
     if (publicPaths.includes(currentPath)) {

@@ -46,7 +46,7 @@ const SignUpPage = () => {
     try {
       await signUp(fullName, email, password);
       setExistError("");
-      navigate("/sign-in");
+      navigate("/");
       toast.success("Sign Up successfull!");
     } catch (err: any) {
       console.log(err.response.data.error);
@@ -168,7 +168,7 @@ const SignUpPage = () => {
       <Typography>
         Already have an account?{" "}
         <span
-          onClick={() => navigate("/sign-in")}
+          onClick={() => navigate("/")}
           style={{ fontSize: "14px", color: "#007bff", cursor: "pointer" }}
         >
           Sign In

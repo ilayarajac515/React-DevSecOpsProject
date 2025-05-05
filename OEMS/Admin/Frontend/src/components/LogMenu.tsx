@@ -4,18 +4,26 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Box, ListItemIcon } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditNoteIcon from '@mui/icons-material/EditNote';
 
 type LongMenuProps = {
   handleEdit: () => void;
   handleDelete: () => void;
   handleCopyUrl?: () => void;
+  handleViewSubmissions?: () => void;
   Logoptions: string[];
 };
 
-const LongMenu = ({ handleEdit, handleDelete, handleCopyUrl, Logoptions = [] }: LongMenuProps) => {
+const LongMenu = ({
+  handleEdit,
+  handleDelete,
+  handleCopyUrl,
+  Logoptions = [],
+  handleViewSubmissions,
+}: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -63,12 +71,16 @@ const LongMenu = ({ handleEdit, handleDelete, handleCopyUrl, Logoptions = [] }: 
               handleClose();
               if (option === "edit") handleEdit();
               if (option === "delete") handleDelete();
-              if (handleCopyUrl && option === "copy public url") handleCopyUrl();
+              if (handleCopyUrl && option === "copy test url")
+                handleCopyUrl();
+              if (option === "view Submissions" && handleViewSubmissions) {
+                handleViewSubmissions();
+              }
             }}
           >
             {option === "edit" && (
               <ListItemIcon>
-                <EditIcon fontSize="small" />
+                <EditNoteIcon fontSize="medium" />
               </ListItemIcon>
             )}
             {option === "delete" && (
@@ -76,11 +88,17 @@ const LongMenu = ({ handleEdit, handleDelete, handleCopyUrl, Logoptions = [] }: 
                 <DeleteIcon fontSize="small" />
               </ListItemIcon>
             )}
-            {option === "copy public url" && (
+            {option === "copy test url" && (
               <ListItemIcon>
                 <FileCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
+            {option === "view Submissions" && (
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+
             {option}
           </MenuItem>
         ))}
