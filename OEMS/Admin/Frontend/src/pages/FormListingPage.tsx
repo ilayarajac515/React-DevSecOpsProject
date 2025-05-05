@@ -55,7 +55,7 @@ const FormListingPage = () => {
     }
   }, [data]);
 
-  const Logoptions: string[] = ["edit", "delete", "copy public url"];
+  const Logoptions: string[] = ["edit", "delete", "copy test url" , "view Submissions"];
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
@@ -80,6 +80,7 @@ const FormListingPage = () => {
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
             handleCopyUrl={() => handleCopyUrl(params.row)}
+            handleViewSubmissions={() => handleViewSubmissions(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
@@ -99,6 +100,9 @@ const FormListingPage = () => {
     } catch (err) {
       console.error("Failed to delete form:", err);
     }
+  };
+  const handleViewSubmissions = async (row: any) => {
+    navigate(`submissions-page/${row.formId} `)
   };
 
   const handleEdit = (row: any) => {

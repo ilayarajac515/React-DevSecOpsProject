@@ -14,21 +14,9 @@ import { useForm, Controller } from "react-hook-form";
 import AgreeToTermsDialog from "../components/AgreeToTermsDialog";
 import { useGetFieldsByFormIdQuery } from "../modules/form_slice";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 
 const AssessmentPage = () => {
-
-  const [ip, setIP] = useState("");
-  const getData = async () => {
-    const res = await axios.get("https://api.ipify.org/?format=json");
-    console.log(res.data);
-    setIP(res.data.ip);
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
+  
   const { formId } = useParams();
   const [fields, setFields] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(true);

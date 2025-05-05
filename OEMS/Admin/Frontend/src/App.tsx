@@ -12,6 +12,7 @@ import FieldListingPage from "./pages/FieldListingPage";
 import AssessmentPage from "./pages/AssesmentPage";
 import CandidateLogin from "./pages/CandidateLogin";
 import CheckAuthCandidate from "./components/CheckAuthCandidate";
+import SubmissionsPage from "./pages/SubmissionsPage";
 
 const App = () => {
   const location = useLocation();
@@ -63,6 +64,14 @@ const App = () => {
               element={
                 <CheckAuth>
                   <SignUpPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              path="form-listing-page/submissions-page/:id"
+              element={
+                <CheckAuth>
+                  <SubmissionsPage />
                 </CheckAuth>
               }
             />

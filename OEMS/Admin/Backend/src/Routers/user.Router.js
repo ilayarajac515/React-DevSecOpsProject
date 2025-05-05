@@ -11,7 +11,7 @@ import {
 } from "../Controllers/user.controller.js";
 import {
   STATUS_OK,
-  UNAUTHORIZED,
+  UNAUTHORIZED
 } from "../Constants/httpStatus.js";
 import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
 
