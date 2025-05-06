@@ -273,8 +273,8 @@ export const updateForm = (req, res) => {
       startContent || null,
       endContent || null,
       duration,
-      formId,
       status,
+      formId,
     ],
     (err, results) => {
       if (err) {
