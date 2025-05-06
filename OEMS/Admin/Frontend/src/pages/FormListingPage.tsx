@@ -159,12 +159,12 @@ const FormListingPage = () => {
 
   const onSubmit = async (formData: FormValues) => {
     if (editId) {
+      const currentForm = formRows.find((form) => form.formId === editId);
       const updatedForm = {
         formId: editId,
         ...formData,
+        status: currentForm?.status || "inactive",
       };
-      console.log(updatedForm);
-
       try {
         await updateForm({ data: updatedForm }).unwrap();
         setEditId(null);
@@ -180,6 +180,7 @@ const FormListingPage = () => {
         endContent: formData.endContent,
         duration: formData.duration,
         manager: name ?? "",
+        status: "inactive",
       };
       try {
         await addForm(newForm).unwrap();
@@ -187,9 +188,12 @@ const FormListingPage = () => {
         console.error("Failed to add form:", err);
       }
     }
+
     setOpen(false);
+
     reset();
   };
+
   const handleCopyUrl = (row: any) => {
     const url = `http://localhost:5173/candidate-login/${row.formId}`;
     navigator.clipboard.writeText(url);
