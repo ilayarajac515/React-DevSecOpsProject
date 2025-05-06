@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { useLocation } from "react-router-dom";
-import { checkAuth as fetchAuthStatus } from "../Services/UserService";
+import { checkAuth as fetchAuthStatus } from "../Services/adminService";
 
 interface AuthState {
   authorized: boolean;

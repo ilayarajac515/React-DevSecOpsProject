@@ -20,7 +20,7 @@ import {
   useUpdateFormMutation,
   useDeleteFormMutation,
   useGetFormsQuery,
-} from "../modules/form_slice";
+} from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
 import DeleteFormDialog from "../components/DeleteFormDialog";
 import { toast } from "react-toastify";

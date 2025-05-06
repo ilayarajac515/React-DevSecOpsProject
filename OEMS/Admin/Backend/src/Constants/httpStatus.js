@@ -3,3 +3,4 @@ export const UNAUTHORIZED = 401;
 export const SERVER_ERROR = 500;
 export const STATUS_OK = 200;
 export const NOT_FOUND = 404;
+export const FORBIDDEN = 403;

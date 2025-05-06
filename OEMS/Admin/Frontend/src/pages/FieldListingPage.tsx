@@ -29,7 +29,7 @@ import {
   useGetFieldsByFormIdQuery,
   useReplaceFieldsMutation,
   useUploadImageMutation,
-} from "../modules/form_slice";
+} from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
 

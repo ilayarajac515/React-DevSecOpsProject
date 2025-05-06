@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import userRouter from "./Routers/user.router.js";
+import adminRouter from "./Routers/admin.Router.js";
 import formRouter from "./Routers/form.router.js";
+import candidateRouter from "./Routers/candidate.router.js";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
@@ -43,8 +44,9 @@ app.use(
   })
 );
 
-app.use("/api/users", userRouter);
+app.use("/api/admin", adminRouter);
 app.use("/api/mock_form", formRouter);
+app.use("/api/users", candidateRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

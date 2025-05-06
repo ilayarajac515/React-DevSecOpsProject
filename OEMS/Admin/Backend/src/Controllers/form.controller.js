@@ -5,6 +5,7 @@ import {
   SERVER_ERROR,
   STATUS_OK,
   NOT_FOUND,
+  FORBIDDEN,
 } from "../Constants/httpStatus.js";
 import { uploadImageToCloudinary } from "../Utils/cloudinary.helper.js";
 
@@ -24,6 +25,46 @@ export const getFields = (req, res) => {
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
       res.status(STATUS_OK).json(results);
+    }
+  );
+};
+
+export const getCandidateFields = (req, res) => {
+  const { formId } = req.params;
+
+  if (!formId) {
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+  }
+
+  connection.query(
+    "SELECT status FROM FormTable WHERE formId = ?",
+    [formId],
+    (formErr, formResults) => {
+      if (formErr) {
+        console.error("Error checking form status:", formErr);
+        return res.status(SERVER_ERROR).json({ error: "Server error" });
+      }
+
+      if (formResults.length === 0) {
+        return res.status(NOT_FOUND).json({ message: "Form not found" });
+      }
+
+      const { status } = formResults[0];
+      if (status !== "active") {
+        return res.status(FORBIDDEN).json({ message: "Exam not yet started" });
+      }
+
+      connection.query(
+        "SELECT * FROM FieldTable WHERE formId = ?",
+        [formId],
+        (fieldErr, fieldResults) => {
+          if (fieldErr) {
+            console.error("Error fetching fields:", fieldErr);
+            return res.status(SERVER_ERROR).json({ error: "Server error" });
+          }
+          res.status(STATUS_OK).json(fieldResults);
+        }
+      );
     }
   );
 };
@@ -180,6 +221,7 @@ export const createForm = (req, res) => {
     startContent,
     endContent,
     duration,
+    status,
   } = req.body;
 
   if (!label || !duration || !manager) {
@@ -187,8 +229,8 @@ export const createForm = (req, res) => {
   }
 
   connection.query(
-    `INSERT INTO FormTable (formId, label, description, startContent, endContent, duration, manager)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO FormTable (formId, label, description, startContent, endContent, duration, manager, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       formId,
       label || null,
@@ -197,6 +239,7 @@ export const createForm = (req, res) => {
       endContent || null,
       duration,
       manager,
+      status,
     ],
     (err, results) => {
       if (err) {
@@ -213,7 +256,8 @@ export const createForm = (req, res) => {
 
 export const updateForm = (req, res) => {
   const { formId } = req.params;
-  const { label, description, startContent, endContent, duration } = req.body;
+  const { label, description, startContent, endContent, duration, status } =
+    req.body;
 
   if (!label) {
     return res.status(BAD_REQUEST).json({ message: "Label is required" });
@@ -221,7 +265,7 @@ export const updateForm = (req, res) => {
 
   connection.query(
     `UPDATE FormTable
-       SET label = ?, description = ?, startContent = ?, endContent = ?, duration = ?
+       SET label = ?, description = ?, startContent = ?, endContent = ?, duration = ?, status = ?
        WHERE formId = ?`,
     [
       label,
@@ -230,6 +274,7 @@ export const updateForm = (req, res) => {
       endContent || null,
       duration,
       formId,
+      status,
     ],
     (err, results) => {
       if (err) {
@@ -294,18 +339,23 @@ export const deleteForm = (req, res) => {
 
 export const submitForm = (req, res) => {
   const { formId } = req.params;
-  const { responseId, value, ip, userEmail, startTime, endTime, duration } =
-    req.body;
+  const {
+    responseId,
+    ip,
+    userEmail,
+    startTime,
+    termsAccepted,
+  } = req.body;
 
-  if (!formId || !value || !ip || !userEmail) {
+  if (!formId || !responseId) {
     return res
       .status(BAD_REQUEST)
       .json({ message: "Required fields are missing" });
   }
 
   const query = `
-        INSERT INTO ValueTable (responseId, formId, value, ip, userEmail, startTime, endTime, duration)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ValueTable (responseId, formId, ip, userEmail, startTime, termsAccepted)
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
 
   connection.query(
@@ -313,12 +363,10 @@ export const submitForm = (req, res) => {
     [
       responseId,
       formId,
-      JSON.stringify(value),
       ip,
       userEmail,
-      startTime || null,
-      endTime || null,
-      duration || null,
+      startTime,
+      termsAccepted
     ],
     (err, results) => {
       if (err) {
@@ -327,6 +375,66 @@ export const submitForm = (req, res) => {
       }
 
       res.status(STATUS_OK).json({ message: "Response submitted", responseId });
+    }
+  );
+};
+
+export const editSubmission = (req, res) => {
+  const { formId, responseId } = req.params;
+  const {
+    value,
+    ip,
+    userEmail,
+    startTime,
+    endTime,
+    duration,
+    termsAccepted,
+    score,
+    status,
+    warnings,
+    endIp
+  } = req.body;
+
+  if (!formId || !responseId) {
+    return res
+      .status(BAD_REQUEST)
+      .json({ message: "formId and responseId are required" });
+  }
+
+  const query = `
+    UPDATE ValueTable
+    SET value = ?, ip = ?, userEmail = ?, startTime = ?, endTime = ?, duration = ?, termsAccepted = ?, score = ?, status = ?,
+    warnings = ?, endIp = ? WHERE formId = ? AND responseId = ?
+  `;
+
+  connection.query(
+    query,
+    [
+      JSON.stringify(value),
+      ip,
+      userEmail,
+      startTime || null,
+      endTime || null,
+      duration || null,
+      termsAccepted,
+      score,
+      status,
+      warnings,
+      endIp,
+      formId,
+      responseId,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating submission:", err);
+        return res.status(SERVER_ERROR).json({ message: "Server error" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(NOT_FOUND).json({ message: "Submission not found" });
+      }
+
+      res.status(STATUS_OK).json({ message: "Submission updated", responseId });
     }
   );
 };

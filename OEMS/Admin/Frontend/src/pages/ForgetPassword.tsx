@@ -7,7 +7,7 @@ import {
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { forgotPass } from "../Services/UserService";
+import { forgotPass } from "../Services/adminService";
 import { toast } from "react-toastify";
 
 type FormValues = {

@@ -13,12 +13,36 @@ export interface Field {
 interface Submission {
   responseId: string;
   formId: string;
+  value?: any;
+  ip?: string;
+  userEmail?: string;
+  startTime?: string;
+  endTime?: string;
+  duration?: string;
+  score?: string;
+  status?: string;
+  endIp?: string;
+  warnings?: number;
+  termsAccepted?: string;
+}
+
+export interface EditSubmissionInput {
+  formId: string;
+  responseId: string;
   value: any;
-  ip: string;
+  ip?: string;
   userEmail: string;
   startTime?: string;
   endTime?: string;
   duration?: string;
+  termsAccepted?: string;
+  score?: number;
+  status?: string;
+}
+
+export interface EditSubmissionResponse {
+  message: string;
+  responseId: string;
 }
 
 interface Form {
@@ -27,6 +51,7 @@ interface Form {
   manager: string;
   description?: string;
   duration: string;
+  status?: string;
   startContent?: string;
   endContent?: string;
 }
@@ -123,6 +148,11 @@ export const formSlice = createApi({
       providesTags: (_result, _error, formId) => [{ type: 'Fields', id: formId }],
     }),
 
+    getFieldsByCandidateFormId: builder.query<Field[], string>({
+      query: (formId) => `form/${formId}/field`,
+      providesTags: (_result, _error, formId) => [{ type: 'Fields', id: formId }],
+    }),    
+
     addField: builder.mutation<{ message: string; fieldId: string }, { formId: string; data: Field }>({
       query: ({ formId, data }) => ({
         url: `form/${formId}/field`,
@@ -155,14 +185,24 @@ export const formSlice = createApi({
     }),
 
     addSubmission: builder.mutation<{ message: string; responseId: string },
-      { formId: string; data: Omit<Submission, 'responseId' | 'submittedAt'> }>({
+      { formId: string; data: Omit<Submission, 'submittedAt'> }>({
         query: ({ formId, data }) => ({
           url: `form/${formId}/submit`,
           method: 'POST',
           body: data,
         }),
         invalidatesTags: (_result, _error, { formId }) => [{ type: 'Submissions', id: formId }],
+    }),
+
+    editSubmission: builder.mutation<EditSubmissionResponse, EditSubmissionInput>({
+      query: ({ formId, responseId, ...body }) => ({
+        url: `form/${formId}/submission/${responseId}`,
+        method: 'PUT',
+        body,
       }),
+      invalidatesTags: (_result, _error, { formId }) => [{ type: 'Submissions', id: formId }],
+    }),
+
     replaceFields: builder.mutation<{ message: string }, { formId: string; fields: Field[] }>({
       query: ({ formId, fields }) => ({
         url: `form/${formId}/fields`,
@@ -173,6 +213,7 @@ export const formSlice = createApi({
         { type: 'Fields', id: formId },
       ],
     }),
+
     uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
       query: (formData) => ({
         url: "/upload-image",
@@ -190,11 +231,13 @@ export const {
   useDeleteFormMutation,
   useGetFormByIdQuery,
   useGetFieldsByFormIdQuery,
+  useGetFieldsByCandidateFormIdQuery,
   useAddFieldMutation,
   useEditFieldMutation,
   useDeleteFieldMutation,
   useGetSubmissionsByFormIdQuery,
   useAddSubmissionMutation,
+  useEditSubmissionMutation,
   useReplaceFieldsMutation,
   useUploadImageMutation
 } = formSlice;

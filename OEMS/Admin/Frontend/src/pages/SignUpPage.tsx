@@ -10,7 +10,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { signUp } from "../Services/UserService";
+import { signUp } from "../Services/adminService";
 import { toast } from "react-toastify";
 
 type FormValues = {

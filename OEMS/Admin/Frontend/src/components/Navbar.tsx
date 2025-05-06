@@ -10,7 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import logo from "../assets/logo.png";
-import { logoutUser } from "../Services/UserService";
+import { logoutUser } from "../Services/adminService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/GlobalContext";
 

@@ -12,7 +12,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/GlobalContext";
-import { loginUser } from "../Services/UserService";
+import { loginUser } from "../Services/adminService";
 
 type FormValues = {
   email: string;

@@ -12,7 +12,7 @@ import {
 import { useEffect, useState, useCallback} from "react";
 import { useForm, Controller } from "react-hook-form";
 import AgreeToTermsDialog from "../components/AgreeToTermsDialog";
-import { useGetFieldsByFormIdQuery } from "../modules/form_slice";
+import { useGetFieldsByFormIdQuery } from "../modules/admin_slice";
 import { useParams } from "react-router-dom";
 
 const AssessmentPage = () => {

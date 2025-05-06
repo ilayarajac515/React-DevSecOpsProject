@@ -1,14 +1,6 @@
 import { Router } from "express";
 import handler from "express-async-handler";
-import {
-  registerUser,
-  loginUser,
-  forgotPassword,
-  resetPassword,
-  verifyToken,
-  refreshToken,
-  logoutUser,
-} from "../Controllers/user.controller.js";
+import * as adminController from "../Controllers/admin.controller.js";
 import {
   STATUS_OK,
   UNAUTHORIZED
@@ -17,13 +9,13 @@ import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js"
 
 const router = Router();
 
-router.post("/register", handler(registerUser));
-router.post("/login", handler(loginUser));
-router.post("/forgot-password", handler(forgotPassword));
-router.post("/reset-password/:userId/:token/:expiry", handler(resetPassword));
-router.post("/verify-token", handler(verifyToken));
-router.post("/refresh-token", handler(refreshToken));
-router.post("/logout", handler(logoutUser));
+router.post("/register", handler(adminController.registerUser));
+router.post("/login", handler(adminController.loginUser));
+router.post("/forgot-password", handler(adminController.forgotPassword));
+router.post("/reset-password/:userId/:token/:expiry", handler(adminController.resetPassword));
+router.post("/verify-token", handler(adminController.verifyToken));
+router.post("/refresh-token", handler(adminController.refreshToken));
+router.post("/logout", handler(adminController.logoutUser));
 
 router.get(
   "/check-auth",

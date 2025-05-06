@@ -10,7 +10,7 @@ import {
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { resetPass, verifyToken } from "../Services/UserService";
+import { resetPass, verifyToken } from "../Services/adminService";
 import { toast } from "react-toastify";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
