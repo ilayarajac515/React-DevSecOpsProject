@@ -7,6 +7,8 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Switch,
+  Tooltip,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
@@ -55,13 +57,34 @@ const FormListingPage = () => {
     }
   }, [data]);
 
-  const Logoptions: string[] = ["edit", "delete", "copy test url" , "view Submissions"];
+  const Logoptions: string[] = [
+    "edit",
+    "delete",
+    "copy test url",
+    "view Submissions",
+  ];
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
-    { field: "submissions", headerName: "Submissions", width: 250 },
-    { field: "duration", headerName: "Duration", width: 250 },
+    { field: "submissions", headerName: "Submissions", width: 200 },
+    { field: "duration", headerName: "Duration", width: 200 },
     { field: "manager", headerName: "Manager", width: 250 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 100,
+      renderCell: (params) => (
+        <Tooltip title="Active / Inactive">
+          <Box onClick={(event) => event.stopPropagation()}>
+            <Switch
+              color="success"
+              checked={params.row.status === "active"}
+              onChange={() => handleToggleStatus(params.row)}
+            />
+          </Box>
+        </Tooltip>
+      ),
+    },
     {
       field: "actions",
       headerName: "",
@@ -102,7 +125,23 @@ const FormListingPage = () => {
     }
   };
   const handleViewSubmissions = async (row: any) => {
-    navigate(`submissions-page/${row.formId} `)
+    navigate(`submissions-page/${row.formId} `);
+  };
+
+  const handleToggleStatus = async (row: any) => {
+    const updatedRow = {
+      ...row,
+      status: row.status === "active" ? "inactive" : "active",
+    };
+    try {
+      await updateForm({ data: updatedRow }).unwrap();
+      setFormRows((prevRows) =>
+        prevRows.map((form) => (form.formId === row.formId ? updatedRow : form))
+      );
+    } catch (err) {
+      console.error("Failed to update form status:", err);
+      toast.error("Status update failed");
+    }
   };
 
   const handleEdit = (row: any) => {
@@ -124,6 +163,8 @@ const FormListingPage = () => {
         formId: editId,
         ...formData,
       };
+      console.log(updatedForm);
+
       try {
         await updateForm({ data: updatedForm }).unwrap();
         setEditId(null);
