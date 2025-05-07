@@ -12,7 +12,7 @@ export interface Field {
 
 interface Submission {
   responseId: string;
-  formId: string;
+  formId?: string;
   value?: any;
   ip?: string;
   userEmail?: string;

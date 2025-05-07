@@ -339,13 +339,7 @@ export const deleteForm = (req, res) => {
 
 export const submitForm = (req, res) => {
   const { formId } = req.params;
-  const {
-    responseId,
-    ip,
-    userEmail,
-    startTime,
-    termsAccepted,
-  } = req.body;
+  const { responseId, ip, userEmail, startTime, termsAccepted } = req.body;
 
   if (!formId || !responseId) {
     return res
@@ -360,14 +354,7 @@ export const submitForm = (req, res) => {
 
   connection.query(
     query,
-    [
-      responseId,
-      formId,
-      ip,
-      userEmail,
-      startTime,
-      termsAccepted
-    ],
+    [responseId, formId, ip, userEmail, startTime, termsAccepted],
     (err, results) => {
       if (err) {
         console.error("Error submitting form response:", err);
@@ -392,7 +379,7 @@ export const editSubmission = (req, res) => {
     score,
     status,
     warnings,
-    endIp
+    endIp,
   } = req.body;
 
   if (!formId || !responseId) {
@@ -401,42 +388,61 @@ export const editSubmission = (req, res) => {
       .json({ message: "formId and responseId are required" });
   }
 
-  const query = `
+    const checkValueTableQuery = `
+    SELECT * FROM ValueTable WHERE userEmail = ?
+  `;
+
+  connection.query(checkValueTableQuery, [userEmail], (err2, valueResults) => {
+    if (err2) {
+      console.error("Error checking ValueTable:", err2);
+      return res.status(SERVER_ERROR).json({ message: "Server error" });
+    }
+
+    if (valueResults.length > 0) {
+      return res.status(FORBIDDEN).json({ message: "User already submitted" });
+    }
+
+    const query = `
     UPDATE ValueTable
     SET value = ?, ip = ?, userEmail = ?, startTime = ?, endTime = ?, duration = ?, termsAccepted = ?, score = ?, status = ?,
     warnings = ?, endIp = ? WHERE formId = ? AND responseId = ?
   `;
 
-  connection.query(
-    query,
-    [
-      JSON.stringify(value),
-      ip,
-      userEmail,
-      startTime || null,
-      endTime || null,
-      duration || null,
-      termsAccepted,
-      score,
-      status,
-      warnings,
-      endIp,
-      formId,
-      responseId,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Error updating submission:", err);
-        return res.status(SERVER_ERROR).json({ message: "Server error" });
-      }
+    connection.query(
+      query,
+      [
+        JSON.stringify(value),
+        ip,
+        userEmail,
+        startTime || null,
+        endTime || null,
+        duration || null,
+        termsAccepted,
+        score,
+        status,
+        warnings,
+        endIp,
+        formId,
+        responseId,
+      ],
+      (err, result) => {
+        if (err) {
+          console.error("Error updating submission:", err);
+          return res.status(SERVER_ERROR).json({ message: "Server error" });
+        }
 
-      if (result.affectedRows === 0) {
-        return res.status(NOT_FOUND).json({ message: "Submission not found" });
-      }
+        if (result.affectedRows === 0) {
+          return res
+            .status(NOT_FOUND)
+            .json({ message: "Submission not found" });
+        }
 
-      res.status(STATUS_OK).json({ message: "Submission updated", responseId });
-    }
-  );
+        res
+          .status(STATUS_OK)
+          .json({ message: "Submission updated", responseId });
+      }
+    );
+  });
 };
 
 export const getSubmissions = (req, res) => {

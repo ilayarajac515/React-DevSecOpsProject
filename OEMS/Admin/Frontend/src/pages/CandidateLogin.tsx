@@ -9,7 +9,9 @@ import {
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { data, useNavigate, useParams } from "react-router-dom";
+import { useLoginCandidateMutation } from "../modules/candidate_slice";
+import { useAddSubmissionMutation } from "../modules/admin_slice";
 
 type FormValues = {
   email: string;
@@ -30,6 +32,7 @@ const CandidateLogin = () => {
   const [existError, setExistError] = useState("");
   const emailValue = watch("email");
   const passwordValue = watch("password");
+  const [candidateLogin] = useLoginCandidateMutation();
 
   useEffect(() => {
     if (existError) {
@@ -39,16 +42,19 @@ const CandidateLogin = () => {
 
   const {formId} = useParams();
 
-  useEffect(() => {
-    const token = localStorage.getItem("candidateToken");
-    if (token) {
-      navigate(`/assessment-page/${formId}`);
-    }
-  }, [loggedIn, navigate]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("candidateToken");
+  //   if (token) {
+  //     navigate(`/assessment-page/${formId}`);
+  //   }
+  // }, [loggedIn, navigate]);
 
-  const onSubmit: SubmitHandler<FormValues> = async () => {
+  const onSubmit: SubmitHandler<FormValues> = async (data: any) => {
     try {
       localStorage.setItem("candidateToken", "dummy_token_123");
+      const result = await candidateLogin({email:data?.email, password:data?.password});
+      console.log(result);
+      navigate(`/assessment-page/${formId}`);
       setExistError("");
       reset();
       setLoggedIn(true);

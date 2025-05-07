@@ -13,11 +13,14 @@ export interface LoginCandidateResponse {
 
 export const candidateSlice = createApi({
   reducerPath: 'candidate_api',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:5000/api/users' }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'http://localhost:5000/api/candidate',
+    credentials: 'include',
+  }),
   endpoints: (builder) => ({
     loginCandidate: builder.mutation<LoginCandidateResponse, LoginCandidateInput>({
       query: ({ email, password }) => ({
-        url: 'candidate-login',
+        url: '/login',
         method: 'POST',
         body: { email, password },
       }),

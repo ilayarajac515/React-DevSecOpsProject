@@ -4,6 +4,6 @@ import handler from "express-async-handler";
 
 const router = Router();
 
-router.get("/candidate/login", handler(candidateController.candidateLogin));
+router.post("/login", handler(candidateController.candidateLogin));
 
 export default router;

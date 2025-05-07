@@ -46,7 +46,7 @@ app.use(
 
 app.use("/api/admin", adminRouter);
 app.use("/api/mock_form", formRouter);
-app.use("/api/users", candidateRouter);
+app.use("/api/candidate", candidateRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
