@@ -8,9 +8,9 @@ interface CheckAuthProps {
 }
 
 function CheckAuth({ children }: CheckAuthProps) {
-  const { authorized, loading } = useAuth();
+  const { isAdmin, loading } = useAuth();
   const location = useLocation();
-  const isAuthenticated = !!authorized;
+  const isAuthenticated = !!isAdmin;
   const path = location.pathname;
 
   const [delayedLoading, setDelayedLoading] = useState(true);

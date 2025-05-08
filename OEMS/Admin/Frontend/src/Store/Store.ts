@@ -8,7 +8,9 @@ export const store = configureStore({
     [candidateSlice.reducerPath]: candidateSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(formSlice.middleware),
+    getDefaultMiddleware()
+      .concat(formSlice.middleware)
+      .concat(candidateSlice.middleware), // ✅ Add this line
 });
 
 export type RootState = ReturnType<typeof store.getState>;

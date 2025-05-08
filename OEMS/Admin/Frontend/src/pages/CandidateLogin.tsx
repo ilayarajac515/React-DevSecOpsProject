@@ -9,9 +9,10 @@ import {
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { data, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useLoginCandidateMutation } from "../modules/candidate_slice";
-import { useAddSubmissionMutation } from "../modules/admin_slice";
+import { useCandidate } from "../context/CandidateContext";
+
 
 type FormValues = {
   email: string;
@@ -20,7 +21,7 @@ type FormValues = {
 
 const CandidateLogin = () => {
     const navigate = useNavigate();
-    const [loggedIn, setLoggedIn] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -33,7 +34,7 @@ const CandidateLogin = () => {
   const emailValue = watch("email");
   const passwordValue = watch("password");
   const [candidateLogin] = useLoginCandidateMutation();
-
+  const { setAuth } = useCandidate();
   useEffect(() => {
     if (existError) {
       setExistError("");
@@ -42,26 +43,23 @@ const CandidateLogin = () => {
 
   const {formId} = useParams();
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem("candidateToken");
-  //   if (token) {
-  //     navigate(`/assessment-page/${formId}`);
-  //   }
-  // }, [loggedIn, navigate]);
-
-  const onSubmit: SubmitHandler<FormValues> = async (data: any) => {
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      localStorage.setItem("candidateToken", "dummy_token_123");
-      const result = await candidateLogin({email:data?.email, password:data?.password});
-      console.log(result);
-      navigate(`/assessment-page/${formId}`);
+      const result = await candidateLogin({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+      setAuth({email: data.email , authorized: true});
+      localStorage.setItem("candidateToken", result.candidateToken);
       setExistError("");
       reset();
-      setLoggedIn(true);
+      navigate(`/assessment-page/${formId}`);
     } catch (err: any) {
-      setExistError("Login failed. Try again.");
+      console.error("Login error:", err);
+      setExistError(err?.data?.message || "Login failed. Try again.");
     }
   };
+  
   
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 

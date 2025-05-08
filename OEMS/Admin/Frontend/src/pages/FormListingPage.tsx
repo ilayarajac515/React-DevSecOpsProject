@@ -26,6 +26,7 @@ import {
 import { v4 as uuid } from "uuid";
 import DeleteFormDialog from "../components/DeleteFormDialog";
 import { toast } from "react-toastify";
+import { useLazyGetSubmittedCountQuery } from "../modules/admin_slice";
 
 type FormValues = {
   label: string;
@@ -50,12 +51,37 @@ const FormListingPage = () => {
   const [selectedForm, setSelectedForm] = useState<any>(null);
 
   const { register, handleSubmit, reset } = useForm<FormValues>();
+  const [triggerGetSubmittedCount] = useLazyGetSubmittedCountQuery();
+
 
   useEffect(() => {
     if (data) {
-      setFormRows(data);
+      const fetchSubmissionCounts = async () => {
+        const rowsWithCounts = await Promise.all(
+          data.map(async (form) => {
+            try {
+              const response = await triggerGetSubmittedCount(form.formId).unwrap();
+              return {
+                ...form,
+                submissions: response.submittedCount ?? 0,
+              };
+            } catch(err:any) {
+              console.log(err);
+              
+              return {
+                ...form,
+                submissions: 0, 
+              };
+            }
+          })
+        );
+        setFormRows(rowsWithCounts);
+      };
+  
+      fetchSubmissionCounts();
     }
-  }, [data]);
+  }, [data, triggerGetSubmittedCount]);
+  
 
   const Logoptions: string[] = [
     "edit",

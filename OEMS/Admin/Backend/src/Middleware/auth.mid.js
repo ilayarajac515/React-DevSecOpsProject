@@ -71,3 +71,22 @@ export const authenticateSession = (req, res, next) => {
     }
   );
 };
+
+export const authenticateCandidateJWT = (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+ 
+  if (!token) {
+    return res.status(BAD_REQUEST).json({ message: "No token provided" });
+  }
+ 
+  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res
+        .status(UNAUTHORIZED)
+        .json({ message: "Invalid or expired token" });
+    }
+
+    req.candidateEmail = decoded.email;
+    next();
+  });
+};

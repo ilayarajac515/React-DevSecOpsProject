@@ -9,6 +9,7 @@ import { AuthProvider } from "./context/GlobalContext";
 import { LicenseInfo } from "@mui/x-license-pro";
 import { Provider } from "react-redux";
 import { store } from "./Store/Store";
+import { CandidateProvider } from "./context/CandidateContext";
 
 LicenseInfo.setLicenseKey(
   "e0d9bb8070ce0054c9d9ecb6e82cb58fTz0wLEU9MzI0NzIxNDQwMDAwMDAsUz1wcmVtaXVtLExNPXBlcnBldHVhbCxLVj0y"
@@ -22,6 +23,7 @@ root.render(
     <Provider store={store}>
       <BrowserRouter>
         <AuthProvider>
+        <CandidateProvider>
           <App />
           <ToastContainer
             position="bottom-right"
@@ -34,6 +36,7 @@ root.render(
             draggable
             theme="light"
           />
+        </CandidateProvider>
         </AuthProvider>
       </BrowserRouter>
     </Provider>
