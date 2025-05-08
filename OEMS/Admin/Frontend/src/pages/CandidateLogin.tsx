@@ -13,14 +13,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useLoginCandidateMutation } from "../modules/candidate_slice";
 import { useCandidate } from "../context/CandidateContext";
 
-
 type FormValues = {
   email: string;
   password: string;
 };
 
 const CandidateLogin = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -41,7 +40,7 @@ const CandidateLogin = () => {
     }
   }, [emailValue, passwordValue]);
 
-  const {formId} = useParams();
+  const { formId } = useParams();
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
@@ -49,7 +48,7 @@ const CandidateLogin = () => {
         email: data.email,
         password: data.password,
       }).unwrap();
-      setAuth({email: data.email , authorized: true});
+      setAuth({ email: data.email, authorized: true });
       localStorage.setItem("candidateToken", result.candidateToken);
       setExistError("");
       reset();
@@ -59,8 +58,7 @@ const CandidateLogin = () => {
       setExistError(err?.data?.message || "Login failed. Try again.");
     }
   };
-  
-  
+
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   return (

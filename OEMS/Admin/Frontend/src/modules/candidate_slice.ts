@@ -138,7 +138,7 @@ export const candidateSlice = createApi({
     }),
 
     getCandidateSubmission: builder.query<CandidateSubmission, string>({
-      query: (email) => `/submission/${email}`,
+      query: (responseId) => `/submission/${responseId}`,
     }),
 
     getFieldsByCandidateFormId: builder.query<Field[], string>({
@@ -148,7 +148,6 @@ export const candidateSlice = createApi({
       ],
     }),
 
-   
     getFormById: builder.query<Form, string>({
       query: (formId) => `form/${formId}`,
       providesTags: (_result, _error, formId) => [
@@ -165,7 +164,6 @@ export const {
   useLogoutCandidateMutation,
   useGetFieldsByCandidateFormIdQuery,
   useAddSubmissionMutation,
- 
   useEditSubmissionMutation,
   useGetCandidateSubmissionQuery
 } = candidateSlice;

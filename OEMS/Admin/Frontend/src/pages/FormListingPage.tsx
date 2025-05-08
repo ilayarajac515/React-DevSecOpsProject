@@ -53,35 +53,35 @@ const FormListingPage = () => {
   const { register, handleSubmit, reset } = useForm<FormValues>();
   const [triggerGetSubmittedCount] = useLazyGetSubmittedCountQuery();
 
-
   useEffect(() => {
     if (data) {
       const fetchSubmissionCounts = async () => {
         const rowsWithCounts = await Promise.all(
           data.map(async (form) => {
             try {
-              const response = await triggerGetSubmittedCount(form.formId).unwrap();
+              const response = await triggerGetSubmittedCount(
+                form.formId
+              ).unwrap();
               return {
                 ...form,
                 submissions: response.submittedCount ?? 0,
               };
-            } catch(err:any) {
+            } catch (err: any) {
               console.log(err);
-              
+
               return {
                 ...form,
-                submissions: 0, 
+                submissions: 0,
               };
             }
           })
         );
         setFormRows(rowsWithCounts);
       };
-  
+
       fetchSubmissionCounts();
     }
   }, [data, triggerGetSubmittedCount]);
-  
 
   const Logoptions: string[] = [
     "edit",

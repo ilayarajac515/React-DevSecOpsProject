@@ -1,9 +1,4 @@
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -16,7 +11,7 @@ type FormValues = {
 
 const ForgetPassword = () => {
   const navigate = useNavigate();
-  
+
   const [existError, setExistError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +22,7 @@ const ForgetPassword = () => {
     watch,
     formState: { errors },
   } = useForm<FormValues>();
-  const emailValue = watch('email');
+  const emailValue = watch("email");
 
   useEffect(() => {
     if (existError) {

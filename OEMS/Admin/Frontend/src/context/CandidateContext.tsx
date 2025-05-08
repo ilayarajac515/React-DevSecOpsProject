@@ -60,6 +60,7 @@ import React, {
   
       loadAuth();
     }, [data]);
+    
     return (
       <CandidateContext.Provider
         value={{
