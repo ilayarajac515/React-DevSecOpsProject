@@ -2,7 +2,7 @@ import { Router } from "express";
 import * as formController from "../Controllers/form.controller.js";
 import multer from "multer";
 import handler from "express-async-handler";
-import { authenticateCandidateJWT, authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
+import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
 
 const router = Router();
 const upload = multer();

@@ -141,6 +141,14 @@ export const candidateSlice = createApi({
       query: (responseId) => `/submission/${responseId}`,
     }),
 
+    updateTimer: builder.mutation<{ message: string }, { formId: string, userEmail: string, Timer: string }>({
+      query: ({ formId, userEmail, Timer }) => ({
+        url: `/form/${formId}/candidate/${userEmail}/timer`,
+        method: 'PUT',
+        body: { Timer },
+      }),
+    }),
+
     getFieldsByCandidateFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/field`,
       providesTags: (_result, _error, formId) => [
@@ -163,6 +171,7 @@ export const {
   useGetFormByIdQuery,
   useLogoutCandidateMutation,
   useGetFieldsByCandidateFormIdQuery,
+  useUpdateTimerMutation,
   useAddSubmissionMutation,
   useEditSubmissionMutation,
   useGetCandidateSubmissionQuery

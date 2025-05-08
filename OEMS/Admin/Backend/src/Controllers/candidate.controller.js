@@ -239,3 +239,36 @@ export const getFormById = (req, res) => {
   );
 };
 
+export const updateTimer = (req, res) => {
+  const { formId, userEmail } = req.params;
+  const { Timer } = req.body;
+
+  if (!formId || !userEmail || !Timer) {
+    return res
+      .status(BAD_REQUEST)
+      .json({ message: "Required fields are missing" });
+  }
+
+  const query = `
+    UPDATE ValueTable 
+    SET Timer = ? 
+    WHERE formId = ? AND userEmail = ?
+  `;
+
+  connection.query(query, [Timer, formId, userEmail], (err, results) => {
+    if (err) {
+      console.error("Error updating Timer:", err);
+      return res.status(SERVER_ERROR).json({ error: "Server error" });
+    }
+
+    if (results.affectedRows === 0) {
+      return res
+        .status(NOT_FOUND)
+        .json({
+          message: "No record found with the provided formId and userEmail",
+        });
+    }
+
+    res.status(STATUS_OK).json({ message: "Timer updated successfully" });
+  });
+};

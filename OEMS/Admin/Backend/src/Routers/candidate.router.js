@@ -15,6 +15,7 @@ router.post("/form/:formId/submit", handler(candidateController.submitForm));
 router.put("/form/:formId/submission", handler(candidateController.editSubmission));
 router.get("/form/:formId/field", handler(candidateController.getCandidateFields));
 router.get("/form/:formId", handler(candidateController.getFormById));
+router.put("/form/:formId/candidate/:userEmail/timer", handler(candidateController.updateTimer));
 router.get("/submission/:responseId", handler(candidateController.getCandidateSubmission));
 
 router.get(
