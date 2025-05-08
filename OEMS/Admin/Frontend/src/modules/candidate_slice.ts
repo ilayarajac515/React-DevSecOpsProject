@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Field, Form } from "./admin_slice";
-
+ 
 export interface LoginCandidateInput {
   email: string;
   password: string;
@@ -9,14 +9,12 @@ interface Submission {
   responseId: string;
   formId?: string;
   value?: any;
-  ip?: string;
   userEmail?: string;
   startTime?: string;
   endTime?: string;
   duration?: string;
   score?: string;
   status?: string;
-  endIp?: string;
   warnings?: number;
   termsAccepted?: string;
 }
@@ -24,7 +22,6 @@ export interface EditSubmissionInput {
   formId: string;
   responseId?: string;
   value: any;
-  ip?: string;
   userEmail: string;
   startTime?: string;
   endTime?: string;
@@ -38,8 +35,6 @@ export interface CandidateSubmission {
   responseId: string;
   formId: string;
   value: any;
-  ip: string;
-  submittedAt: string;
   userEmail: string;
   startTime: string;
   endTime: string;
@@ -47,7 +42,6 @@ export interface CandidateSubmission {
   score: string;
   status: string;
   termsAccepted: string;
-  endIp: string;
   warnings: number;
 }
 export interface EditSubmissionResponse {
@@ -58,17 +52,17 @@ export interface LoginCandidateResponse {
   email: string;
   candidateToken: string;
 }
-
+ 
 interface AddSubmissionResponse {
   message:string;
   responseId: string;
 }
-
+ 
 export interface CandidateAuthResponse {
   authorized: boolean;
   email: string;
 }
-
+ 
 export const candidateSlice = createApi({
   reducerPath: "candidate_api",
   baseQuery: fetchBaseQuery({
@@ -94,24 +88,24 @@ export const candidateSlice = createApi({
         body: { email, password },
       }),
     }),
-
+ 
     checkCandidateAuth: builder.query<CandidateAuthResponse, void>({
       query: () => ({
         url: "/check-auth",
         method: "GET",
       }),
     }),
-
+ 
     logoutCandidate: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: "/logout",
         method: "POST",
       }),
     }),
-
+ 
     addSubmission: builder.mutation<
       AddSubmissionResponse,
-      { formId: string; data: Omit<Submission, "submittedAt"> }
+      { formId: string; data: Submission }
     >({
       query: ({ formId, data }) => ({
         url: `form/${formId}/submit`,
@@ -122,7 +116,7 @@ export const candidateSlice = createApi({
         { type: "Submissions", id: formId },
       ],
     }),
-
+ 
     editSubmission: builder.mutation<
       EditSubmissionResponse,
       EditSubmissionInput
@@ -136,11 +130,11 @@ export const candidateSlice = createApi({
         { type: "Submissions", id: formId },
       ],
     }),
-
+ 
     getCandidateSubmission: builder.query<CandidateSubmission, string>({
       query: (responseId) => `/submission/${responseId}`,
     }),
-
+ 
     updateTimer: builder.mutation<{ message: string }, { formId: string, userEmail: string, Timer: string }>({
       query: ({ formId, userEmail, Timer }) => ({
         url: `/form/${formId}/candidate/${userEmail}/timer`,
@@ -148,14 +142,14 @@ export const candidateSlice = createApi({
         body: { Timer },
       }),
     }),
-
+ 
     getFieldsByCandidateFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/field`,
       providesTags: (_result, _error, formId) => [
         { type: "Fields", id: formId },
       ],
     }),
-
+ 
     getFormById: builder.query<Form, string>({
       query: (formId) => `form/${formId}`,
       providesTags: (_result, _error, formId) => [
@@ -164,7 +158,7 @@ export const candidateSlice = createApi({
     }),
   }),
 });
-
+ 
 export const {
   useLoginCandidateMutation,
   useCheckCandidateAuthQuery,
@@ -176,3 +170,5 @@ export const {
   useEditSubmissionMutation,
   useGetCandidateSubmissionQuery
 } = candidateSlice;
+ 
+ 

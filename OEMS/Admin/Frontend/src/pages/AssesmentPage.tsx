@@ -19,12 +19,13 @@ import {
   useGetCandidateSubmissionQuery,
   useGetFieldsByCandidateFormIdQuery,
   useGetFormByIdQuery,
+  useUpdateTimerMutation,
 } from "../modules/candidate_slice";
 import { useParams } from "react-router-dom";
 import { useLogoutCandidateMutation } from "../modules/candidate_slice";
 import { v4 as uuid } from "uuid";
 import { useCandidate } from "../context/CandidateContext";
-
+ 
 const AssessmentPage = () => {
   const { email, setAuth } = useCandidate();
   const { formId } = useParams();
@@ -39,11 +40,21 @@ const AssessmentPage = () => {
   const initialData = savedAnswers ? JSON.parse(savedAnswers) : {};
   const [startSubmit, { data: submissionResponse }] =
     useAddSubmissionMutation();
-
+  const [elapsedTime, setElapsedTime] = useState("00:00");
+  const [updateTimer] = useUpdateTimerMutation();
+ 
   if (submissionResponse?.responseId) {
     localStorage.setItem("responseId", submissionResponse.responseId);
   }
-
+  const formatDuration = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+ 
   const handleAgree = useCallback(async () => {
     if (termsAccepted) {
       const now = new Date();
@@ -53,13 +64,12 @@ const AssessmentPage = () => {
         minute: "2-digit",
         second: "2-digit",
       });
-
+ 
       try {
         await startSubmit({
           formId: formId ?? "",
           data: {
             termsAccepted: "true",
-            ip: "",
             userEmail: email ?? "",
             startTime: formattedTime,
             responseId: uuid(),
@@ -74,7 +84,7 @@ const AssessmentPage = () => {
       alert("Please accept the terms to continue.");
     }
   }, [termsAccepted, formId, startSubmit]);
-
+ 
   const submissionId = localStorage.getItem("responseId");
   const { data: candidateData } = useGetCandidateSubmissionQuery(
     submissionId ?? "",
@@ -82,11 +92,49 @@ const AssessmentPage = () => {
       skip: !submissionId,
     }
   );
-
+ 
+  useEffect(() => {
+    if (!candidateData?.startTime || !formData?.duration) return;
+ 
+    const [startHour = 0, startMinute = 0, startSecond = 0] =
+      candidateData.startTime.split(":").map(Number);
+    const [durationMinutes = 0, durationSeconds = 0] = formData.duration
+      .split(":")
+      .map(Number);
+ 
+    const startDate = new Date();
+    startDate.setHours(startHour, startMinute, startSecond, 0);
+    const endDate = new Date(
+      startDate.getTime() + (durationMinutes * 60 + durationSeconds) * 1000
+    );
+ 
+    const interval = setInterval(() => {
+      const now = new Date();
+      let diffMs = endDate.getTime() - now.getTime();
+ 
+      if (diffMs <= 0) {
+        setElapsedTime("00:00");
+        clearInterval(interval);
+        handleSubmit(onSubmit)();
+        return;
+      }
+ 
+      setElapsedTime(formatDuration(diffMs));
+ 
+      updateTimer({
+        formId: candidateData.formId,
+        userEmail: candidateData.userEmail,
+        Timer: formatDuration(diffMs),
+      });
+    });
+ 
+    return () => clearInterval(interval);
+  }, [candidateData, formData]);
+ 
   const { register, handleSubmit, control, watch } = useForm({
     defaultValues: initialData,
   });
-
+ 
   const handleLogout = async () => {
     try {
       await logoutCandidate().unwrap();
@@ -98,14 +146,14 @@ const AssessmentPage = () => {
     }
   };
   const [submitted, setSubmitted] = useState<boolean | null>(false);
-
+ 
   const watchedValues = watch();
   useEffect(() => {
     if (Object.keys(watchedValues).length > 0) {
       localStorage.setItem(`answers_${formId}`, JSON.stringify(watchedValues));
     }
   }, [watchedValues, formId]);
-
+ 
   useEffect(() => {
     if (data) {
       setFields(data);
@@ -114,14 +162,14 @@ const AssessmentPage = () => {
       setOpenDialog(false);
     }
   }, [data, candidateData]);
-
+ 
   const handleTermsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTermsAccepted(event.target.checked);
   };
-
+ 
   const onSubmit = async (data: any) => {
     const result: Record<string, any> = {};
-
+ 
     fields.forEach((field, index) => {
       if (field.type === "rta") {
         const questionsAndAnswers = field.rta?.questions?.map(
@@ -135,7 +183,7 @@ const AssessmentPage = () => {
         result[field.label] = data[`field_${index}`];
       }
     });
-
+ 
     const now = new Date();
     const formattedTime = now.toLocaleTimeString("en-GB", {
       hour12: false,
@@ -143,7 +191,7 @@ const AssessmentPage = () => {
       minute: "2-digit",
       second: "2-digit",
     });
-    
+ 
     const [startHour, startMinute, startSecond] = (
       candidateData?.startTime || "00:00:00"
     )
@@ -152,23 +200,23 @@ const AssessmentPage = () => {
     const [endHour, endMinute, endSecond] = formattedTime
       .split(":")
       .map(Number);
-
+ 
     const startDate = new Date(1970, 0, 1, startHour, startMinute, startSecond);
     const endDate = new Date(1970, 0, 1, endHour, endMinute, endSecond);
-
+ 
     if (endDate < startDate) {
       endDate.setDate(endDate.getDate() + 1);
     }
-
+ 
     const diffMs = endDate.getTime() - startDate.getTime();
     const totalSeconds = Math.floor(diffMs / 1000);
     const totalMinutes = Math.floor(totalSeconds / 60);
     const remainingSeconds = totalSeconds % 60;
-
+ 
     const duration = `${totalMinutes
       .toString()
       .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-
+ 
     try {
       await endSubmit({
         formId: candidateData?.formId ?? "",
@@ -178,14 +226,14 @@ const AssessmentPage = () => {
         duration,
         value: result,
       }).unwrap();
-
+ 
       setSubmitted(true);
       handleLogout();
     } catch (err) {
       console.error("Failed to submit test", err);
     }
   };
-
+ 
   const toRoman = (num: number) => {
     const romanNumerals: string[] = [
       "i",
@@ -211,7 +259,7 @@ const AssessmentPage = () => {
     ];
     return romanNumerals[num - 1] || num.toString();
   };
-
+ 
   if (openDialog && candidateData?.termsAccepted !== "true") {
     return (
       <AgreeToTermsDialog
@@ -223,7 +271,7 @@ const AssessmentPage = () => {
       />
     );
   }
-
+ 
   return (
     <Container maxWidth="md">
       {submitted ? (
@@ -255,15 +303,18 @@ const AssessmentPage = () => {
             <Typography variant="h4" gutterBottom fontWeight="bold">
               Assessment
             </Typography>
-
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Time Elapsed: {elapsedTime}
+            </Typography>
+ 
             <Divider sx={{ my: 2 }} />
-
+ 
             {fields.map((field, index) => (
               <Box key={field.id || index} my={3}>
                 <Typography variant="subtitle1" gutterBottom fontWeight="bold">
                   {index + 1}. {field.label}
                 </Typography>
-
+ 
                 {field.type === "text" ? (
                   <TextField
                     type="text"
@@ -353,7 +404,7 @@ const AssessmentPage = () => {
                 )}
               </Box>
             ))}
-
+ 
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button variant="contained" color="success" type="submit">
@@ -366,5 +417,6 @@ const AssessmentPage = () => {
     </Container>
   );
 };
-
+ 
 export default AssessmentPage;
+ 
