@@ -75,12 +75,12 @@ export const candidateLogout = (req, res) => {
 };
 
 export const getCandidateSubmission = (req, res) => {
-  const { email } = req.params;
+  const { responseId } = req.params;
   const query = `
-    SELECT * FROM ValueTable WHERE userEmail = ?
+    SELECT * FROM ValueTable WHERE responseId = ?
   `;
 
-  connection.query(query, [email], (err, results) => {
+  connection.query(query, [responseId], (err, results) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(SERVER_ERROR).json({ message: "Server error" });

@@ -16,7 +16,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/GlobalContext";
 import { useCandidate } from "../context/CandidateContext";
 
-// Admin-specific color generator
 const adminStringToColor = (string: string) => {
   if (!string) return "#424242";
   let hash = 0;
@@ -31,16 +30,15 @@ const adminStringToColor = (string: string) => {
   return color;
 };
 
-// Candidate-specific color generator
 const candidateStringToColor = (string: string) => {
   if (!string) return "#757575";
   let hash = 1;
   for (let i = 0; i < string.length; i++) {
-    hash = string.charCodeAt(i) + ((hash << 6) - hash); // Different shift to avoid collision
+    hash = string.charCodeAt(i) + ((hash << 6) - hash);
   }
   let color = "#";
   for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 6)) & 0xff; // Different mask for added randomness
+    const value = (hash >> (i * 6)) & 0xff;
     color += ("00" + value.toString(16)).slice(-2);
   }
   return color;
@@ -48,6 +46,7 @@ const candidateStringToColor = (string: string) => {
 
 function Navbar() {
   const location = useLocation();
+  const isAssessmentPage = location.pathname.startsWith("/assessment-page");
   const { isAdmin, name, setAuth, email } = useAuth();
   const { email: candidateEmail, authorized } = useCandidate();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
@@ -84,7 +83,7 @@ function Navbar() {
     location.pathname.startsWith("/candidate");
 
   return (
-    <AppBar position="static" elevation={0}>
+    <AppBar position={!isAssessmentPage ? "static" : "fixed"} elevation={0}>
       <Toolbar
         disableGutters
         sx={{
@@ -98,7 +97,6 @@ function Navbar() {
         </Box>
 
         <Box sx={{ flexGrow: 0 }}>
-          {/* Admin avatar (shown only on non-candidate routes) */}
           {!isCandidateRoute && isAdmin && name && (
             <>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -128,8 +126,6 @@ function Navbar() {
               </Menu>
             </>
           )}
-
-          {/* Candidate avatar (shown only on candidate routes) */}
           {isCandidateRoute && candidateEmail && authorized && (
             <Tooltip title={candidateEmail}>
               <Avatar sx={{ backgroundColor: candidateAvatarColor }}>
