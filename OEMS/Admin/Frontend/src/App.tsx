@@ -11,8 +11,8 @@ import PageNotFound from "./pages/PageNotFound";
 import FieldListingPage from "./pages/FieldListingPage";
 import AssessmentPage from "./pages/AssesmentPage";
 import CandidateLogin from "./pages/CandidateLogin";
-import CheckAuthCandidate from "./components/CheckAuthCandidate";
 import SubmissionsPage from "./pages/SubmissionsPage";
+import CheckAuthCandidate from "./components/CheckAuthCandidate";
 
 const App = () => {
   const location = useLocation();
@@ -75,8 +75,15 @@ const App = () => {
                 </CheckAuth>
               }
             />
-            <Route path="/candidate-login" element={<CandidateLogin />} />
-            <Route path="/candidate-login/:formId" element={<CandidateLogin />} />
+            <Route
+              path="/candidate-login/:formId"
+              element={
+                <CheckAuthCandidate>
+                  <CandidateLogin />
+                </CheckAuthCandidate>
+              }
+            />
+
             <Route path="/forget-password" element={<ForgetPassword />} />
             <Route
               path="/reset-password/:userId/:token/:expiry"

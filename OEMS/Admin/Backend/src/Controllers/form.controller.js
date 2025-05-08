@@ -29,46 +29,6 @@ export const getFields = (req, res) => {
   );
 };
 
-export const getCandidateFields = (req, res) => {
-  const { formId } = req.params;
-
-  if (!formId) {
-    return res.status(BAD_REQUEST).json({ message: "formId is required" });
-  }
-
-  connection.query(
-    "SELECT status FROM FormTable WHERE formId = ?",
-    [formId],
-    (formErr, formResults) => {
-      if (formErr) {
-        console.error("Error checking form status:", formErr);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
-      }
-
-      if (formResults.length === 0) {
-        return res.status(NOT_FOUND).json({ message: "Form not found" });
-      }
-
-      const { status } = formResults[0];
-      if (status !== "active") {
-        return res.status(FORBIDDEN).json({ message: "Exam not yet started" });
-      }
-
-      connection.query(
-        "SELECT * FROM FieldTable WHERE formId = ?",
-        [formId],
-        (fieldErr, fieldResults) => {
-          if (fieldErr) {
-            console.error("Error fetching fields:", fieldErr);
-            return res.status(SERVER_ERROR).json({ error: "Server error" });
-          }
-          res.status(STATUS_OK).json(fieldResults);
-        }
-      );
-    }
-  );
-};
-
 export const getForms = (req, res) => {
   connection.query("SELECT * FROM FormTable", (err, results) => {
     if (err) {
@@ -187,31 +147,6 @@ export const addField = (req, res) => {
   );
 };
 
-export const getFormById = (req, res) => {
-  const { formId } = req.params;
-
-  if (!formId) {
-    return res.status(BAD_REQUEST).json({ message: "formId is required" });
-  }
-
-  connection.query(
-    "SELECT * FROM FormTable WHERE formId = ?",
-    [formId],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching form:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
-      }
-
-      if (results.length === 0) {
-        return res.status(NOT_FOUND).json({ message: "Form not found" });
-      }
-
-      res.status(STATUS_OK).json(results[0]);
-    }
-  );
-};
-
 export const createForm = (req, res) => {
   const {
     formId,
@@ -246,7 +181,6 @@ export const createForm = (req, res) => {
         console.error("Error creating form:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
-
       res
         .status(STATUS_OK)
         .json({ message: "Form created successfully", formId });
@@ -337,114 +271,6 @@ export const deleteForm = (req, res) => {
   );
 };
 
-export const submitForm = (req, res) => {
-  const { formId } = req.params;
-  const { responseId, ip, userEmail, startTime, termsAccepted } = req.body;
-
-  if (!formId || !responseId) {
-    return res
-      .status(BAD_REQUEST)
-      .json({ message: "Required fields are missing" });
-  }
-
-  const query = `
-        INSERT INTO ValueTable (responseId, formId, ip, userEmail, startTime, termsAccepted)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-
-  connection.query(
-    query,
-    [responseId, formId, ip, userEmail, startTime, termsAccepted],
-    (err, results) => {
-      if (err) {
-        console.error("Error submitting form response:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
-      }
-
-      res.status(STATUS_OK).json({ message: "Response submitted", responseId });
-    }
-  );
-};
-
-export const editSubmission = (req, res) => {
-  const { formId, responseId } = req.params;
-  const {
-    value,
-    ip,
-    userEmail,
-    startTime,
-    endTime,
-    duration,
-    termsAccepted,
-    score,
-    status,
-    warnings,
-    endIp,
-  } = req.body;
-
-  if (!formId || !responseId) {
-    return res
-      .status(BAD_REQUEST)
-      .json({ message: "formId and responseId are required" });
-  }
-
-    const checkValueTableQuery = `
-    SELECT * FROM ValueTable WHERE userEmail = ?
-  `;
-
-  connection.query(checkValueTableQuery, [userEmail], (err2, valueResults) => {
-    if (err2) {
-      console.error("Error checking ValueTable:", err2);
-      return res.status(SERVER_ERROR).json({ message: "Server error" });
-    }
-
-    if (valueResults.length > 0) {
-      return res.status(FORBIDDEN).json({ message: "User already submitted" });
-    }
-
-    const query = `
-    UPDATE ValueTable
-    SET value = ?, ip = ?, userEmail = ?, startTime = ?, endTime = ?, duration = ?, termsAccepted = ?, score = ?, status = ?,
-    warnings = ?, endIp = ? WHERE formId = ? AND responseId = ?
-  `;
-
-    connection.query(
-      query,
-      [
-        JSON.stringify(value),
-        ip,
-        userEmail,
-        startTime || null,
-        endTime || null,
-        duration || null,
-        termsAccepted,
-        score,
-        status,
-        warnings,
-        endIp,
-        formId,
-        responseId,
-      ],
-      (err, result) => {
-        if (err) {
-          console.error("Error updating submission:", err);
-          return res.status(SERVER_ERROR).json({ message: "Server error" });
-        }
-
-        if (result.affectedRows === 0) {
-          return res
-            .status(NOT_FOUND)
-            .json({ message: "Submission not found" });
-        }
-
-        res
-          .status(STATUS_OK)
-          .json({ message: "Submission updated", responseId });
-      }
-    );
-  });
-};
-
 export const getSubmissions = (req, res) => {
   const { formId } = req.params;
 
@@ -464,6 +290,30 @@ export const getSubmissions = (req, res) => {
       res.status(STATUS_OK).json(results);
     }
   );
+};
+
+export const getSubmittedCount = (req, res) => {
+  const { formId } = req.params;
+ 
+  if (!formId) {
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+  }
+ 
+  const query = `
+    SELECT COUNT(*) AS submittedCount 
+    FROM ValueTable 
+    WHERE formId = ? AND status = 'submitted'
+  `;
+ 
+  connection.query(query, [formId], (err, results) => {
+    if (err) {
+      console.error("Error fetching submitted count:", err);
+      return res.status(SERVER_ERROR).json({ error: "Server error" });
+    }
+ 
+    const submittedCount = results[0].submittedCount || 0;
+    res.status(STATUS_OK).json({ submittedCount });
+  });
 };
 
 export const replaceFields = (req, res) => {

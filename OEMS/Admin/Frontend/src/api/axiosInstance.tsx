@@ -35,7 +35,6 @@ axiosInstance.interceptors.response.use(
       error.response.status === 401 &&
       !isAuthEndpoint(originalRequest.url)
     ) {
-      console.log(originalRequest.url);
       if (!originalRequest._retry) {
         originalRequest._retry = true;
         try {

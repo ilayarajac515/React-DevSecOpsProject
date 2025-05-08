@@ -9,7 +9,6 @@ export interface Field {
   options?: any;
   rta?: any;
 }
-
 interface Submission {
   responseId: string;
   formId?: string;
@@ -25,27 +24,7 @@ interface Submission {
   warnings?: number;
   termsAccepted?: string;
 }
-
-export interface EditSubmissionInput {
-  formId: string;
-  responseId: string;
-  value: any;
-  ip?: string;
-  userEmail: string;
-  startTime?: string;
-  endTime?: string;
-  duration?: string;
-  termsAccepted?: string;
-  score?: number;
-  status?: string;
-}
-
-export interface EditSubmissionResponse {
-  message: string;
-  responseId: string;
-}
-
-interface Form {
+export interface Form {
   formId: string;
   label: string;
   manager: string;
@@ -101,7 +80,6 @@ const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (args, api
   return result;
 };
 
-
 export const formSlice = createApi({
   reducerPath: 'form_api',
   baseQuery: baseQueryWithReauth,
@@ -138,20 +116,10 @@ export const formSlice = createApi({
       invalidatesTags: ['Forms'],
     }),
 
-    getFormById: builder.query<Form, string>({
-      query: (formId) => `form/${formId}`,
-      providesTags: (_result, _error, formId) => [{ type: 'Forms', id: formId }],
-    }),
-
     getFieldsByFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/fields`,
       providesTags: (_result, _error, formId) => [{ type: 'Fields', id: formId }],
     }),
-
-    getFieldsByCandidateFormId: builder.query<Field[], string>({
-      query: (formId) => `form/${formId}/field`,
-      providesTags: (_result, _error, formId) => [{ type: 'Fields', id: formId }],
-    }),    
 
     addField: builder.mutation<{ message: string; fieldId: string }, { formId: string; data: Field }>({
       query: ({ formId, data }) => ({
@@ -184,25 +152,11 @@ export const formSlice = createApi({
       providesTags: (_result, _error, formId) => [{ type: 'Submissions', id: formId }],
     }),
 
-    addSubmission: builder.mutation<{ message: string; responseId: string },
-      { formId: string; data: Omit<Submission, 'submittedAt'> }>({
-        query: ({ formId, data }) => ({
-          url: `form/${formId}/submit`,
-          method: 'POST',
-          body: data,
+     getSubmittedCount: builder.query<{ submittedCount: number }, string>({
+          query: (formId) => `form/${formId}/submitted-count`,
+          providesTags: (_result, _error, formId) => [{ type: "Submissions", id: formId }],
         }),
-        invalidatesTags: (_result, _error, { formId }) => [{ type: 'Submissions', id: formId }],
-    }),
-
-    editSubmission: builder.mutation<EditSubmissionResponse, EditSubmissionInput>({
-      query: ({ formId, responseId, ...body }) => ({
-        url: `form/${formId}/submission/${responseId}`,
-        method: 'PUT',
-        body,
-      }),
-      invalidatesTags: (_result, _error, { formId }) => [{ type: 'Submissions', id: formId }],
-    }),
-
+    
     replaceFields: builder.mutation<{ message: string }, { formId: string; fields: Field[] }>({
       query: ({ formId, fields }) => ({
         url: `form/${formId}/fields`,
@@ -229,15 +183,12 @@ export const {
   useAddFormMutation,
   useUpdateFormMutation,
   useDeleteFormMutation,
-  useGetFormByIdQuery,
   useGetFieldsByFormIdQuery,
-  useGetFieldsByCandidateFormIdQuery,
   useAddFieldMutation,
   useEditFieldMutation,
   useDeleteFieldMutation,
   useGetSubmissionsByFormIdQuery,
-  useAddSubmissionMutation,
-  useEditSubmissionMutation,
+  useLazyGetSubmittedCountQuery,
   useReplaceFieldsMutation,
   useUploadImageMutation
 } = formSlice;

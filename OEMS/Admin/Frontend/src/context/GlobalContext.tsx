@@ -10,19 +10,19 @@ import { useLocation } from "react-router-dom";
 import { checkAuth as fetchAuthStatus } from "../Services/adminService";
 
 interface AuthState {
-  authorized: boolean;
+  isAdmin: boolean;
   name: string | null;
   email: string | null;
   loading: boolean;
   setAuth: (auth: {
-    authorized: boolean;
+    isAdmin: boolean;
     name: string | null;
     email: string | null;
   }) => void;
 }
 
 const defaultAuthState: AuthState = {
-  authorized: false,
+  isAdmin: false,
   name: null,
   email: null,
   loading: true,
@@ -37,7 +37,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [auth, setAuthState] = useState<Omit<AuthState, "setAuth">>({
-    authorized: false,
+    isAdmin: false,
     name: null,
     email: null,
     loading: true,
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const setAuth = useCallback(
     (authData: {
-      authorized: boolean;
+      isAdmin: boolean;
       name: string | null;
       email: string | null;
     }) => {
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem("accessToken");
       if (!token) {
         setAuthState({
-          authorized: false,
+          isAdmin: false,
           name: null,
           email: null,
           loading: false,
@@ -79,14 +79,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const data = await fetchAuthStatus();
         if (data.authorized) {
           setAuthState({
-            authorized: true,
+            isAdmin: true,
             name: data.name ?? null,
             email: data.email ?? null,
             loading: false,
           });
         } else {
           setAuthState({
-            authorized: false,
+            isAdmin: false,
             name: null,
             email: null,
             loading: false,
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         setAuthState({
-          authorized: false,
+          isAdmin: false,
           name: null,
           email: null,
           loading: false,

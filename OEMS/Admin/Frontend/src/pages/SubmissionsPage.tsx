@@ -2,17 +2,21 @@ import { Box, Button, Typography } from "@mui/material";
 import { DataGridPro, GridColDef} from "@mui/x-data-grid-pro";
  
 import LongMenu from "../components/LogMenu";
+import { useGetSubmissionsByFormIdQuery } from "../modules/admin_slice";
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { GridRowsProp } from "@mui/x-data-grid";
 const SubmissionsPage = () => {
   const Logoptions: string[] = ["edit", "delete"];
- 
+  const {id:formId} = useParams();
+  
   const columns: GridColDef[] = [
-    { field: "name", headerName: "Name", width: 200 },
-    { field: "email", headerName: "Email", width: 300 },
-    { field: "warning", headerName: "Warning", width: 100 },
-    { field: "start", headerName: "Start Time", width: 100 },
-    { field: "end", headerName: "End Time", width: 100 },
+    { field: "userEmail", headerName: "Email", width: 300 },
+    { field: "startTime", headerName: "Start Time", width: 100 },
+    { field: "submittedAt", headerName: "End Time", width: 100 },
     { field: "duration", headerName: "Duration", width: 100 },
     { field: "status", headerName: "Status", width: 200 },
+    { field: "warning", headerName: "Warning", width: 100 },
     { field: "score", headerName: "Score", width: 100 ,
       editable:true,
     },
@@ -33,42 +37,15 @@ const SubmissionsPage = () => {
       ),
     },
   ];
- 
-  // const [rows, setRows] = useState<GridRowsProp>([]);
-  type Row = {
-    id:number,
-      name:string,
-      email:string,
-      warning:number,
-      start:number,
-      end:number,
-      duration:number,
-      status:string,
-      score:number,
-  }
-const rows:Row[] = [{
-      id:1,
-      name:"Thiru",
-      email:"thirumurugankutty@gmail.com",
-      warning:3,
-      start:0,
-      end:1,
-      duration:60,
-      status:"submitted",
-      score:12,
-   
-    },{
-      id:2,
-      name:"Karthi",
-      email:"karthis15cse@gmail.com",
-      warning:10,
-      start:0,
-      end:1,
-      duration:60,
-      status:"Not Submitted",
-      score:0,
-   
-    },]
+  const {data: submissionData}= useGetSubmissionsByFormIdQuery(formId ?? "");
+  
+  useEffect(()=>{
+    if(submissionData){
+      setRows(submissionData)
+    }
+  },[submissionData])
+  const [rows, setRows] = useState<GridRowsProp>([]);
+
  
   const handleDelete = (row: any) => {};
  

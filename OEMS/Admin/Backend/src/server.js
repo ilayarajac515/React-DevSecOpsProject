@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import adminRouter from "./Routers/admin.Router.js";
-import formRouter from "./Routers/form.router.js";
+import formRouter from "./Routers/form.Router.js";
 import candidateRouter from "./Routers/candidate.router.js";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
