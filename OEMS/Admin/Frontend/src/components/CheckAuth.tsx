@@ -24,7 +24,8 @@ function CheckAuth({ children }: CheckAuthProps) {
     path === "/" ||
     path === "/sign-up" ||
     path === "/forget-password" ||
-    path.startsWith("/reset-password");
+    path.startsWith("/reset-password") || 
+    path === "/candidate-registration-page";
 
   if (loading || delayedLoading) {
     return <CircularProgressBar />;

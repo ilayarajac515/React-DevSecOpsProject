@@ -33,6 +33,15 @@ export interface Form {
   endContent?: string;
 }
  
+export interface RegistrationForm {
+  formId: string;
+  branch: string;
+  label: string;
+  description: string;
+  manager: string;
+  status?: string;
+}
+ 
 type RefreshResponse = {
   accessToken: string;
 };
@@ -81,7 +90,7 @@ const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (args, api
 export const formSlice = createApi({
   reducerPath: 'form_api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Forms', 'Fields', 'Submissions'],
+  tagTypes: ['Forms', 'Fields', 'Submissions', 'RegisterForms'],
   endpoints: (builder) => ({
     getForms: builder.query<Form[], void>({
       query: () => 'forms',
@@ -150,11 +159,49 @@ export const formSlice = createApi({
       providesTags: (_result, _error, formId) => [{ type: 'Submissions', id: formId }],
     }),
  
-     getSubmittedCount: builder.query<{ submittedCount: number }, string>({
-          query: (formId) => `form/${formId}/submitted-count`,
-          providesTags: (_result, _error, formId) => [{ type: "Submissions", id: formId }],
+    getSubmittedCount: builder.query<{ submittedCount: number }, string>({
+      query: (formId) => `form/${formId}/submitted-count`,
+      providesTags: (_result, _error, formId) => [{ type: "Submissions", id: formId }],
+    }),
+ 
+    registerAddForm: builder.mutation<{ message: string; formId: string }, RegistrationForm>({
+      query: (formData) => ({
+        url: 'register/form',
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: ['RegisterForms'],
+    }),
+ 
+    registerUpdateForm: builder.mutation<{ message: string }, { data: RegistrationForm }>(
+      {
+        query: ({ data }) => ({
+          url: `register/form/${data.formId}`,
+          method: 'PUT',
+          body: data,
         }),
-   
+        invalidatesTags: ['RegisterForms'],
+      }
+    ),
+ 
+    registerDeleteForm: builder.mutation<{ message: string }, string>({
+      query: (formId) => ({
+        url: `register/form/${formId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['RegisterForms'],
+    }),
+    
+    getAllRegistrationForms: builder.query<RegistrationForm[], void>({
+      query: () => 'register/forms',
+      providesTags: ['RegisterForms'],
+    }),
+
+    getRegistrationForm: builder.query<RegistrationForm, string>({
+      query: (formId) => `form/${formId}/registration` ,
+      providesTags: ['RegisterForms'],
+    }),
+
     replaceFields: builder.mutation<{ message: string }, { formId: string; fields: Field[] }>({
       query: ({ formId, fields }) => ({
         url: `form/${formId}/fields`,
@@ -188,5 +235,10 @@ export const {
   useGetSubmissionsByFormIdQuery,
   useLazyGetSubmittedCountQuery,
   useReplaceFieldsMutation,
+  useRegisterAddFormMutation,
+  useRegisterUpdateFormMutation,
+  useRegisterDeleteFormMutation,
+  useGetAllRegistrationFormsQuery,
+  useGetRegistrationFormQuery,
   useUploadImageMutation
 } = formSlice;

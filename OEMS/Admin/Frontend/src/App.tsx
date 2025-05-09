@@ -13,13 +13,16 @@ import AssessmentPage from "./pages/AssesmentPage";
 import CandidateLogin from "./pages/CandidateLogin";
 import SubmissionsPage from "./pages/SubmissionsPage";
 import CheckAuthCandidate from "./components/CheckAuthCandidate";
+import CandidatesListingPage from "./pages/CandidateListingPage";
+import CandidateRegistrationPage from "./pages/CandidateRegistrationPage";
+import CandidateRegistrationForm from "./pages/CandidateRegistrationForm";
 
 const App = () => {
   const location = useLocation();
   const isAssessmentPage = location.pathname.startsWith("/assessment-page");
 
   return (
-    <Box>
+    <Box sx={{ height:"100vh"}}>
       <Navbar />
       {isAssessmentPage ? (
         <Routes>
@@ -40,6 +43,14 @@ const App = () => {
               element={
                 <CheckAuth>
                   <FormListingPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              path="/registration-form-manager"
+              element={
+                <CheckAuth>
+                  <CandidateRegistrationForm />
                 </CheckAuth>
               }
             />
@@ -75,6 +86,24 @@ const App = () => {
                 </CheckAuth>
               }
             />
+            <Route
+            caseSensitive
+            path="/registered-candidates-list/:registerForm/:registerFormId"
+            element={
+              <CheckAuth>
+                <CandidatesListingPage />
+              </CheckAuth>
+            }
+          />
+          <Route
+            caseSensitive
+            path="/candidate-registration-page/:registerId"
+            element={
+              <CheckAuth>
+                <CandidateRegistrationPage />
+              </CheckAuth>
+            }
+          />
             <Route
               path="/candidate-login/:formId"
               element={
