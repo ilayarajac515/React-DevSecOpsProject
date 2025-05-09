@@ -24,7 +24,7 @@ type FormValues = {
 
 const CandidateLogin = () => {
   const navigate = useNavigate();
-
+  const { loading } = useCandidate();
   const {
     register,
     handleSubmit,
@@ -69,7 +69,7 @@ const CandidateLogin = () => {
 
   return (
     <>
-      {formData?.status === "active" ? (
+      { formData?.status === "active"? (
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
@@ -144,7 +144,7 @@ const CandidateLogin = () => {
             Sign in
           </Button>
         </Box>
-      ) : (
+      ) : ( loading &&
         <Box
           sx={{
             width: { xs: "90%", sm: "400px", md: "450px" },

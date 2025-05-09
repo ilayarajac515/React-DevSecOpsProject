@@ -15,7 +15,9 @@ type LongMenuProps = {
   handleDelete: () => void;
   handleForm?: () => void;
   handleCopyUrl?: () => void;
+  handleCopyApplyUrl?:() => void;
   handleViewSubmissions?: () => void;
+  handleViewRegistrations?: () => void;
   Logoptions: string[];
 };
 
@@ -24,8 +26,10 @@ const LongMenu = ({
   handleDelete,
   handleForm,
   handleCopyUrl,
+  handleCopyApplyUrl,
   Logoptions = [],
   handleViewSubmissions,
+  handleViewRegistrations,
 }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -77,10 +81,19 @@ const LongMenu = ({
               if ( handleForm && option === "Form builder") {
                 handleForm();
               }
-              if (handleCopyUrl && option === "Copy test url")
+              if (handleCopyUrl && option === "Copy test url"){
+
                 handleCopyUrl();
+              }
+              if (handleCopyApplyUrl && option === "Copy apply url"){
+
+                handleCopyApplyUrl();
+              }
               if (option === "View submissions" && handleViewSubmissions) {
                 handleViewSubmissions();
+              }
+              if (option === "View registrations" && handleViewRegistrations) {
+                handleViewRegistrations();
               }
             }}
           >
@@ -104,7 +117,17 @@ const LongMenu = ({
                 <FileCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
+            {option === "Copy apply url" && (
+              <ListItemIcon>
+                <FileCopyIcon fontSize="small" />
+              </ListItemIcon>
+            )}
             {option === "View submissions" && (
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "View registrations" && (
               <ListItemIcon>
                 <VisibilityIcon fontSize="small" />
               </ListItemIcon>

@@ -7,6 +7,7 @@ import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js"
 const router = Router();
 const upload = multer();
  
+router.get('/form/:formId/registration', handler(formController.getRegistrationForm));
 router.use(authenticateJWT, authenticateSession);
  
 router.post("/upload-image", upload.single("image"), handler(formController.uploadImageController));
@@ -26,5 +27,4 @@ router.get("/form/:formId/submissions", handler(formController.getSubmissions));
 router.get("/form/:formId/submitted-count",handler(formController.getSubmittedCount));
 router.post('/register/form', handler(formController.addForm));
 router.get('/register/forms', handler(formController.getAllRegistrationForms));
-router.get('/form/:formId/registration', handler(formController.getRegistrationForm));
 export default router;
