@@ -18,75 +18,67 @@ import { GridColDef } from "@mui/x-data-grid";
 import LongMenu from "../components/LogMenu";
 import { useAuth } from "../context/GlobalContext";
 import {
-  useAddFormMutation,
-  useUpdateFormMutation,
-  useDeleteFormMutation,
-  useGetFormsQuery,
+  useRegisterAddFormMutation,
+  useRegisterUpdateFormMutation,
+  useRegisterDeleteFormMutation,
+  RegistrationForm,
+  useGetAllRegistrationFormsQuery,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
 import DeleteFormDialog from "../components/DeleteFormDialog";
 import { toast } from "react-toastify";
-import { useLazyGetSubmittedCountQuery } from "../modules/admin_slice";
+import { getFormCount } from "../Services/adminService";
 
 type FormValues = {
+  branch: string;
   label: string;
   description: string;
-  startContent: string;
-  endContent: string;
-  duration: string;
   manager: string;
+  status: string;
 };
 
-const FormListingPage = () => {
-  const [updateForm] = useUpdateFormMutation();
-  const [deleteForm] = useDeleteFormMutation();
-  const { data, isLoading } = useGetFormsQuery();
+const CandidateRegistrationForm = () => {
+  const [addForm] = useRegisterAddFormMutation();;
+  const [updateForm] = useRegisterUpdateFormMutation();
+  const [deleteForm] = useRegisterDeleteFormMutation();
   const [editId, setEditId] = useState<string | null>(null);
-  const [addForm] = useAddFormMutation();
   const [open, setOpen] = useState(false);
-  const [formRows, setFormRows] = useState<any[]>([]);
+  const [formRows, setFormRows] = useState<RegistrationForm[]>([]);
   const { name } = useAuth();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedForm, setSelectedForm] = useState<any>(null);
-
   const { register, handleSubmit, reset } = useForm<FormValues>();
-  const [triggerGetSubmittedCount] = useLazyGetSubmittedCountQuery();
+  const { data: registrationData } = useGetAllRegistrationFormsQuery();
 
   useEffect(() => {
-    if (data) {
-      const fetchSubmissionCounts = async () => {
-        const rowsWithCounts = await Promise.all(
-          data.map(async (form) => {
-            try {
-              const response = await triggerGetSubmittedCount(
-                form.formId
-              ).unwrap();
-              return {
-                ...form,
-                submissions: response.submittedCount ?? 0,
-              };
-            } catch (err: any) {
-              console.log(err);
-
-              return {
-                ...form,
-                submissions: 0,
-              };
-            }
-          })
-        );
-        setFormRows(rowsWithCounts);
-      };
-
-      fetchSubmissionCounts();
-    }
-  }, [data, triggerGetSubmittedCount]);
+    const fetchFormCounts = async () => {
+      if (!registrationData) return;
+  
+      const updatedForms = await Promise.all(
+        registrationData.map(async (form) => {
+          try {
+            const { count } = await getFormCount(form.formId);
+            console.log(count);
+            
+            return { ...form, submissions: count };
+          } catch (err) {
+            console.error(`Failed to fetch count for form ${form.formId}`, err);
+            return { ...form, submissions: 0 };
+          }
+        })
+      );
+  
+      setFormRows(updatedForms);
+    };
+  
+    fetchFormCounts();
+  }, [registrationData]);
+  
 
   const Logoptions: string[] = [
     "Edit",
     "Delete",
-    "Form builder",
     "Copy test url",
     "View submissions",
   ];
@@ -94,7 +86,7 @@ const FormListingPage = () => {
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "submissions", headerName: "Submissions", width: 200 },
-    { field: "duration", headerName: "Duration (In mins)", width: 200 },
+    { field: "branch", headerName: "Branch", width: 200 },
     { field: "manager", headerName: "Manager", width: 250 },
     {
       field: "status",
@@ -130,7 +122,6 @@ const FormListingPage = () => {
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
             handleCopyUrl={() => handleCopyUrl(params.row)}
-            handleForm={()=> handleForm(params.row)}
             handleViewSubmissions={() => handleViewSubmissions(params.row)}
             Logoptions={Logoptions}
           />
@@ -153,7 +144,7 @@ const FormListingPage = () => {
     }
   };
   const handleViewSubmissions = async (row: any) => {
-    navigate(`submissions-page/${row.formId} `);
+    navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
 
   const handleToggleStatus = async (row: any) => {
@@ -177,10 +168,8 @@ const FormListingPage = () => {
     reset({
       label: row.label,
       description: row.description,
-      startContent: row.startContent,
-      endContent: row.endContent,
-      duration: row.duration,
       manager: row.manager,
+      branch: row.branch,
     });
     setOpen(true);
   };
@@ -200,16 +189,15 @@ const FormListingPage = () => {
         console.error("Failed to update form:", err);
       }
     } else {
-      const newForm = {
+      const newForm: RegistrationForm = {
         formId: uuid(),
         label: formData.label,
         description: formData.description,
-        startContent: formData.startContent,
-        endContent: formData.endContent,
-        duration: formData.duration,
+        branch: formData.branch,
         manager: name ?? "",
         status: "inactive",
       };
+      
       try {
         await addForm(newForm).unwrap();
       } catch (err) {
@@ -221,31 +209,26 @@ const FormListingPage = () => {
 
     reset();
   };
-  const handleForm = (row:any) => {
-    navigate(`/field-listing-page/${row.label}/${row.formId}`);
-  }
 
   const handleCopyUrl = (row: any) => {
-    const url = `http://localhost:5173/candidate-login/${row.formId}`;
+    const url = `http://localhost:5173/candidate-registration-page/${row.formId}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied successfully!");
   };
 
   const handleRowClick = (row: any) => {
-    navigate(`/field-listing-page/${row.label}/${row.formId}`);
+    navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
 
   const handleCreate = () => {
     reset({
       label: "",
       description: "",
-      startContent: "",
-      endContent: "",
-      duration: "",
+      branch:"",
+      status:"",
       manager: "",
     });
     setEditId(null);
-    reset();
     setOpen(true);
   };
 
@@ -262,7 +245,7 @@ const FormListingPage = () => {
           borderRadius: "10px",
         }}
       >
-        <Typography sx={{ fontWeight: "bold" }}>Form Manager</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>Registration Manager</Typography>
         <Button
           variant="contained"
           disableElevation
@@ -273,15 +256,11 @@ const FormListingPage = () => {
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
-        {isLoading ? (
-          <Typography>Loading...</Typography>
-        ) : (
           <DataTable
             columns={columns}
             rows={formRows}
             onRowClick={(params: any) => handleRowClick(params.row)}
           />
-        )}
       </Box>
 
       <Dialog
@@ -315,24 +294,8 @@ const FormListingPage = () => {
               rows={3}
             />
             <TextField
-              label="Start Content"
-              {...register("startContent", { required: true })}
-              fullWidth
-              multiline
-              rows={10}
-            />
-            <TextField
-              label="End Content"
-              {...register("endContent", { required: true })}
-              fullWidth
-              multiline
-              rows={3}
-            />
-            <TextField
-              label="Duration"
-              {...register("duration", { required: true })}
-              placeholder="In Minutes"
-              required
+              label="Branch"
+              {...register("branch", { required: true })}
               fullWidth
             />
           </DialogContent>
@@ -358,4 +321,4 @@ const FormListingPage = () => {
   );
 };
 
-export default FormListingPage;
+export default CandidateRegistrationForm;

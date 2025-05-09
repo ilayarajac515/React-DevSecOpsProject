@@ -7,11 +7,13 @@ import { Box, ListItemIcon } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditNoteIcon from '@mui/icons-material/EditNote';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 type LongMenuProps = {
   handleEdit: () => void;
   handleDelete: () => void;
+  handleForm?: () => void;
   handleCopyUrl?: () => void;
   handleViewSubmissions?: () => void;
   Logoptions: string[];
@@ -20,6 +22,7 @@ type LongMenuProps = {
 const LongMenu = ({
   handleEdit,
   handleDelete,
+  handleForm,
   handleCopyUrl,
   Logoptions = [],
   handleViewSubmissions,
@@ -69,31 +72,39 @@ const LongMenu = ({
             key={option}
             onClick={() => {
               handleClose();
-              if (option === "edit") handleEdit();
-              if (option === "delete") handleDelete();
-              if (handleCopyUrl && option === "copy test url")
+              if (option === "Edit") handleEdit();
+              if (option === "Delete") handleDelete();
+              if ( handleForm && option === "Form builder") {
+                handleForm();
+              }
+              if (handleCopyUrl && option === "Copy test url")
                 handleCopyUrl();
-              if (option === "view Submissions" && handleViewSubmissions) {
+              if (option === "View submissions" && handleViewSubmissions) {
                 handleViewSubmissions();
               }
             }}
           >
-            {option === "edit" && (
+            {option === "Edit" && (
               <ListItemIcon>
-                <EditNoteIcon fontSize="medium" />
+                <EditRoundedIcon fontSize="small" />
               </ListItemIcon>
             )}
-            {option === "delete" && (
+            {option === "Delete" && (
               <ListItemIcon>
                 <DeleteIcon fontSize="small" />
               </ListItemIcon>
             )}
-            {option === "copy test url" && (
+            {option === "Form builder" && (
+              <ListItemIcon>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "Copy test url" && (
               <ListItemIcon>
                 <FileCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
-            {option === "view Submissions" && (
+            {option === "View submissions" && (
               <ListItemIcon>
                 <VisibilityIcon fontSize="small" />
               </ListItemIcon>

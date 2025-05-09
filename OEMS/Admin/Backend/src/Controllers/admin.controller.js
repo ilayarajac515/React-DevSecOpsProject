@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 import { connection } from "../server.js";
 import {
   BAD_REQUEST,
+  NOT_FOUND,
   SERVER_ERROR,
   STATUS_OK,
   UNAUTHORIZED,
@@ -253,6 +254,7 @@ export const verifyToken = async (req, res) => {
 
 export const registerCandidate = async (req, res) => {
   const {
+    formId,
     name,
     email,
     mobile,
@@ -264,86 +266,106 @@ export const registerCandidate = async (req, res) => {
     location,
     relocate,
   } = req.body;
-
+ 
   try {
     const canRelocate = relocate === true || relocate === "true" ? "Yes" : "No";
-    const formattedDate = new Date()
-      .toLocaleDateString("en-GB")
-      .split("/")
-      .join("-");
-
-    const emailCheckQuery =
-      "SELECT * FROM candidate_registration WHERE email = ?";
-    const mobileCheckQuery =
-      "SELECT * FROM candidate_registration WHERE mobile = ?";
-
+    const formattedDate = new Date().toLocaleDateString("en-GB").split("/").join("-");
+ 
+    const emailCheckQuery = "SELECT * FROM candidate_registration WHERE email = ?";
+    const mobileCheckQuery = "SELECT * FROM candidate_registration WHERE mobile = ?";
+ 
     connection.query(emailCheckQuery, [email], (emailErr, emailResults) => {
       if (emailErr) {
-        return res
-          .status(SERVER_ERROR)
-          .json({ error: "Server error", status: false });
+        return res.status(SERVER_ERROR).json({ error: "Server error", status: false });
       }
-
+ 
       if (emailResults.length > 0) {
         return res.status(BAD_REQUEST).json({ error: "Email already exists" });
       }
-
-      connection.query(
-        mobileCheckQuery,
-        [mobile],
-        (mobileErr, mobileResults) => {
-          if (mobileErr) {
-            return res.status(SERVER_ERROR).json({ error: "Server error" });
-          }
-
-          if (mobileResults.length > 0) {
-            return res
-              .status(BAD_REQUEST)
-              .json({ error: "Mobile number already exists" });
-          }
-
-          const insertQuery = `
-          INSERT INTO candidate_registration 
-          (name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-          connection.query(
-            insertQuery,
-            [
-              name,
-              email,
-              mobile,
-              degree,
-              department,
-              degree_percentage,
-              sslc_percentage,
-              hsc_percentage,
-              location,
-              canRelocate,
-              formattedDate,
-            ],
-            (insertErr, insertResult) => {
-              if (insertErr) {
-                console.error(insertErr);
-                return res
-                  .status(SERVER_ERROR)
-                  .json({ error: "Database error" });
-              }
-
-              res.status(STATUS_OK).json({
-                message: "Registration successful",
-                id: insertResult.insertId,
-              });
-            }
-          );
+ 
+      connection.query(mobileCheckQuery, [mobile], (mobileErr, mobileResults) => {
+        if (mobileErr) {
+          return res.status(SERVER_ERROR).json({ error: "Server error" });
         }
-      );
+ 
+        if (mobileResults.length > 0) {
+          return res.status(BAD_REQUEST).json({ error: "Mobile number already exists" });
+        }
+ 
+        const insertQuery = `
+          INSERT INTO candidate_registration 
+          (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+ 
+        connection.query(
+          insertQuery,
+          [
+            formId,
+            name,
+            email,
+            mobile,
+            degree,
+            department,
+            degree_percentage,
+            sslc_percentage,
+            hsc_percentage,
+            location,
+            canRelocate,
+            formattedDate,
+          ],
+          (insertErr, insertResult) => {
+            if (insertErr) {
+              console.error(insertErr);
+              return res.status(SERVER_ERROR).json({ error: "Database error" });
+            }
+ 
+            res.status(STATUS_OK).json({
+              message: "Registration successful",
+              id: insertResult.insertId,
+            });
+          }
+        );
+      });
     });
   } catch (error) {
     console.error("Error during registration:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
+};
+
+export const getRegistrationsByFormId = (req, res) => {
+  const { formId } = req.params;
+ 
+  const query = "SELECT * FROM candidate_registration WHERE formId = ?";
+ 
+  connection.query(query, [formId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(SERVER_ERROR).json({ error: "Database error" });
+    }
+ 
+    if (results.length === 0) {
+      return res.status(NOT_FOUND).json({ error: "No candidates found for this formId" });
+    }
+ 
+    res.status(STATUS_OK).json({ data: results });
+  });
+};
+
+export const getFormCountByFormId = (req, res) => {
+  const { formId } = req.params;
+ 
+  const query = 'SELECT COUNT(*) AS count FROM candidate_registration WHERE formId = ?';
+ 
+  connection.query(query, [formId], (err, results) => {
+    if (err) {
+      console.error('Count query error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+ 
+    res.status(200).json({ count: results[0].count });
+  });
 };
 
 export const getAllCandidates = (req, res) => {

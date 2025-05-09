@@ -136,6 +136,7 @@ export const verifyToken = async (
 };
 
 export const register = async (
+  formId: string,
   name: string,
   email: string,
   mobile: string,
@@ -151,6 +152,7 @@ export const register = async (
     const response: AxiosResponse<RegisterResponse> = await axiosInstance.post(
       "/registration",
       {
+        formId,
         name,
         email,
         mobile,
@@ -163,10 +165,24 @@ export const register = async (
         relocate,
       }
     );
-
+ 
     return response.data;
   } catch (error: any) {
     console.error("Registration error:", error.response?.data || error);
+    throw error.response?.data || error;
+  }
+};
+
+export const getCandidatesByFormId = async (
+  formId: string
+): Promise<Candidate[]> => {
+  try {
+    const response: AxiosResponse<{ data: Candidate[] }> = await axiosInstance.get(
+      `/registration/${formId}`
+    );
+    return response.data.data;
+  } catch (error: any) {
+    console.error("Fetch error:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -190,5 +206,18 @@ export const checkAuth = async (): Promise<CheckAuthResponse> => {
     return data;
   } catch (error) {
     return { authorized: false };
+  }
+};
+
+export const getFormCount = async (formId: string): Promise<{ count: number }> => {
+  try {
+    const response: AxiosResponse<{ count: number }> = await axiosInstance.get(
+      `/registration/${formId}/count`,
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching form count:", error.response?.data || error);
+    throw error.response?.data || error;
   }
 };

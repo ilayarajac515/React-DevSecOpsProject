@@ -10,6 +10,7 @@ import { LicenseInfo } from "@mui/x-license-pro";
 import { Provider } from "react-redux";
 import { store } from "./Store/Store";
 import { CandidateProvider } from "./context/CandidateContext";
+import { CssBaseline, ThemeProvider } from "@mui/material";
 
 LicenseInfo.setLicenseKey(
   "e0d9bb8070ce0054c9d9ecb6e82cb58fTz0wLEU9MzI0NzIxNDQwMDAwMDAsUz1wcmVtaXVtLExNPXBlcnBldHVhbCxLVj0y"
@@ -20,25 +21,26 @@ const root = createRoot(rootElement);
 
 root.render(
   <StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <AuthProvider>
-        <CandidateProvider>
-          <App />
-          <ToastContainer
-            position="bottom-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            theme="light"
-          />
-        </CandidateProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </Provider>
+
+      <Provider store={store}>
+        <BrowserRouter>
+          <AuthProvider>
+            <CandidateProvider>
+              <App />
+              <ToastContainer
+                position="bottom-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                theme="light"
+              />
+            </CandidateProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </Provider>
   </StrictMode>
 );

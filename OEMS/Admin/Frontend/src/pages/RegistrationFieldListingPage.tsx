@@ -50,8 +50,8 @@ type FormValues = {
   rta: any;
 };
 
-const FieldListingPage = () => {
-  const Logoptions: string[] = ["Edit", "Delete"];
+const RegistrationFieldListingPage = () => {
+  const Logoptions: string[] = ["edit", "delete"];
 
   const columns: GridColDef[] = [
     { field: "label", headerName: "Label", width: 1100 },
@@ -130,11 +130,13 @@ const FieldListingPage = () => {
   const [editField] = useEditFieldMutation();
   const [swapField] = useReplaceFieldsMutation();
   const { data } = useGetFieldsByFormIdQuery(formId ?? "");
+
   useEffect(() => {
     if (data) {
       setRows(data);
     }
   }, [data]);
+  
   useEffect(() => {
     if (rows && rows.length > 0) {
       const mutableFields: Field[] = rows.map(({ formId, ...rest }) => ({
@@ -463,4 +465,4 @@ const FieldListingPage = () => {
   );
 };
 
-export default FieldListingPage;
+export default RegistrationFieldListingPage;

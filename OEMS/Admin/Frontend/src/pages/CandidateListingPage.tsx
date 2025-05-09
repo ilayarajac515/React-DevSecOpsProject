@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Container,
   Paper,
   Typography,
   Tooltip,
@@ -23,44 +22,46 @@ import DownloadIcon from "@mui/icons-material/Download";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
-import { Candidate, getCandidates } from "../Services/adminService";
+import { Candidate, getCandidatesByFormId } from "../Services/adminService";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const columns: GridColDef[] = [
-  { field: "id", headerName: "ID", width: 70 },
   { field: "name", headerName: "Name", width: 150 },
-  { field: "email", headerName: "Email", width: 220 },
+  { field: "email", headerName: "Email", width: 250 },
   { field: "mobile", headerName: "Mobile", width: 110 },
-  { field: "degree", headerName: "Degree", width: 110 },
+  { field: "degree", headerName: "Degree", width: 100 },
   { field: "department", headerName: "Department", width: 150 },
   {
     field: "degree_percentage",
     headerName: "Degree %",
     type: "number",
-    width: 120,
+    width: 100,
   },
   {
     field: "sslc_percentage",
     headerName: "SSLC %",
     type: "number",
-    width: 120,
+    width: 100,
   },
   {
     field: "hsc_percentage",
     headerName: "HSC %",
     type: "number",
-    width: 120,
+    width: 100,
   },
-  { field: "location", headerName: "Location", width: 130 },
-  { field: "relocate", headerName: "Relocate?", width: 120 },
+  { field: "location", headerName: "Location", width: 120 },
+  { field: "relocate", headerName: "Relocate?", width: 100 },
 ];
 
 export default function CandidatesListingPage() {
   const apiRef = useGridApiRef();
+  const { registerFormId } = useParams();
   const [rows, setRows] = useState<Candidate[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const registrationLink =
     "http://devopsinfoane.site/candidate-registration-page";
+
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
     page: 0,
@@ -73,10 +74,10 @@ export default function CandidatesListingPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getCandidates();
-        setRows(response.employees);
+        const response = await getCandidatesByFormId(registerFormId ?? "");
+        setRows(response);
       } catch (error) {
-        toast.error("Failed to fetch Candidates");
+        console.error(error);
       }
     };
     fetchData();
@@ -104,102 +105,78 @@ export default function CandidatesListingPage() {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: "30px" }}>
-      <Paper
-        elevation={0}
+    <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
+      <Box
         sx={{
-          p: 3,
-          mb: 3,
-          borderRadius: 3,
-          border: "1px solid lightgray",
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
+          background: "white",
+          border: "1px solid lightGray",
+          padding: "20px",
+          alignItems: "center",
+          borderRadius: "10px",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: { xs: "center", sm: "space-between" },
-            textAlign: { xs: "center", sm: "left" },
-            gap: 2,
-          }}
+        <Typography
+          sx={{ fontWeight: "bold", marginBottom: { xs: "10px", xl: "0px" } }}
         >
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            color="primary"
-            sx={{
-              width: { xs: "100%", sm: "auto" },
-            }}
-          >
-            Candidates List
-          </Typography>
-
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              flexWrap: "wrap",
-              justifyContent: { xs: "center", sm: "flex-end" },
-              width: { xs: "100%", sm: "auto" },
-            }}
-          >
-            <Tooltip title="Registration Link">
-              <Button
+          Registered Candidates
+        </Typography>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <Tooltip title="Registration Link">
+            <Button
               disableElevation
-                variant="contained"
-                color="primary"
-                sx={{ height: 40 }}
-                onClick={() => setOpenDialog(true)}
-              >
-                Get Apply Link
-              </Button>
-            </Tooltip>
+              variant="contained"
+              color="primary"
 
-            <Tooltip title="Download Selected">
-              <Button
-                disableElevation
-                variant="contained"
-                color="primary"
-                onClick={handleDownload}
-                startIcon={<DownloadIcon />}
-                sx={{ height: 40 }}
-              >
-                Download
-              </Button>
-            </Tooltip>
-          </Box>
+              onClick={() => setOpenDialog(true)}
+            >
+              Get Apply Link
+            </Button>
+          </Tooltip>
+          <Tooltip title="Download Selected">
+            <Button
+              disableElevation
+              variant="contained"
+              color="primary"
+              onClick={handleDownload}
+              startIcon={<DownloadIcon />}
+            >
+              Download
+            </Button>
+          </Tooltip>
         </Box>
-      </Paper>
-
-      <Paper elevation={0} sx={{ borderRadius: 3 }}>
-        <DataGridPro
-          apiRef={apiRef}
-          rows={rows}
-          columns={columns}
-          checkboxSelection
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[10, 25, 50, 100]}
-          filterModel={filterModel}
-          onFilterModelChange={(model) => setFilterModel(model)}
-          sx={{
-            borderRadius: 3,
-            border: "1px solid lightgray",
-            height: 631,
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f5f5f5",
-            },
-            "& .MuiDataGrid-columnHeaderTitle": {
-              fontWeight: "bold",
-              fontSize: 14,
-            },
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: "#f0f7ff",
-            },
-          }}
-        />
-      </Paper>
+      </Box>
+      <Box sx={{ marginTop: "30px" }}>
+        <Paper elevation={0} sx={{ borderRadius: 3 }}>
+          <DataGridPro
+            apiRef={apiRef}
+            rows={rows}
+            columns={columns}
+            checkboxSelection
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[10, 25, 50, 100]}
+            filterModel={filterModel}
+            onFilterModelChange={(model) => setFilterModel(model)}
+            sx={{
+              border: "1px solid lightgray",
+              height: 631,
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f5f5f5",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: "bold",
+                fontSize: 14,
+              },
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: "#f0f7ff",
+              },
+            }}
+          />
+        </Paper>
+      </Box>
 
       <Dialog
         open={openDialog}
@@ -230,6 +207,6 @@ export default function CandidatesListingPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 }
