@@ -158,7 +158,7 @@ export const forgotPassword = async (req, res) => {
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { user: process.env.SENDER_MAIL , pass: process.env.PASS_KEY },
+      auth: { user: process.env.SENDER_MAIL, pass: process.env.PASS_KEY },
     });
 
     const mailOptions = {
@@ -249,6 +249,114 @@ export const verifyToken = async (req, res) => {
     console.error("Token verification error:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
+};
+
+export const registerCandidate = async (req, res) => {
+  const {
+    name,
+    email,
+    mobile,
+    degree,
+    department,
+    degree_percentage,
+    sslc_percentage,
+    hsc_percentage,
+    location,
+    relocate,
+  } = req.body;
+
+  try {
+    const canRelocate = relocate === true || relocate === "true" ? "Yes" : "No";
+    const formattedDate = new Date()
+      .toLocaleDateString("en-GB")
+      .split("/")
+      .join("-");
+
+    const emailCheckQuery =
+      "SELECT * FROM candidate_registration WHERE email = ?";
+    const mobileCheckQuery =
+      "SELECT * FROM candidate_registration WHERE mobile = ?";
+
+    connection.query(emailCheckQuery, [email], (emailErr, emailResults) => {
+      if (emailErr) {
+        return res
+          .status(SERVER_ERROR)
+          .json({ error: "Server error", status: false });
+      }
+
+      if (emailResults.length > 0) {
+        return res.status(BAD_REQUEST).json({ error: "Email already exists" });
+      }
+
+      connection.query(
+        mobileCheckQuery,
+        [mobile],
+        (mobileErr, mobileResults) => {
+          if (mobileErr) {
+            return res.status(SERVER_ERROR).json({ error: "Server error" });
+          }
+
+          if (mobileResults.length > 0) {
+            return res
+              .status(BAD_REQUEST)
+              .json({ error: "Mobile number already exists" });
+          }
+
+          const insertQuery = `
+          INSERT INTO candidate_registration 
+          (name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+          connection.query(
+            insertQuery,
+            [
+              name,
+              email,
+              mobile,
+              degree,
+              department,
+              degree_percentage,
+              sslc_percentage,
+              hsc_percentage,
+              location,
+              canRelocate,
+              formattedDate,
+            ],
+            (insertErr, insertResult) => {
+              if (insertErr) {
+                console.error(insertErr);
+                return res
+                  .status(SERVER_ERROR)
+                  .json({ error: "Database error" });
+              }
+
+              res.status(STATUS_OK).json({
+                message: "Registration successful",
+                id: insertResult.insertId,
+              });
+            }
+          );
+        }
+      );
+    });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.status(SERVER_ERROR).json({ error: "Server error" });
+  }
+};
+
+export const getAllCandidates = (req, res) => {
+  const query = "SELECT * FROM candidate_registration";
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidates:", err);
+      return res.status(SERVER_ERROR).json({ error: "Server error" });
+    }
+
+    res.status(STATUS_OK).json({ employees: results });
+  });
 };
 
 const findUserByEmail = (email) => {
