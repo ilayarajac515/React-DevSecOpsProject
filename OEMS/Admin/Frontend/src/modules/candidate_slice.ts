@@ -21,7 +21,7 @@ interface Submission {
 export interface EditSubmissionInput {
   formId: string;
   responseId?: string;
-  value: any;
+  value?: any;
   userEmail: string;
   startTime?: string;
   endTime?: string;

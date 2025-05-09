@@ -1,14 +1,18 @@
 import { Box, Button, Typography } from "@mui/material";
-import { DataGridPro, GridColDef } from "@mui/x-data-grid-pro";
+import { DataGridPro, GridColDef, GridRowsProp } from "@mui/x-data-grid-pro";
 import LongMenu from "../components/LogMenu";
-import { useGetSubmissionsByFormIdQuery } from "../modules/admin_slice";
+import {
+  useGetSubmissionsByFormIdQuery,
+  useUpdateSubmissionMutation,
+} from "../modules/admin_slice";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { GridRowsProp } from "@mui/x-data-grid";
 
 const SubmissionsPage = () => {
   const Logoptions: string[] = ["edit", "delete"];
   const { id: formId } = useParams();
+  const [editSubmission] = useUpdateSubmissionMutation();
+  const [rows, setRows] = useState<GridRowsProp>([]);
 
   const columns: GridColDef[] = [
     { field: "userEmail", headerName: "Email", width: 300 },
@@ -17,7 +21,12 @@ const SubmissionsPage = () => {
     { field: "duration", headerName: "Duration", width: 200 },
     { field: "status", headerName: "Status", width: 200 },
     { field: "warning", headerName: "Warnings", width: 100 },
-    { field: "score", headerName: "Score", width: 100, editable: true },
+    {
+      field: "score",
+      headerName: "Score",
+      width: 150,
+      editable: true, // ✅ Enables inline editing
+    },
     {
       field: "actions",
       headerName: "",
@@ -35,6 +44,7 @@ const SubmissionsPage = () => {
       ),
     },
   ];
+
   const { data: submissionData } = useGetSubmissionsByFormIdQuery(formId ?? "");
 
   useEffect(() => {
@@ -42,12 +52,27 @@ const SubmissionsPage = () => {
       setRows(submissionData);
     }
   }, [submissionData]);
-  const [rows, setRows] = useState<GridRowsProp>([]);
-
-  const handleDelete = (row: any) => {};
 
   const handleEdit = (row: any) => {
     console.log("Edit action for row:", row);
+  };
+
+  const handleDelete = (row: any) => {
+    console.log("Delete action for row:", row);
+  };
+
+  const handleProcessRowUpdate = async (updatedRow: any) => {
+    try {
+      await editSubmission({
+        formId: formId!,
+        userEmail: updatedRow.userEmail,
+        ...updatedRow,
+      });
+      return updatedRow;
+    } catch (err) {
+      console.error("Update failed:", err);
+      return updatedRow;
+    }
   };
 
   return (
@@ -67,18 +92,18 @@ const SubmissionsPage = () => {
         <Button
           variant="text"
           disableElevation
-          disableFocusRipple
           disableRipple
-          disableTouchRipple
           sx={{ color: "white", background: "white", cursor: "default" }}
         >
           Download
         </Button>
       </Box>
+
       <Box sx={{ marginTop: "30px", height: "630px" }}>
         <DataGridPro
           columns={columns}
           rows={rows}
+          processRowUpdate={handleProcessRowUpdate}
           sx={{
             borderRadius: 3,
             border: "1px solid lightgray",
