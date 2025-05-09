@@ -292,6 +292,56 @@ export const getSubmissions = (req, res) => {
   );
 };
  
+export const editSubmission = (req, res) => {
+  const { formId } = req.params;
+  const {
+    value,
+    userEmail,
+    endTime,
+    duration,
+    score,
+    status,
+    warnings,
+  } = req.body;
+ 
+  if (!formId) {
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+  }
+ 
+  const query = `
+    UPDATE ValueTable
+    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?,
+    warnings = ? WHERE formId = ? AND userEmail = ?
+  `;
+ 
+  connection.query(
+    query,
+    [
+      JSON.stringify(value),
+      endTime || null,
+      duration || null,
+      score,
+      status,
+      warnings,
+      formId,
+      userEmail,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating submission:", err);
+        return res.status(SERVER_ERROR).json({ message: "Server error" });
+      }
+ 
+      if (result.affectedRows === 0) {
+        return res.status(NOT_FOUND).json({ message: "Submission not found" });
+      }
+ 
+      res.status(STATUS_OK).json({ message: "Submission updated" });
+    }
+  );
+};
+ 
+
 export const getSubmittedCount = (req, res) => {
   const { formId } = req.params;
  

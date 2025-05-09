@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn } from '@reduxjs/toolkit/query';
+import { EditSubmissionInput, EditSubmissionResponse } from './candidate_slice';
  
 export interface Field {
   fieldId: string;
@@ -164,6 +165,20 @@ export const formSlice = createApi({
       providesTags: (_result, _error, formId) => [{ type: "Submissions", id: formId }],
     }),
  
+    updateSubmission: builder.mutation<
+          EditSubmissionResponse,
+          EditSubmissionInput
+        >({
+          query: ({ formId, ...body }) => ({
+            url: `form/${formId}/submission`,
+            method: "PUT",
+            body,
+          }),
+          invalidatesTags: (_result, _error, { formId }) => [
+            { type: "Submissions", id: formId },
+          ],
+        }),
+
     registerAddForm: builder.mutation<{ message: string; formId: string }, RegistrationForm>({
       query: (formData) => ({
         url: 'register/form',
@@ -233,6 +248,7 @@ export const {
   useEditFieldMutation,
   useDeleteFieldMutation,
   useGetSubmissionsByFormIdQuery,
+  useUpdateSubmissionMutation,
   useLazyGetSubmittedCountQuery,
   useReplaceFieldsMutation,
   useRegisterAddFormMutation,
