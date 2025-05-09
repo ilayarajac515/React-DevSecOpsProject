@@ -79,8 +79,8 @@ const CandidateRegistrationForm = () => {
   const Logoptions: string[] = [
     "Edit",
     "Delete",
-    "Copy test url",
-    "View submissions",
+    "Copy apply url",
+    "View registrations",
   ];
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
@@ -121,8 +121,8 @@ const CandidateRegistrationForm = () => {
           <LongMenu
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
-            handleCopyUrl={() => handleCopyUrl(params.row)}
-            handleViewSubmissions={() => handleViewSubmissions(params.row)}
+            handleCopyApplyUrl = {()=> handleCopyApplyUrl(params.row)}
+            handleViewRegistrations={() => handleViewRegistrations(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
@@ -143,7 +143,7 @@ const CandidateRegistrationForm = () => {
       console.error("Failed to delete form:", err);
     }
   };
-  const handleViewSubmissions = async (row: any) => {
+  const handleViewRegistrations = async (row: any) => {
     navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
 
@@ -210,7 +210,7 @@ const CandidateRegistrationForm = () => {
     reset();
   };
 
-  const handleCopyUrl = (row: any) => {
+  const handleCopyApplyUrl = (row: any) => {
     const url = `http://localhost:5173/candidate-registration-page/${row.formId}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied successfully!");

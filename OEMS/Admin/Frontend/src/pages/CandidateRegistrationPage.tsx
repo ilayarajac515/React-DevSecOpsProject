@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { register as registerCandidate } from "../Services/adminService";
 import { useParams } from "react-router-dom";
 import { useGetRegistrationFormQuery } from "../modules/admin_slice";
+import { useCandidate } from "../context/CandidateContext";
 
 type FormValues = {
   name: string;
@@ -49,6 +50,7 @@ const CandidateRegistrationPage = () => {
   const emailErr = watch("email");
   const mobileErr = watch("mobile");
   const { data : formData } = useGetRegistrationFormQuery(formId ?? "");
+  const { loading } = useCandidate();
   useEffect(() => {
     if (emailError) setEmailError("");
   }, [emailErr]);
@@ -258,7 +260,7 @@ const CandidateRegistrationPage = () => {
             </Box>
           )}
         </Box>
-      ) : (
+      ) : ( !loading &&
         <Box
           sx={{
             width: { xs: "90%", sm: "400px", md: "450px" },
