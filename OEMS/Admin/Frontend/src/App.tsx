@@ -16,13 +16,14 @@ import CheckAuthCandidate from "./components/CheckAuthCandidate";
 import CandidatesListingPage from "./pages/CandidateListingPage";
 import CandidateRegistrationPage from "./pages/CandidateRegistrationPage";
 import CandidateRegistrationForm from "./pages/CandidateRegistrationForm";
+import DashboardPage from "./pages/DashboardPage";
 
 const App = () => {
   const location = useLocation();
   const isAssessmentPage = location.pathname.startsWith("/assessment-page");
 
   return (
-    <Box sx={{ height:"100vh"}}>
+    <Box>
       <Navbar />
       {isAssessmentPage ? (
         <Routes>
@@ -67,6 +68,14 @@ const App = () => {
               element={
                 <CheckAuth>
                   <SignInPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              path="/Dashboard"
+              element={
+                <CheckAuth>
+                  <DashboardPage />
                 </CheckAuth>
               }
             />

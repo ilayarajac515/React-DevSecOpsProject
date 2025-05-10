@@ -15,17 +15,17 @@ const SubmissionsPage = () => {
   const [rows, setRows] = useState<GridRowsProp>([]);
 
   const columns: GridColDef[] = [
-    { field: "userEmail", headerName: "Email", width: 300 },
-    { field: "startTime", headerName: "Start Time", width: 200 },
-    { field: "endTime", headerName: "End Time", width: 200 },
-    { field: "duration", headerName: "Duration", width: 200 },
-    { field: "status", headerName: "Status", width: 200 },
-    { field: "warning", headerName: "Warnings", width: 100 },
+    { field: "userEmail", headerName: "Email", width: 350 },
+    { field: "startTime", headerName: "Start Time", width: 150 },
+    { field: "endTime", headerName: "End Time", width: 150 },
+    { field: "duration", headerName: "Duration", width: 150 },
+    { field: "status", headerName: "Status", width: 150 },
+    { field: "warning", headerName: "Warnings", width: 150 },
     {
       field: "score",
       headerName: "Score",
       width: 150,
-      editable: true, // ✅ Enables inline editing
+      editable: true,
     },
     {
       field: "actions",
@@ -103,6 +103,7 @@ const SubmissionsPage = () => {
         <DataGridPro
           columns={columns}
           rows={rows}
+          checkboxSelection
           processRowUpdate={handleProcessRowUpdate}
           sx={{
             borderRadius: 3,

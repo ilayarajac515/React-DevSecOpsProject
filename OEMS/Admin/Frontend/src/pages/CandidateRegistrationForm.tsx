@@ -25,7 +25,7 @@ import {
   useGetAllRegistrationFormsQuery,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
-import DeleteFormDialog from "../components/DeleteFormDialog";
+import DeleteFormDialog from "../components/ConfirmationDialog";
 import { toast } from "react-toastify";
 import { getFormCount } from "../Services/adminService";
 

@@ -78,7 +78,7 @@ const FieldListingPage = () => {
     reset({
       type: "",
       label: "",
-      placeholder: "",
+      placeholder: "Enter Your Text Here",
       textArea: "",
       options: [{ value: "" }],
       questions: [{ question: "" }],
@@ -98,7 +98,7 @@ const FieldListingPage = () => {
       defaultValues: {
         type: "",
         label: "",
-        placeholder: "",
+        placeholder: "Enter Your Text Here",
         textArea: "",
         options: [{ value: "" }],
         questions: [{ question: "" }],
@@ -155,7 +155,7 @@ const FieldListingPage = () => {
     reset({
       type: row?.type,
       label: row?.label,
-      placeholder: row?.placeholder || "",
+      placeholder: row?.placeholder || "Enter Your Text Here",
       options:
         row?.type === "radio"
           ? row?.options?.map((value: string) => ({ value })) || [{ value: "" }]
@@ -174,7 +174,7 @@ const FieldListingPage = () => {
       fieldId: editId ?? uuid(),
       formId: formId,
       label: data.label || "—",
-      placeholder: data.placeholder || "-",
+      placeholder: data.placeholder || "Enter Your Text Here",
       type: data.type,
       options:
         data.type === "radio"
@@ -310,7 +310,7 @@ const FieldListingPage = () => {
               <TextField
                 label="Placeholder"
                 fullWidth
-                {...register("placeholder", { required: true })}
+                {...register("placeholder")}
               />
             )}
 
