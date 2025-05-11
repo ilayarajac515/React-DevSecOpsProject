@@ -24,7 +24,6 @@ type FormValues = {
 
 const CandidateLogin = () => {
   const navigate = useNavigate();
-  const { loading } = useCandidate();
   const {
     register,
     handleSubmit,
@@ -45,7 +44,7 @@ const CandidateLogin = () => {
   }, [emailValue, passwordValue]);
 
   const { formId } = useParams();
-  const { data: formData } = useGetFormByIdQuery(formId ?? "");
+  const { data: formData , isLoading} = useGetFormByIdQuery(formId ?? "");
   console.log(formData?.status);
   
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -67,9 +66,34 @@ const CandidateLogin = () => {
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
+  if (isLoading) {
+    return null;
+  }
+
+  if (formData?.status !== "active") {
+    return (
+      <Box
+        sx={{
+          width: { xs: "90%", sm: "400px", md: "450px" },
+          padding: "40px",
+          mt: "50px",
+          border: "1px solid #ddd",
+          borderRadius: "12px",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          backgroundColor: "white",
+          mx: "auto",
+        }}
+      >
+        <Alert severity="error" sx={{ width: "100%" }}>
+          Invalid or expired Link.
+        </Alert>
+      </Box>
+    );
+  }
+
+
   return (
     <>
-      { formData?.status === "active"? (
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
@@ -144,24 +168,7 @@ const CandidateLogin = () => {
             Sign in
           </Button>
         </Box>
-      ) : ( loading &&
-        <Box
-          sx={{
-            width: { xs: "90%", sm: "400px", md: "450px" },
-            padding: "40px",
-            mt: "50px",
-            border: "1px solid #ddd",
-            borderRadius: "12px",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            backgroundColor: "white",
-            mx: "auto",
-          }}
-        >
-          <Alert severity="error" sx={{ width: "100%" }}>
-            {"Invalid or expired Link."}
-          </Alert>
-        </Box>
-      )}
+        
     </>
   );
 };

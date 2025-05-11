@@ -120,6 +120,46 @@ function Navbar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseMenu}
               >
+                {location.pathname.startsWith("/dashboard") ? null : (
+                  <MenuItem
+                    onClick={() => {
+                      navigate("dashboard");
+                      handleCloseMenu();
+                    }}
+                  >
+                    <Typography sx={{ textAlign: "center" }}>
+                      Dashboard
+                    </Typography>
+                  </MenuItem>
+                )}
+                {location.pathname.startsWith(
+                  "/registration-form-manager"
+                ) ? null : (
+                  <MenuItem
+                    onClick={() => {
+                      navigate("/registration-form-manager");
+                      handleCloseMenu();
+                    }}
+                  >
+                    <Typography sx={{ textAlign: "center" }}>
+                      Registration Manager
+                    </Typography>
+                  </MenuItem>
+                )}
+                {location.pathname.startsWith(
+                  "/form-listing-page"
+                ) ? null : (
+                  <MenuItem
+                    onClick={() => {
+                      navigate("/form-listing-page");
+                      handleCloseMenu();
+                    }}
+                  >
+                    <Typography sx={{ textAlign: "center" }}>
+                      Assessment Manager
+                    </Typography>
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleUserLogout}>
                   <Typography sx={{ textAlign: "center" }}>Logout</Typography>
                 </MenuItem>

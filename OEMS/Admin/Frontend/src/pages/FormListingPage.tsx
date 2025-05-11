@@ -24,9 +24,9 @@ import {
   useGetFormsQuery,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
-import DeleteFormDialog from "../components/DeleteFormDialog";
 import { toast } from "react-toastify";
 import { useLazyGetSubmittedCountQuery } from "../modules/admin_slice";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 type FormValues = {
   label: string;
@@ -130,7 +130,7 @@ const FormListingPage = () => {
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
             handleCopyUrl={() => handleCopyUrl(params.row)}
-            handleForm={()=> handleForm(params.row)}
+            handleForm={() => handleForm(params.row)}
             handleViewSubmissions={() => handleViewSubmissions(params.row)}
             Logoptions={Logoptions}
           />
@@ -221,9 +221,9 @@ const FormListingPage = () => {
 
     reset();
   };
-  const handleForm = (row:any) => {
+  const handleForm = (row: any) => {
     navigate(`/field-listing-page/${row.label}/${row.formId}`);
-  }
+  };
 
   const handleCopyUrl = (row: any) => {
     const url = `http://localhost:5173/candidate-login/${row.formId}`;
@@ -345,14 +345,22 @@ const FormListingPage = () => {
           </DialogActions>
         </form>
       </Dialog>
-      <DeleteFormDialog
+      <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => {
           setDeleteDialogOpen(false);
           setSelectedForm(null);
         }}
-        selectedForm={selectedForm}
         onDelete={() => handleDelete(selectedForm)}
+        itemLabel={selectedForm?.label}
+        confirmLabel="Delete"
+        title="Delete Form"
+        description={ 
+          <>
+            Are you sure you want to delete the form {" "}
+            <strong>{selectedForm?.label}</strong> {" "}?
+          </>
+        }
       />
     </Box>
   );
