@@ -28,7 +28,7 @@ import { v4 as uuid } from "uuid";
 import DeleteFormDialog from "../components/ConfirmationDialog";
 import { toast } from "react-toastify";
 import { getFormCount } from "../Services/adminService";
-
+ 
 type FormValues = {
   branch: string;
   label: string;
@@ -36,9 +36,9 @@ type FormValues = {
   manager: string;
   status: string;
 };
-
+ 
 const CandidateRegistrationForm = () => {
-  const [addForm] = useRegisterAddFormMutation();;
+  const [addForm] = useRegisterAddFormMutation();
   const [updateForm] = useRegisterUpdateFormMutation();
   const [deleteForm] = useRegisterDeleteFormMutation();
   const [editId, setEditId] = useState<string | null>(null);
@@ -50,17 +50,16 @@ const CandidateRegistrationForm = () => {
   const [selectedForm, setSelectedForm] = useState<any>(null);
   const { register, handleSubmit, reset } = useForm<FormValues>();
   const { data: registrationData } = useGetAllRegistrationFormsQuery();
-
+ 
   useEffect(() => {
     const fetchFormCounts = async () => {
       if (!registrationData) return;
-  
+ 
       const updatedForms = await Promise.all(
         registrationData.map(async (form) => {
           try {
             const { count } = await getFormCount(form.formId);
-            console.log(count);
-            
+ 
             return { ...form, submissions: count };
           } catch (err) {
             console.error(`Failed to fetch count for form ${form.formId}`, err);
@@ -68,14 +67,13 @@ const CandidateRegistrationForm = () => {
           }
         })
       );
-  
+ 
       setFormRows(updatedForms);
     };
-  
+ 
     fetchFormCounts();
   }, [registrationData]);
-  
-
+ 
   const Logoptions: string[] = [
     "Edit",
     "Delete",
@@ -121,7 +119,7 @@ const CandidateRegistrationForm = () => {
           <LongMenu
             handleDelete={() => handleDeleteClick(params.row)}
             handleEdit={() => handleEdit(params.row)}
-            handleCopyApplyUrl = {()=> handleCopyApplyUrl(params.row)}
+            handleCopyApplyUrl={() => handleCopyApplyUrl(params.row)}
             handleViewRegistrations={() => handleViewRegistrations(params.row)}
             Logoptions={Logoptions}
           />
@@ -129,12 +127,12 @@ const CandidateRegistrationForm = () => {
       ),
     },
   ];
-
+ 
   const handleDeleteClick = (row: any) => {
     setSelectedForm(row);
     setDeleteDialogOpen(true);
   };
-
+ 
   const handleDelete = async (row: any) => {
     try {
       await deleteForm(row.formId).unwrap();
@@ -146,7 +144,7 @@ const CandidateRegistrationForm = () => {
   const handleViewRegistrations = async (row: any) => {
     navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
-
+ 
   const handleToggleStatus = async (row: any) => {
     const updatedRow = {
       ...row,
@@ -162,7 +160,7 @@ const CandidateRegistrationForm = () => {
       toast.error("Status update failed");
     }
   };
-
+ 
   const handleEdit = (row: any) => {
     setEditId(row.formId);
     reset({
@@ -173,7 +171,7 @@ const CandidateRegistrationForm = () => {
     });
     setOpen(true);
   };
-
+ 
   const onSubmit = async (formData: FormValues) => {
     if (editId) {
       const currentForm = formRows.find((form) => form.formId === editId);
@@ -197,41 +195,41 @@ const CandidateRegistrationForm = () => {
         manager: name ?? "",
         status: "inactive",
       };
-      
+ 
       try {
         await addForm(newForm).unwrap();
       } catch (err) {
         console.error("Failed to add form:", err);
       }
     }
-
+ 
     setOpen(false);
-
+ 
     reset();
   };
-
+ 
   const handleCopyApplyUrl = (row: any) => {
     const url = `http://localhost:5173/candidate-registration-page/${row.formId}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied successfully!");
   };
-
+ 
   const handleRowClick = (row: any) => {
     navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
-
+ 
   const handleCreate = () => {
     reset({
       label: "",
       description: "",
-      branch:"",
-      status:"",
+      branch: "",
+      status: "",
       manager: "",
     });
     setEditId(null);
     setOpen(true);
   };
-
+ 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
       <Box
@@ -245,7 +243,9 @@ const CandidateRegistrationForm = () => {
           borderRadius: "10px",
         }}
       >
-        <Typography sx={{ fontWeight: "bold" }}>Registration Manager</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>
+          Registration Manager
+        </Typography>
         <Button
           variant="contained"
           disableElevation
@@ -254,15 +254,15 @@ const CandidateRegistrationForm = () => {
           Create Form
         </Button>
       </Box>
-
+ 
       <Box sx={{ marginTop: "30px" }}>
-          <DataTable
-            columns={columns}
-            rows={formRows}
-            onRowClick={(params: any) => handleRowClick(params.row)}
-          />
+        <DataTable
+          columns={columns}
+          rows={formRows}
+          onRowClick={(params: any) => handleRowClick(params.row)}
+        />
       </Box>
-
+ 
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -272,7 +272,7 @@ const CandidateRegistrationForm = () => {
         <DialogTitle sx={{ fontWeight: "bold" }}>
           {editId ? "Edit Form" : "Create Form"}
         </DialogTitle>
-
+ 
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
             sx={{
@@ -299,7 +299,7 @@ const CandidateRegistrationForm = () => {
               fullWidth
             />
           </DialogContent>
-
+ 
           <DialogActions sx={{ padding: "30px" }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="contained" disableElevation>
@@ -314,11 +314,16 @@ const CandidateRegistrationForm = () => {
           setDeleteDialogOpen(false);
           setSelectedForm(null);
         }}
-        selectedForm={selectedForm}
         onDelete={() => handleDelete(selectedForm)}
+        confirmLabel="Delete"
+        title="Confirm Deletion"
+        description={<>
+            Are you sure you want to delete the form {" "}
+            <strong>{selectedForm?.label}</strong> {" "}?
+          </>}
       />
     </Box>
   );
 };
-
+ 
 export default CandidateRegistrationForm;

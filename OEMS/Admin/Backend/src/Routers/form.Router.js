@@ -28,4 +28,8 @@ router.get("/form/:formId/submitted-count",handler(formController.getSubmittedCo
 router.put("/form/:formId/submission", handler(formController.editSubmission));
 router.post('/register/form', handler(formController.addForm));
 router.get('/register/forms', handler(formController.getAllRegistrationForms));
+router.post("/selected-candidates/:formId", handler(formController.insertSelectedCandidates));
+router.delete("selected-candidates/:formId/:email", handler(formController.deleteSelectedCandidateByEmail));
+router.get("selected-candidates/:formId", handler(formController.getSelectedCandidatesByFormId));
+
 export default router;
