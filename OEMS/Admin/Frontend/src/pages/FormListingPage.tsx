@@ -89,7 +89,9 @@ const FormListingPage = () => {
     "Form builder",
     "Copy test url",
     "View submissions",
+    "Eligible candidates",
   ];
+
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
@@ -132,13 +134,19 @@ const FormListingPage = () => {
             handleCopyUrl={() => handleCopyUrl(params.row)}
             handleForm={() => handleForm(params.row)}
             handleViewSubmissions={() => handleViewSubmissions(params.row)}
+            handleViewEligibleCandidates={() =>
+              handleViewEligibleCandidates(params.row)
+            }
             Logoptions={Logoptions}
           />
         </Box>
       ),
     },
   ];
-
+  const handleViewEligibleCandidates = (row: any) => {
+    navigate(`/eligible-examinees/${row.label}/${row.formId}`);
+  };
+  
   const handleDeleteClick = (row: any) => {
     setSelectedForm(row);
     setDeleteDialogOpen(true);
@@ -228,7 +236,7 @@ const FormListingPage = () => {
   const handleCopyUrl = (row: any) => {
     const url = `http://localhost:5173/candidate-login/${row.formId}`;
     navigator.clipboard.writeText(url);
-    toast.success("Link copied successfully!");
+    toast.success("Link copied!");
   };
 
   const handleRowClick = (row: any) => {
@@ -248,7 +256,7 @@ const FormListingPage = () => {
     reset();
     setOpen(true);
   };
-  if(isLoading){
+  if (isLoading) {
     return null;
   }
 
@@ -276,11 +284,11 @@ const FormListingPage = () => {
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
-          <DataTable
-            columns={columns}
-            rows={formRows}
-            onRowClick={(params: any) => handleRowClick(params.row)}
-          />
+        <DataTable
+          columns={columns}
+          rows={formRows}
+          onRowClick={(params: any) => handleRowClick(params.row)}
+        />
       </Box>
 
       <Dialog
@@ -354,10 +362,10 @@ const FormListingPage = () => {
         itemLabel={selectedForm?.label}
         confirmLabel="Delete"
         title="Delete Form"
-        description={ 
+        description={
           <>
-            Are you sure you want to delete the form {" "}
-            <strong>{selectedForm?.label}</strong> {" "}?
+            Are you sure you want to delete the form{" "}
+            <strong>{selectedForm?.label}</strong> ?
           </>
         }
       />

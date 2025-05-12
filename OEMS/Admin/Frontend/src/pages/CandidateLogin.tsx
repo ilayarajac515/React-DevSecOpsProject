@@ -45,13 +45,13 @@ const CandidateLogin = () => {
 
   const { formId } = useParams();
   const { data: formData , isLoading} = useGetFormByIdQuery(formId ?? "");
-  console.log(formData?.status);
   
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
       const result = await candidateLogin({
         email: data.email,
         password: data.password,
+        formId: formId ?? "",
       }).unwrap();
       setAuth({ email: data.email, authorized: true });
       localStorage.setItem("candidateToken", result.candidateToken);

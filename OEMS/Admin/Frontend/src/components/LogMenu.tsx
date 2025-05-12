@@ -7,17 +7,19 @@ import { Box, ListItemIcon } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import SettingsIcon from '@mui/icons-material/Settings';
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import SettingsIcon from "@mui/icons-material/Settings";
+import PeopleIcon from "@mui/icons-material/People";
 
 type LongMenuProps = {
-  handleEdit: () => void;
-  handleDelete: () => void;
+  handleEdit?: () => void;
+  handleDelete?: () => void;
   handleForm?: () => void;
   handleCopyUrl?: () => void;
-  handleCopyApplyUrl?:() => void;
+  handleCopyApplyUrl?: () => void;
   handleViewSubmissions?: () => void;
   handleViewRegistrations?: () => void;
+  handleViewEligibleCandidates?: () => void;
   Logoptions: string[];
 };
 
@@ -27,6 +29,7 @@ const LongMenu = ({
   handleForm,
   handleCopyUrl,
   handleCopyApplyUrl,
+  handleViewEligibleCandidates,
   Logoptions = [],
   handleViewSubmissions,
   handleViewRegistrations,
@@ -76,17 +79,20 @@ const LongMenu = ({
             key={option}
             onClick={() => {
               handleClose();
-              if (option === "Edit") handleEdit();
-              if (option === "Delete") handleDelete();
-              if ( handleForm && option === "Form builder") {
+              if (option === "Edit" && handleEdit) {
+                handleEdit();
+              }
+
+              if (option === "Delete" && handleDelete) {
+                handleDelete();
+              }
+              if (handleForm && option === "Form builder") {
                 handleForm();
               }
-              if (handleCopyUrl && option === "Copy test url"){
-
+              if (handleCopyUrl && option === "Copy test url") {
                 handleCopyUrl();
               }
-              if (handleCopyApplyUrl && option === "Copy apply url"){
-
+              if (handleCopyApplyUrl && option === "Copy apply url") {
                 handleCopyApplyUrl();
               }
               if (option === "View submissions" && handleViewSubmissions) {
@@ -94,6 +100,12 @@ const LongMenu = ({
               }
               if (option === "View registrations" && handleViewRegistrations) {
                 handleViewRegistrations();
+              }
+              if (
+                option === "Eligible candidates" &&
+                handleViewEligibleCandidates
+              ) {
+                handleViewEligibleCandidates();
               }
             }}
           >
@@ -130,6 +142,11 @@ const LongMenu = ({
             {option === "View registrations" && (
               <ListItemIcon>
                 <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "Eligible candidates" && (
+              <ListItemIcon>
+                <PeopleIcon fontSize="small" />
               </ListItemIcon>
             )}
 

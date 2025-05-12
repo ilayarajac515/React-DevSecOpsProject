@@ -43,7 +43,7 @@ export default function DashboardPage() {
               fullWidth
               onClick={() => navigate('/form-listing-page')}
             >
-              Go to Forms
+              Manage Assessments
             </Button>
           </Paper>
         </Grid>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
               fullWidth
               onClick={() => navigate('/registration-form-manager')}
             >
-              Manage Forms
+              Manage Registrations
             </Button>
           </Paper>
         </Grid>

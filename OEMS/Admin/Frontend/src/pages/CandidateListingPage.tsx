@@ -20,11 +20,11 @@ import {
 } from "@mui/x-data-grid-pro";
 import DownloadIcon from "@mui/icons-material/Download";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
-import { Candidate, getCandidatesByFormId } from "../Services/adminService";
+import { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useGetCandidatesQuery, useInsertCandidatesMutation } from "../modules/admin_slice";
 
 const columns: GridColDef[] = [
   { field: "name", headerName: "Name", width: 150 },
@@ -56,7 +56,12 @@ const columns: GridColDef[] = [
 
 export default function CandidatesListingPage() {
   const apiRef = useGridApiRef();
-  const { registerFormId } = useParams();
+  const { registerFormId: formId } = useParams();
+  const { data } = useGetCandidatesQuery({
+    formId: formId ?? "",
+    tableType: "Registration",
+  });
+  const [selectedCandidates] = useInsertCandidatesMutation();
   const [rows, setRows] = useState<Candidate[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const registrationLink =
@@ -66,42 +71,32 @@ export default function CandidatesListingPage() {
     pageSize: 10,
     page: 0,
   });
-
+  
   const [filterModel, setFilterModel] = useState<GridFilterModel>({
     items: [],
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getCandidatesByFormId(registerFormId ?? "");
-        setRows(response);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchData();
-  }, []);
+    if (data) {
 
-  const handleDownload = () => {
+      setRows(data.candidates);
+    }
+  }, [data]);
+
+  const handleDownload = async () => {
     const selectedIDs = apiRef?.current?.getSelectedRows();
     const selectedRows = Array.from(selectedIDs!.values());
-
+    await selectedCandidates({formId: formId ?? "", tableType : "Selected" , candidates: selectedRows})
     if (selectedRows.length === 0) {
-      toast.error("Please select at least one row to download.");
+      toast.error("Please select at least one row.");
       return;
     }
-
-    const worksheet = XLSX.utils.json_to_sheet(selectedRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
-    XLSX.writeFile(workbook, "selected_candidates.xlsx");
-    toast.success("Downloaded successfully!");
+    toast.success(`Added to the selected candidates`);
   };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(registrationLink);
-    toast.success("Link copied to clipboard!");
+    toast.success("Link copied!");
   };
 
   return (
@@ -129,7 +124,6 @@ export default function CandidatesListingPage() {
               disableElevation
               variant="contained"
               color="primary"
-
               onClick={() => setOpenDialog(true)}
             >
               Get Apply Link

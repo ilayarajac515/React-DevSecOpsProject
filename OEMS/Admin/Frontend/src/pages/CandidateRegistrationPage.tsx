@@ -11,9 +11,11 @@ import {
 } from "@mui/material";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { register as registerCandidate } from "../Services/adminService";
 import { useParams } from "react-router-dom";
-import { useGetRegistrationFormQuery } from "../modules/admin_slice";
+import {
+  useGetRegistrationFormQuery,
+  useInsertCandidatesMutation,
+} from "../modules/admin_slice";
 
 type FormValues = {
   name: string;
@@ -46,6 +48,7 @@ const CandidateRegistrationPage = () => {
   const [emailError, setEmailError] = useState("");
   const [mobileError, setMobileError] = useState("");
   const { registerId: formId } = useParams();
+  const [candidateRegister] = useInsertCandidatesMutation();
   const emailErr = watch("email");
   const mobileErr = watch("mobile");
   const { data: formData, isLoading } = useGetRegistrationFormQuery(
@@ -61,19 +64,16 @@ const CandidateRegistrationPage = () => {
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      await registerCandidate(
-        formId ?? "",
-        data.name,
-        data.email,
-        data.mobile,
-        data.degree,
-        data.department,
-        data.degree_percentage,
-        data.sslc_percentage,
-        data.hsc_percentage,
-        data.location,
-        data.relocate!
-      );
+    const transformedData = {
+      ...data,
+      relocate: data.relocate === true ? "Yes" : "No",
+    };
+
+    await candidateRegister({
+      tableType: "Registration",
+      formId: formId!,
+      candidates: [transformedData],
+    });
       setFormSubmitted(true);
       reset();
     } catch (err: any) {
@@ -247,7 +247,7 @@ const CandidateRegistrationPage = () => {
             />
 
             <Typography sx={{ fontWeight: "500" }}>
-              Are you ready to relocate to Kovilpatti?
+              {`Are you ready to relocate to ${formData.branch}?`}
             </Typography>
 
             <Controller

@@ -1,6 +1,6 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { BaseQueryFn } from '@reduxjs/toolkit/query';
-import { EditSubmissionInput, EditSubmissionResponse } from './candidate_slice';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { BaseQueryFn } from "@reduxjs/toolkit/query";
+import { EditSubmissionInput, EditSubmissionResponse } from "./candidate_slice";
 
 export interface Field {
   fieldId: string;
@@ -10,6 +10,10 @@ export interface Field {
   options?: any;
   rta?: any;
 }
+interface Candidate {
+  candidates: any[];
+}
+
 interface Submission {
   responseId: string;
   formId?: string;
@@ -44,15 +48,19 @@ export interface RegistrationForm {
 }
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: 'http://localhost:5000/api/mock_form',
-  credentials: 'include',
+  baseUrl: "http://localhost:5000/api/mock_form",
+  credentials: "include",
 });
 
-const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (args, api, extraOptions) => {
+const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (
+  args,
+  api,
+  extraOptions
+) => {
   const result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    console.warn('Unauthorized. Redirecting to /');
+    console.warn("Unauthorized. Redirecting to /");
     window.location.href = "/";
     return result;
   }
@@ -255,7 +263,7 @@ export const formSlice = createApi({
       ],
     }),
 
-    getSelectedCandidatesByFormId: builder.query<any[], string>({
+    getSelectedCandidatesByFormId: builder.query<Candidate, string>({
       query: (formId) => `selected-candidates/${formId}`,
       providesTags: (_result, _error, formId) => [
         { type: "Selected", id: formId },
@@ -290,11 +298,22 @@ export const formSlice = createApi({
       ],
     }),
 
-    getCandidates: builder.query<any[], { tableType: string; formId: string }>({
+    getCandidates: builder.query<
+      Candidate,
+      { tableType: string; formId: string }
+    >({
       query: ({ tableType, formId }) => `candidates/${tableType}/${formId}`,
       providesTags: (_result, _error, { formId }) => [
         { type: "Selected", id: formId },
       ],
+    }),
+
+    getCandidateCount: builder.query<
+      { count: number },
+      { tableType: string; formId: string }
+    >({
+      query: ({ tableType, formId }) =>
+        `candidates/count/${formId}/${tableType}`,
     }),
 
     uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
@@ -330,6 +349,7 @@ export const {
   useInsertCandidatesMutation,
   useDeleteCandidateMutation,
   useGetCandidatesQuery,
+  useLazyGetCandidateCountQuery,
   useGetRegistrationFormQuery,
   useUploadImageMutation,
 } = formSlice;

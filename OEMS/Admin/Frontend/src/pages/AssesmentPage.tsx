@@ -27,6 +27,7 @@ import { v4 as uuid } from "uuid";
 import { useCandidate } from "../context/CandidateContext";
 import { TimerButton } from "../components/TimerButton";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import { toast } from "react-toastify";
 
 const AssessmentPage = () => {
   const { email, setAuth } = useCandidate();
@@ -238,6 +239,7 @@ const AssessmentPage = () => {
         duration,
         value: result,
       }).unwrap();
+      toast.success("Test Submitted")
       setDeleteDialogOpen(true);
       setSubmitted(true);
       handleLogout();
