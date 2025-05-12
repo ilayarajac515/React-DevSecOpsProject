@@ -106,7 +106,6 @@ const SubmissionsPage = () => {
           checkboxSelection
           processRowUpdate={handleProcessRowUpdate}
           sx={{
-            borderRadius: 3,
             border: "1px solid lightgray",
             height: 631,
             "& .MuiDataGrid-columnHeaders": {

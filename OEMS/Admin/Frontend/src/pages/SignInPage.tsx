@@ -53,7 +53,7 @@ const SignInPage = () => {
       setExistError("");
       reset();
       navigate("/dashboard");
-      toast.success("Sign in Successfully!");
+      toast.success("Sign in Successful!");
     } catch (err: any) {
       const message =
         err?.response?.data?.error ||
