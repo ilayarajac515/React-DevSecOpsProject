@@ -20,6 +20,7 @@ type LongMenuProps = {
   handleViewSubmissions?: () => void;
   handleViewRegistrations?: () => void;
   handleViewEligibleCandidates?: () => void;
+  handleViewEligibleExaminees?: () => void;
   Logoptions: string[];
 };
 
@@ -33,6 +34,7 @@ const LongMenu = ({
   Logoptions = [],
   handleViewSubmissions,
   handleViewRegistrations,
+  handleViewEligibleExaminees
 }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -101,11 +103,11 @@ const LongMenu = ({
               if (option === "View registrations" && handleViewRegistrations) {
                 handleViewRegistrations();
               }
-              if (
-                option === "Eligible candidates" &&
-                handleViewEligibleCandidates
-              ) {
+              if (option === "Eligible candidates" && handleViewEligibleCandidates) {
                 handleViewEligibleCandidates();
+              }
+              if (option === "Eligible examinees" && handleViewEligibleExaminees) {
+                handleViewEligibleExaminees();
               }
             }}
           >
@@ -145,6 +147,11 @@ const LongMenu = ({
               </ListItemIcon>
             )}
             {option === "Eligible candidates" && (
+              <ListItemIcon>
+                <PeopleIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "Eligible examinees" && (
               <ListItemIcon>
                 <PeopleIcon fontSize="small" />
               </ListItemIcon>

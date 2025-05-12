@@ -17,7 +17,6 @@ import { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-  useDeleteCandidateMutation,
   useDeleteSelectedCandidateByEmailMutation,
   useGetSelectedCandidatesByFormIdQuery,
 } from "../modules/admin_slice";
@@ -134,7 +133,7 @@ export default function EligibleExaminees() {
         <Typography
           sx={{ fontWeight: "bold", marginBottom: { xs: "10px", xl: "0px" } }}
         >
-          Eligible Candidates
+          Eligible Examinees
         </Typography>
         <Box sx={{ display: "flex", gap: 3 }}>
           <Tooltip title="Allow to grant access">
