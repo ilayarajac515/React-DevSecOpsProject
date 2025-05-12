@@ -1,5 +1,4 @@
 import { connection } from "../server.js";
-import jwt from "jsonwebtoken";
 import {
   BAD_REQUEST,
   SERVER_ERROR,
@@ -203,7 +202,6 @@ export const createForm = (req, res) => {
           hsc_percentage DECIMAL(5,2) NOT NULL,
           location VARCHAR(100) NOT NULL,
           relocate VARCHAR(100) NOT NULL,
-          submitted_at VARCHAR(100) NOT NULL,
           FOREIGN KEY (formId) REFERENCES FormTable(formId) ON DELETE CASCADE
         )
       `;
@@ -242,7 +240,7 @@ export const insertSelectedCandidates = (req, res) => {
     INSERT INTO \`${tableName}\` (
       formId, name, email, mobile, degree, department,
       degree_percentage, sslc_percentage, hsc_percentage,
-      location, relocate, submitted_at
+      location, relocate
     ) VALUES ?
   `;
 
@@ -258,7 +256,6 @@ export const insertSelectedCandidates = (req, res) => {
     c.hsc_percentage,
     c.location,
     c.relocate,
-    c.submitted_at,
   ]);
 
   connection.query(insertQuery, [values], (err, result) => {
@@ -325,7 +322,6 @@ export const getSelectedCandidatesByFormId = (req, res) => {
 
     res.status(200).json({
       candidates: results,
-      count: results.length,
     });
   });
 };
@@ -371,25 +367,37 @@ export const deleteForm = (req, res) => {
   const { formId } = req.params;
 
   if (!formId) {
-    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+    return res.status(400).json({ message: "formId is required" });
   }
 
-  connection.query(
-    `DELETE FROM FormTable WHERE formId = ?`,
-    [formId],
-    (err, results) => {
-      if (err) {
-        console.error("Error deleting form:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `selectedCandidate_${sanitizedFormId}`;
+
+  const dropTableQuery = `DROP TABLE IF EXISTS \`${tableName}\``;
+
+  connection.query(dropTableQuery, (dropErr) => {
+    if (dropErr) {
+      console.error("Error dropping dynamic table:", dropErr);
+      return res.status(500).json({ error: "Failed to drop candidate table" });
+    }
+
+    const deleteFormQuery = `DELETE FROM FormTable WHERE formId = ?`;
+
+    connection.query(deleteFormQuery, [formId], (deleteErr, results) => {
+      if (deleteErr) {
+        console.error("Error deleting form:", deleteErr);
+        return res.status(500).json({ error: "Server error" });
       }
 
       if (results.affectedRows === 0) {
-        return res.status(NOT_FOUND).json({ message: "Form not found" });
+        return res.status(404).json({ message: "Form not found" });
       }
 
-      res.status(STATUS_OK).json({ message: "Form deleted successfully" });
-    }
-  );
+      res
+        .status(200)
+        .json({ message: "Form and candidate table deleted successfully" });
+    });
+  });
 };
 
 export const getSubmissions = (req, res) => {
@@ -596,7 +604,6 @@ export const addForm = (req, res) => {
           hsc_percentage DECIMAL(5,2) NOT NULL,
           location VARCHAR(100) NOT NULL,
           relocate VARCHAR(100) NOT NULL,
-          submitted_at VARCHAR(100) NOT NULL,
           FOREIGN KEY (formId) REFERENCES registration_form(formId) ON DELETE CASCADE
         )
       `;
@@ -654,6 +661,10 @@ export const editForm = (req, res) => {
 export const removeForm = (req, res) => {
   const { formId } = req.params;
 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const registrationTable = `Registration_${sanitizedFormId}`;
+  const selectedTable = `selected_${sanitizedFormId}`;
+
   const query = `DELETE FROM registration_form WHERE formId = ?`;
 
   connection.query(query, [formId], (err, results) => {
@@ -662,7 +673,30 @@ export const removeForm = (req, res) => {
       return res.status(500).json({ error: "Database error" });
     }
 
-    res.status(200).json({ message: "Form deleted" });
+    const dropRegistrationTableQuery = `DROP TABLE IF EXISTS \`${registrationTable}\``;
+    const dropSelectedTableQuery = `DROP TABLE IF EXISTS \`${selectedTable}\``;
+
+    connection.query(dropRegistrationTableQuery, (err) => {
+      if (err) {
+        console.error("Error dropping registration table:", err);
+        return res
+          .status(500)
+          .json({ error: "Failed to drop registration table" });
+      }
+
+      connection.query(dropSelectedTableQuery, (err) => {
+        if (err) {
+          console.error("Error dropping selected table:", err);
+          return res
+            .status(500)
+            .json({ error: "Failed to drop selected table" });
+        }
+
+        res
+          .status(200)
+          .json({ message: "Form and related tables deleted successfully" });
+      });
+    });
   });
 };
 
@@ -718,7 +752,7 @@ export const insertCandidates = (req, res) => {
 
   const insertQuery = `
     INSERT INTO \`${tableName}\` 
-    (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
+    (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate)
     VALUES ?
   `;
 
@@ -734,7 +768,6 @@ export const insertCandidates = (req, res) => {
     c.hsc_percentage,
     c.location,
     c.relocate,
-    c.submitted_at,
   ]);
 
   connection.query(insertQuery, [values], (err, results) => {
@@ -793,7 +826,7 @@ export const getCandidates = (req, res) => {
   const selectQuery = `
     SELECT id, formId, name, email, mobile, degree, department,
            degree_percentage, sslc_percentage, hsc_percentage,
-           location, relocate, submitted_at
+           location, relocate
     FROM \`${tableName}\`
   `;
 
@@ -804,5 +837,27 @@ export const getCandidates = (req, res) => {
     }
 
     res.status(200).json({ candidates: results });
+  });
+};
+
+export const getCandidateCount = (req, res) => {
+  const { formId, tableType } = req.params;
+
+  if (!formId || !tableType) {
+    return res.status(400).json({ error: "Missing formId or tableType" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `${tableType}_${sanitizedFormId}`;
+
+  const countQuery = `SELECT COUNT(*) AS count FROM \`${tableName}\``;
+
+  connection.query(countQuery, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidate count:", err);
+      return res.status(500).json({ error: "Failed to fetch candidate count" });
+    }
+
+    res.status(200).json({ count: results[0].count });
   });
 };

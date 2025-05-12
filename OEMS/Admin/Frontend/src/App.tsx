@@ -17,6 +17,8 @@ import CandidatesListingPage from "./pages/CandidateListingPage";
 import CandidateRegistrationPage from "./pages/CandidateRegistrationPage";
 import CandidateRegistrationForm from "./pages/CandidateRegistrationForm";
 import DashboardPage from "./pages/DashboardPage";
+import EligibleCandidates from "./pages/EligibleCandidates";
+import EligibleExaminees from "./pages/EligibleExaminees";
 
 const App = () => {
   const location = useLocation();
@@ -96,23 +98,40 @@ const App = () => {
               }
             />
             <Route
-            caseSensitive
-            path="/registered-candidates-list/:registerForm/:registerFormId"
-            element={
-              <CheckAuth>
-                <CandidatesListingPage />
-              </CheckAuth>
-            }
-          />
-          <Route
-            caseSensitive
-            path="/candidate-registration-page/:registerId"
-            element={
-              <CheckAuth>
-                <CandidateRegistrationPage />
-              </CheckAuth>
-            }
-          />
+              path="/eligible-candidates/:eligible/:eligibleId"
+              element={
+                <CheckAuth>
+                  <EligibleCandidates />
+                </CheckAuth>
+              }
+            />
+            <Route
+              path="/eligible-examinees/:test/:testId"
+              element={
+                <CheckAuth>
+                  <EligibleExaminees />
+                </CheckAuth>
+              }
+            />
+
+            <Route
+              caseSensitive
+              path="/registered-candidates-list/:registerForm/:registerFormId"
+              element={
+                <CheckAuth>
+                  <CandidatesListingPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              caseSensitive
+              path="/candidate-registration-page/:registerId"
+              element={
+                <CheckAuth>
+                  <CandidateRegistrationPage />
+                </CheckAuth>
+              }
+            />
             <Route
               path="/candidate-login/:formId"
               element={

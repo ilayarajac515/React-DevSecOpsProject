@@ -3,11 +3,12 @@ import * as formController from "../Controllers/form.controller.js";
 import multer from "multer";
 import handler from "express-async-handler";
 import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
- 
+
 const router = Router();
 const upload = multer();
- 
+
 router.get('/form/:formId/registration', handler(formController.getRegistrationForm));
+router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
 router.use(authenticateJWT, authenticateSession);
  
 router.post("/upload-image", upload.single("image"), handler(formController.uploadImageController));
@@ -28,10 +29,10 @@ router.put("/form/:formId/submission", handler(formController.editSubmission));
 router.post('/register/form', handler(formController.addForm));
 router.get('/register/forms', handler(formController.getAllRegistrationForms));
 router.post("/selected-candidates/:formId", handler(formController.insertSelectedCandidates));
-router.delete("selected-candidates/:formId/:email", handler(formController.deleteSelectedCandidateByEmail));
-router.get("selected-candidates/:formId", handler(formController.getSelectedCandidatesByFormId));
-router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
+router.delete("/selected-candidates/:formId/:email", handler(formController.deleteSelectedCandidateByEmail));
+router.get("/selected-candidates/:formId", handler(formController.getSelectedCandidatesByFormId));
 router.delete("/candidates/:tableType/:formId/:email", handler(formController.deleteCandidate));
 router.get("/candidates/:tableType/:formId", handler(formController.getCandidates));
-
+router.get('/candidates/count/:formId/:tableType', handler(formController.getCandidateCount));
+ 
 export default router;

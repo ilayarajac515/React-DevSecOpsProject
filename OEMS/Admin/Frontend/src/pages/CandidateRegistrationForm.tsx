@@ -27,8 +27,8 @@ import {
 import { v4 as uuid } from "uuid";
 import DeleteFormDialog from "../components/ConfirmationDialog";
 import { toast } from "react-toastify";
-import { getFormCount } from "../Services/adminService";
- 
+import { useLazyGetCandidateCountQuery } from "../modules/admin_slice";
+
 type FormValues = {
   branch: string;
   label: string;
@@ -50,40 +50,48 @@ const CandidateRegistrationForm = () => {
   const [selectedForm, setSelectedForm] = useState<any>(null);
   const { register, handleSubmit, reset } = useForm<FormValues>();
   const { data: registrationData } = useGetAllRegistrationFormsQuery();
- 
+  const [triggerGetCandidateCount] = useLazyGetCandidateCountQuery();
+
+
+  
   useEffect(() => {
-    const fetchFormCounts = async () => {
-      if (!registrationData) return;
- 
-      const updatedForms = await Promise.all(
-        registrationData.map(async (form) => {
-          try {
-            const { count } = await getFormCount(form.formId);
- 
-            return { ...form, submissions: count };
-          } catch (err) {
-            console.error(`Failed to fetch count for form ${form.formId}`, err);
-            return { ...form, submissions: 0 };
-          }
-        })
-      );
- 
-      setFormRows(updatedForms);
-    };
- 
-    fetchFormCounts();
-  }, [registrationData]);
+  const fetchFormCounts = async () => {
+    if (!registrationData) return;
+
+    const updatedForms = await Promise.all(
+      registrationData.map(async (form) => {
+        try {
+          const response = await triggerGetCandidateCount({
+            formId: form.formId,
+            tableType: "Registration",
+          }).unwrap();
+
+          return { ...form, submissions: response.count };
+        } catch (err) {
+          console.error(`Failed to fetch count for form ${form.formId}`, err);
+          return { ...form, submissions: 0 };
+        }
+      })
+    );
+
+    setFormRows(updatedForms);
+  };
+
+  fetchFormCounts();
+}, [registrationData, triggerGetCandidateCount]);
+
  
   const Logoptions: string[] = [
     "Edit",
     "Delete",
     "Copy apply url",
     "View registrations",
+    "Eligible candidates"
   ];
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
-    { field: "submissions", headerName: "Submissions", width: 200 },
+    { field: "submissions", headerName: "Registrations", width: 200 },
     { field: "branch", headerName: "Branch", width: 200 },
     { field: "manager", headerName: "Manager", width: 250 },
     {
@@ -121,12 +129,16 @@ const CandidateRegistrationForm = () => {
             handleEdit={() => handleEdit(params.row)}
             handleCopyApplyUrl={() => handleCopyApplyUrl(params.row)}
             handleViewRegistrations={() => handleViewRegistrations(params.row)}
+            handleViewEligibleCandidates ={() => handleViewEligibleCandidates(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
       ),
     },
   ];
+  const handleViewEligibleCandidates = (row:any) => {
+    navigate(`/eligible-candidates/${row.label}/${row.formId}`)
+  }
  
   const handleDeleteClick = (row: any) => {
     setSelectedForm(row);
@@ -211,7 +223,7 @@ const CandidateRegistrationForm = () => {
   const handleCopyApplyUrl = (row: any) => {
     const url = `http://localhost:5173/candidate-registration-page/${row.formId}`;
     navigator.clipboard.writeText(url);
-    toast.success("Link copied successfully!");
+    toast.success("Link copied!");
   };
  
   const handleRowClick = (row: any) => {

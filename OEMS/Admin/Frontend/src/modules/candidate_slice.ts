@@ -4,6 +4,7 @@ import { Field, Form } from "./admin_slice";
 export interface LoginCandidateInput {
   email: string;
   password: string;
+  formId: string;
 }
 interface Submission {
   responseId: string;
@@ -78,14 +79,11 @@ export const candidateSlice = createApi({
   }),
   tagTypes: ['Forms', 'Fields', 'Submissions'],
   endpoints: (builder) => ({
-    loginCandidate: builder.mutation<
-      LoginCandidateResponse,
-      LoginCandidateInput
-    >({
-      query: ({ email, password }) => ({
-        url: "/login",
-        method: "POST",
-        body: { email, password },
+    loginCandidate: builder.mutation<LoginCandidateResponse, LoginCandidateInput>({
+      query: ({ email, password, formId }) => ({
+        url: '/login',
+        method: 'POST',
+        body: { email, password, formId },
       }),
     }),
  
