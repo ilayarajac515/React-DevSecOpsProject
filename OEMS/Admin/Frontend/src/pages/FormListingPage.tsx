@@ -271,7 +271,7 @@ const FormListingPage = () => {
           disableElevation
           onClick={() => handleCreate()}
         >
-          Create Form
+          Add Assessment
         </Button>
       </Box>
 
@@ -290,7 +290,7 @@ const FormListingPage = () => {
         maxWidth="sm"
       >
         <DialogTitle sx={{ fontWeight: "bold" }}>
-          {editId ? "Edit Form" : "Create Form"}
+          {editId ? "Edit Assessment" : "Create Assessment"}
         </DialogTitle>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -339,7 +339,7 @@ const FormListingPage = () => {
           <DialogActions sx={{ padding: "30px" }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="contained" disableElevation>
-              {editId ? "Edit Form" : "Create Form"}
+              {editId ? "Save" : "Create"}
             </Button>
           </DialogActions>
         </form>
