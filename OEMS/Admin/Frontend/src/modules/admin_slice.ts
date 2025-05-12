@@ -262,6 +262,41 @@ export const formSlice = createApi({
       ],
     }),
 
+    insertCandidates: builder.mutation<
+      { message: string; insertedCount?: number },
+      { tableType: string; formId: string; candidates: any[] }
+    >({
+      query: ({ tableType, formId, candidates }) => ({
+        url: `candidates/${tableType}/${formId}`,
+        method: "POST",
+        body: { formId, tableType, candidates },
+      }),
+      invalidatesTags: (_result, _error, { formId }) => [
+        { type: "Selected", id: formId },
+      ],
+    }),
+
+    deleteCandidate: builder.mutation<
+      { message: string; affectedRows?: number },
+      { tableType: string; formId: string; email: string }
+    >({
+      query: ({ tableType, formId, email }) => ({
+        url: `candidates/${tableType}/${formId}/${email}`,
+        method: "DELETE",
+        body: { formId, tableType, email },
+      }),
+      invalidatesTags: (_result, _error, { formId }) => [
+        { type: "Selected", id: formId },
+      ],
+    }),
+
+    getCandidates: builder.query<any[], { tableType: string; formId: string }>({
+      query: ({ tableType, formId }) => `candidates/${tableType}/${formId}`,
+      providesTags: (_result, _error, { formId }) => [
+        { type: "Selected", id: formId },
+      ],
+    }),
+
     uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
       query: (formData) => ({
         url: "/upload-image",
@@ -292,6 +327,9 @@ export const {
   useGetSelectedCandidatesByFormIdQuery,
   useRegisterDeleteFormMutation,
   useGetAllRegistrationFormsQuery,
+  useInsertCandidatesMutation,
+  useDeleteCandidateMutation,
+  useGetCandidatesQuery,
   useGetRegistrationFormQuery,
   useUploadImageMutation,
 } = formSlice;

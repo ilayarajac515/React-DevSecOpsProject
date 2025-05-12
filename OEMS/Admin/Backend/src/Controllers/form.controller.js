@@ -4,7 +4,7 @@ import {
   BAD_REQUEST,
   SERVER_ERROR,
   STATUS_OK,
-  NOT_FOUND
+  NOT_FOUND,
 } from "../Constants/httpStatus.js";
 import { uploadImageToCloudinary } from "../Utils/cloudinary.helper.js";
 
@@ -564,13 +564,13 @@ export const addForm = (req, res) => {
     status = "inactive",
   } = req.body;
 
-  const query = `
+  const insertQuery = `
     INSERT INTO registration_form (formId, branch, label, description, manager, status)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   connection.query(
-    query,
+    insertQuery,
     [formId, branch, label, description, manager, status],
     (err, results) => {
       if (err) {
@@ -578,7 +578,51 @@ export const addForm = (req, res) => {
         return res.status(500).json({ error: "Database error" });
       }
 
-      res.status(200).json({ message: "Form created", formId });
+      const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+      const registrationTable = `Registration_${sanitizedFormId}`;
+      const selectedTable = `selected_${sanitizedFormId}`;
+
+      const createTableSQL = (tableName) => `
+        CREATE TABLE IF NOT EXISTS \`${tableName}\` (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          formId VARCHAR(36) NOT NULL,
+          name VARCHAR(100) NOT NULL,
+          email VARCHAR(100) UNIQUE NOT NULL,
+          mobile VARCHAR(15) UNIQUE NOT NULL,
+          degree VARCHAR(50) NOT NULL,
+          department VARCHAR(50) NOT NULL,
+          degree_percentage DECIMAL(5,2) NOT NULL,
+          sslc_percentage DECIMAL(5,2) NOT NULL,
+          hsc_percentage DECIMAL(5,2) NOT NULL,
+          location VARCHAR(100) NOT NULL,
+          relocate VARCHAR(100) NOT NULL,
+          submitted_at VARCHAR(100) NOT NULL,
+          FOREIGN KEY (formId) REFERENCES registration_form(formId) ON DELETE CASCADE
+        )
+      `;
+
+      connection.query(createTableSQL(registrationTable), (err2) => {
+        if (err2) {
+          console.error("Error creating registration table:", err2);
+          return res
+            .status(500)
+            .json({ error: "Failed to create registration table" });
+        }
+
+        connection.query(createTableSQL(selectedTable), (err3) => {
+          if (err3) {
+            console.error("Error creating selected table:", err3);
+            return res
+              .status(500)
+              .json({ error: "Failed to create selected table" });
+          }
+
+          res.status(200).json({
+            message: "Form and related tables created successfully",
+            formId,
+          });
+        });
+      });
     }
   );
 };
@@ -658,4 +702,107 @@ export const uploadImageController = async (req, res) => {
 
   const imageUrl = await uploadImageToCloudinary(file.buffer);
   res.send({ imageUrl });
+};
+
+export const insertCandidates = (req, res) => {
+  const { formId, tableType, candidates } = req.body;
+
+  if (!formId || !tableType || !Array.isArray(candidates)) {
+    return res
+      .status(400)
+      .json({ error: "Missing formId, tableType or candidates array" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `${tableType}_${sanitizedFormId}`;
+
+  const insertQuery = `
+    INSERT INTO \`${tableName}\` 
+    (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
+    VALUES ?
+  `;
+
+  const values = candidates.map((c) => [
+    formId,
+    c.name,
+    c.email,
+    c.mobile,
+    c.degree,
+    c.department,
+    c.degree_percentage,
+    c.sslc_percentage,
+    c.hsc_percentage,
+    c.location,
+    c.relocate,
+    c.submitted_at,
+  ]);
+
+  connection.query(insertQuery, [values], (err, results) => {
+    if (err) {
+      console.error("Insert error:", err);
+      return res.status(500).json({ error: "Database insert failed" });
+    }
+
+    res.status(200).json({ message: "Candidates inserted successfully" });
+  });
+};
+
+export const deleteCandidate = (req, res) => {
+  const { formId, tableType, email } = req.body;
+
+  if (!formId || !tableType || !email) {
+    return res
+      .status(400)
+      .json({ error: "Missing formId, tableType, or email" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `${tableType}_${sanitizedFormId}`;
+
+  const deleteQuery = `
+    DELETE FROM \`${tableName}\`
+    WHERE formId = ? AND email = ?
+  `;
+
+  connection.query(deleteQuery, [formId, email], (err, result) => {
+    if (err) {
+      console.error("Delete error:", err);
+      return res.status(500).json({ error: "Failed to delete candidate" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ message: "No candidate found with the provided email" });
+    }
+
+    res.status(200).json({ message: "Candidate deleted successfully" });
+  });
+};
+
+export const getCandidates = (req, res) => {
+  const { formId, tableType } = req.params;
+
+  if (!formId || !tableType) {
+    return res.status(400).json({ error: "Missing formId or tableType" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `${tableType}_${sanitizedFormId}`;
+
+  const selectQuery = `
+    SELECT id, formId, name, email, mobile, degree, department,
+           degree_percentage, sslc_percentage, hsc_percentage,
+           location, relocate, submitted_at
+    FROM \`${tableName}\`
+  `;
+
+  connection.query(selectQuery, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidates:", err);
+      return res.status(500).json({ error: "Failed to fetch candidates" });
+    }
+
+    res.status(200).json({ candidates: results });
+  });
 };

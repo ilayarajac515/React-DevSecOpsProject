@@ -30,5 +30,8 @@ router.get('/register/forms', handler(formController.getAllRegistrationForms));
 router.post("/selected-candidates/:formId", handler(formController.insertSelectedCandidates));
 router.delete("selected-candidates/:formId/:email", handler(formController.deleteSelectedCandidateByEmail));
 router.get("selected-candidates/:formId", handler(formController.getSelectedCandidatesByFormId));
+router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
+router.delete("/candidates/:tableType/:formId/:email", handler(formController.deleteCandidate));
+router.get("/candidates/:tableType/:formId", handler(formController.getCandidates));
 
 export default router;
