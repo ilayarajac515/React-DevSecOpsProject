@@ -8,10 +8,6 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     config.withCredentials = true;
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {
@@ -28,35 +24,16 @@ axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
-  async (error) => {
+  (error) => {
     const originalRequest = error.config;
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !isAuthEndpoint(originalRequest.url)
-    ) {
-      if (!originalRequest._retry) {
-        originalRequest._retry = true;
-        try {
-          const refreshResponse = await axiosInstance.post(
-            "/refresh-token",
-            {},
-            { withCredentials: true }
-          );
-          const newAccessToken = refreshResponse.data.accessToken;
-          localStorage.setItem("accessToken", newAccessToken);
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return axiosInstance(originalRequest);
-        } catch (refreshError) {
-          window.location.href = "/";
-          console.error("Token refresh failed", refreshError);
-          return Promise.reject(refreshError);
-        }
-      } else {
-        window.location.href = "/";
-        return Promise.reject(error);
-      }
+    const status = error.response?.status;
+    
+    if (status === 401 && !isAuthEndpoint(originalRequest.url)) {
+      console.warn("Unauthorized. Redirecting to /");
+      window.location.href = "/";
+      return;
     }
+
     return Promise.reject(error);
   }
 );

@@ -15,7 +15,6 @@ router.put('/register/form/:formId', handler(formController.editForm));
 router.delete('/register/form/:formId', handler(formController.removeForm));
 router.get("/form/:formId/fields", handler(formController.getFields));
 router.get("/forms", handler(formController.getForms));
-router.post("/form/refresh-token", handler(formController.refreshToken));
 router.put("/form/:formId/field/:fieldId", handler(formController.updateField));
 router.delete("/form/:formId/field/:fieldId", handler(formController.deleteField));
 router.post("/form/:formId/field", handler(formController.addField));

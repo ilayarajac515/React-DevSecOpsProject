@@ -1,6 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { BaseQueryFn } from "@reduxjs/toolkit/query";
-import { EditSubmissionInput, EditSubmissionResponse } from "./candidate_slice";
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryFn } from '@reduxjs/toolkit/query';
+import { EditSubmissionInput, EditSubmissionResponse } from './candidate_slice';
 
 export interface Field {
   fieldId: string;
@@ -43,50 +43,18 @@ export interface RegistrationForm {
   status?: string;
 }
 
-type RefreshResponse = {
-  accessToken: string;
-};
-
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api/mock_form",
-  credentials: "include",
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-    return headers;
-  },
+  baseUrl: 'http://localhost:5000/api/mock_form',
+  credentials: 'include',
 });
 
-const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (
-  args,
-  api,
-  extraOptions
-) => {
-  let result = await baseQuery(args, api, extraOptions);
+const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (args, api, extraOptions) => {
+  const result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    const refreshResult = await baseQuery(
-      { url: "form/refresh-token", method: "POST" },
-      api,
-      extraOptions
-    );
-
-    if (refreshResult.data) {
-      const newAccessToken = (refreshResult.data as RefreshResponse)
-        .accessToken;
-      localStorage.setItem("accessToken", newAccessToken);
-
-      const retryHeaders = new Headers();
-      retryHeaders.set("Authorization", `Bearer ${newAccessToken}`);
-
-      const retryArgs = typeof args === "string" ? { url: args } : { ...args };
-      retryArgs.headers = retryHeaders;
-
-      result = await baseQuery(retryArgs, api, extraOptions);
-    } else {
-      window.location.href = "/";
-      console.error("Token refresh failed");
-    }
+    console.warn('Unauthorized. Redirecting to /');
+    window.location.href = "/";
+    return result;
   }
 
   return result;

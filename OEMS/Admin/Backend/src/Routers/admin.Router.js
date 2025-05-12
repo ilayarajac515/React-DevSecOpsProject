@@ -2,8 +2,8 @@ import { Router } from "express";
 import handler from "express-async-handler";
 import * as adminController from "../Controllers/admin.controller.js";
 import {
-  STATUS_OK,
-  UNAUTHORIZED
+  BAD_REQUEST,
+  STATUS_OK
 } from "../Constants/httpStatus.js";
 import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
 
@@ -16,7 +16,6 @@ router.post("/registration",handler(adminController.registerCandidate));
 router.get("/candidate", authenticateJWT, authenticateSession, handler(adminController.getAllCandidates));
 router.post("/reset-password/:userId/:token/:expiry", handler(adminController.resetPassword));
 router.post("/verify-token", handler(adminController.verifyToken));
-router.post("/refresh-token", handler(adminController.refreshToken));
 router.post("/logout", handler(adminController.logoutUser));
 router.get('/registration/:formId', handler(adminController.getRegistrationsByFormId));
 router.get('/registration/:formId/count', handler(adminController.getFormCountByFormId));
@@ -33,7 +32,7 @@ router.get(
         email: req.user,
       });
     }
-    return res.status(UNAUTHORIZED).json({ authorized: false });
+    return res.status(BAD_REQUEST).json({ authorized: false });
   })
 );
 

@@ -49,10 +49,10 @@ export const loginUser = async (req, res) => {
 
     const sessionId = uuidv4();
     const accessToken = jwt.sign({ id: user.name }, process.env.SECRET_KEY, {
-      expiresIn: "1d",
+      expiresIn: "1m",
     });
     const refreshToken = jwt.sign({ id: user.name }, process.env.REFRESH_KEY, {
-      expiresIn: "30d",
+      expiresIn: "1yr",
     });
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const expiryTime = expiresAt.toISOString().slice(0, 19).replace("T", " ");
@@ -76,18 +76,21 @@ export const loginUser = async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "Lax",
+      maxAge: 1 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "Lax",
+      maxAge: 365 * 24 * 60 * 60 * 1000,
     });
 
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
       secure: false,
       sameSite: "Lax",
+      maxAge: 365 * 24 * 60 * 60 * 1000,
     });
 
     res.json({ name: user.name, accessToken, email: user.email });
@@ -95,27 +98,6 @@ export const loginUser = async (req, res) => {
     console.error("Login error:", err);
     res.status(SERVER_ERROR).json({ error: "Internal server error" });
   }
-};
-
-export const refreshToken = (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.sendStatus(UNAUTHORIZED);
-
-  jwt.verify(refreshToken, process.env.REFRESH_KEY, (err, user) => {
-    if (err) return res.sendStatus(UNAUTHORIZED);
-
-    const newAccessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
-      expiresIn: "1d",
-    });
-
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-    });
-
-    res.json({ accessToken: newAccessToken });
-  });
 };
 
 export const logoutUser = (req, res) => {
@@ -266,67 +248,82 @@ export const registerCandidate = async (req, res) => {
     location,
     relocate,
   } = req.body;
- 
+
   try {
     const canRelocate = relocate === true || relocate === "true" ? "Yes" : "No";
-    const formattedDate = new Date().toLocaleDateString("en-GB").split("/").join("-");
- 
-    const emailCheckQuery = "SELECT * FROM candidate_registration WHERE email = ?";
-    const mobileCheckQuery = "SELECT * FROM candidate_registration WHERE mobile = ?";
- 
+    const formattedDate = new Date()
+      .toLocaleDateString("en-GB")
+      .split("/")
+      .join("-");
+
+    const emailCheckQuery =
+      "SELECT * FROM candidate_registration WHERE email = ?";
+    const mobileCheckQuery =
+      "SELECT * FROM candidate_registration WHERE mobile = ?";
+
     connection.query(emailCheckQuery, [email], (emailErr, emailResults) => {
       if (emailErr) {
-        return res.status(SERVER_ERROR).json({ error: "Server error", status: false });
+        return res
+          .status(SERVER_ERROR)
+          .json({ error: "Server error", status: false });
       }
- 
+
       if (emailResults.length > 0) {
         return res.status(BAD_REQUEST).json({ error: "Email already exists" });
       }
- 
-      connection.query(mobileCheckQuery, [mobile], (mobileErr, mobileResults) => {
-        if (mobileErr) {
-          return res.status(SERVER_ERROR).json({ error: "Server error" });
-        }
- 
-        if (mobileResults.length > 0) {
-          return res.status(BAD_REQUEST).json({ error: "Mobile number already exists" });
-        }
- 
-        const insertQuery = `
+
+      connection.query(
+        mobileCheckQuery,
+        [mobile],
+        (mobileErr, mobileResults) => {
+          if (mobileErr) {
+            return res.status(SERVER_ERROR).json({ error: "Server error" });
+          }
+
+          if (mobileResults.length > 0) {
+            return res
+              .status(BAD_REQUEST)
+              .json({ error: "Mobile number already exists" });
+          }
+
+          const insertQuery = `
           INSERT INTO candidate_registration 
           (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
- 
-        connection.query(
-          insertQuery,
-          [
-            formId,
-            name,
-            email,
-            mobile,
-            degree,
-            department,
-            degree_percentage,
-            sslc_percentage,
-            hsc_percentage,
-            location,
-            canRelocate,
-            formattedDate,
-          ],
-          (insertErr, insertResult) => {
-            if (insertErr) {
-              console.error(insertErr);
-              return res.status(SERVER_ERROR).json({ error: "Database error" });
+
+          connection.query(
+            insertQuery,
+            [
+              formId,
+              name,
+              email,
+              mobile,
+              degree,
+              department,
+              degree_percentage,
+              sslc_percentage,
+              hsc_percentage,
+              location,
+              canRelocate,
+              formattedDate,
+            ],
+            (insertErr, insertResult) => {
+              if (insertErr) {
+                console.error(insertErr);
+                return res
+                  .status(SERVER_ERROR)
+                  .json({ error: "Database error" });
+              }
+
+              res.status(STATUS_OK).json({
+                message: "Registration successful",
+                id: insertResult.insertId,
+              });
             }
- 
-            res.status(STATUS_OK).json({
-              message: "Registration successful",
-              id: insertResult.insertId,
-            });
-          }
-        );
-      });
+          );
+        }
+      );
     });
   } catch (error) {
     console.error("Error during registration:", error);
@@ -336,34 +333,37 @@ export const registerCandidate = async (req, res) => {
 
 export const getRegistrationsByFormId = (req, res) => {
   const { formId } = req.params;
- 
+
   const query = "SELECT * FROM candidate_registration WHERE formId = ?";
- 
+
   connection.query(query, [formId], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
- 
+
     if (results.length === 0) {
-      return res.status(NOT_FOUND).json({ error: "No candidates found for this formId" });
+      return res
+        .status(NOT_FOUND)
+        .json({ error: "No candidates found for this formId" });
     }
- 
+
     res.status(STATUS_OK).json({ data: results });
   });
 };
 
 export const getFormCountByFormId = (req, res) => {
   const { formId } = req.params;
- 
-  const query = 'SELECT COUNT(*) AS count FROM candidate_registration WHERE formId = ?';
- 
+
+  const query =
+    "SELECT COUNT(*) AS count FROM candidate_registration WHERE formId = ?";
+
   connection.query(query, [formId], (err, results) => {
     if (err) {
-      console.error('Count query error:', err);
-      return res.status(500).json({ error: 'Database error' });
+      console.error("Count query error:", err);
+      return res.status(500).json({ error: "Database error" });
     }
- 
+
     res.status(200).json({ count: results[0].count });
   });
 };

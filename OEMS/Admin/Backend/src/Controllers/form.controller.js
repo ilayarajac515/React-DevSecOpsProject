@@ -4,8 +4,7 @@ import {
   BAD_REQUEST,
   SERVER_ERROR,
   STATUS_OK,
-  NOT_FOUND,
-  FORBIDDEN,
+  NOT_FOUND
 } from "../Constants/httpStatus.js";
 import { uploadImageToCloudinary } from "../Utils/cloudinary.helper.js";
 
@@ -368,27 +367,6 @@ export const updateForm = (req, res) => {
   );
 };
 
-export const refreshToken = (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.sendStatus(UNAUTHORIZED);
-
-  jwt.verify(refreshToken, process.env.REFRESH_KEY, (err, user) => {
-    if (err) return res.sendStatus(UNAUTHORIZED);
-
-    const newAccessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
-      expiresIn: "1d",
-    });
-
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-    });
-
-    res.json({ accessToken: newAccessToken });
-  });
-};
-
 export const deleteForm = (req, res) => {
   const { formId } = req.params;
 
@@ -656,6 +634,7 @@ export const getAllRegistrationForms = (req, res) => {
     res.status(200).json(results);
   });
 };
+
 export const getRegistrationForm = (req, res) => {
   const { formId } = req.params;
   const query = "SELECT * FROM registration_form WHERE formId = ?";
@@ -669,6 +648,7 @@ export const getRegistrationForm = (req, res) => {
     res.status(200).json(results[0]);
   });
 };
+
 export const uploadImageController = async (req, res) => {
   const file = req.file;
 

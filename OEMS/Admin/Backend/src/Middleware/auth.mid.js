@@ -7,22 +7,51 @@ import {
 import { connection } from "../server.js";
 
 export const authenticateJWT = (req, res, next) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+  const token = req.cookies["accessToken"];
+  const refreshToken = req.cookies["refreshToken"];
+
+  if (!refreshToken) {
+    return res.sendStatus(UNAUTHORIZED);
+  }
 
   if (!token) {
-    return res.status(BAD_REQUEST).json({ message: "No token provided" });
+    return tryRefreshAccessToken(req, res, next, refreshToken);
   }
 
   jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
     if (err) {
-      return res
-        .status(UNAUTHORIZED)
-        .json({ message: "Invalid or expired token" });
+      return tryRefreshAccessToken(req, res, next, refreshToken);
     }
+
     req.jwtUser = user.id;
     next();
   });
 };
+
+function tryRefreshAccessToken(req, res, next, refreshToken) {
+  jwt.verify(refreshToken, process.env.REFRESH_KEY, (err, user) => {
+    if (err) {
+      return res
+        .status(UNAUTHORIZED)
+        .json({ message: "Refresh token invalid or expired" });
+    }
+
+    const newAccessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
+      expiresIn: "1m",
+    });
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+      maxAge: 60 * 1000,
+    });
+
+    req.jwtUser = user.id;
+    next();
+  });
+}
+
 
 export const authenticateSession = (req, res, next) => {
   const sessionId = req.cookies["sessionId"];

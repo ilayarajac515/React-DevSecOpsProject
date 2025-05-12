@@ -2,7 +2,7 @@ import { Router } from "express";
 import * as candidateController from "../Controllers/candidate.controller.js";
 import handler from "express-async-handler";
 import { authenticateCandidateJWT } from "../Middleware/auth.mid.js";
-import { STATUS_OK, UNAUTHORIZED } from "../Constants/httpStatus.js";
+import { STATUS_OK } from "../Constants/httpStatus.js";
 
 const router = Router();
 
@@ -28,7 +28,7 @@ router.get(
         });
       }
    
-      return res.status(UNAUTHORIZED).json({ authorized: false });
+      return res.status(BAD_REQUEST).json({ authorized: false });
     })
   );
 
