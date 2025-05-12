@@ -50,7 +50,6 @@ const SignInPage = () => {
     try {
       const result = await loginUser(email, password);
       setAuth({ isAdmin: true, name: result.name, email: result.email });
-      localStorage.setItem("accessToken", result.accessToken);
       setExistError("");
       reset();
       navigate("/dashboard");

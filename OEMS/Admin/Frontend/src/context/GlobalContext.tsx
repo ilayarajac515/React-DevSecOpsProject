@@ -64,16 +64,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     const loadAuth = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        setAuthState({
-          isAdmin: false,
-          name: null,
-          email: null,
-          loading: false,
-        });
-        return;
-      }
 
       try {
         const data = await fetchAuthStatus();
