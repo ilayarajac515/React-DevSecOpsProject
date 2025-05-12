@@ -16,7 +16,7 @@ function CheckAuth({ children }: CheckAuthProps) {
   const [delayedLoading, setDelayedLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDelayedLoading(false), 650);
+    const timer = setTimeout(() => setDelayedLoading(false), 500);
     return () => clearTimeout(timer);
   }, [loading]);
 
@@ -32,7 +32,7 @@ function CheckAuth({ children }: CheckAuthProps) {
   }
 
   if (isAuthenticated && isPublicRoute) {
-    return <Navigate to="/form-listing-page" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!isAuthenticated && !isPublicRoute) {

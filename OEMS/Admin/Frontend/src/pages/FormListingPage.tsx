@@ -153,7 +153,7 @@ const FormListingPage = () => {
     }
   };
   const handleViewSubmissions = async (row: any) => {
-    navigate(`submissions-page/${row.formId} `);
+    navigate(`/submissions-page/${row.label}/${row.formId} `);
   };
 
   const handleToggleStatus = async (row: any) => {
@@ -248,6 +248,9 @@ const FormListingPage = () => {
     reset();
     setOpen(true);
   };
+  if(isLoading){
+    return null;
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
@@ -262,7 +265,7 @@ const FormListingPage = () => {
           borderRadius: "10px",
         }}
       >
-        <Typography sx={{ fontWeight: "bold" }}>Form Manager</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>Assessment Manager</Typography>
         <Button
           variant="contained"
           disableElevation
@@ -273,15 +276,11 @@ const FormListingPage = () => {
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
-        {isLoading ? (
-          <Typography>Loading...</Typography>
-        ) : (
           <DataTable
             columns={columns}
             rows={formRows}
             onRowClick={(params: any) => handleRowClick(params.row)}
           />
-        )}
       </Box>
 
       <Dialog
