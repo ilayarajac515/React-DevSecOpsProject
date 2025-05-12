@@ -51,7 +51,7 @@ export const CandidateProvider: React.FC<CandidateProviderProps> = ({
   useEffect(() => {
     const loadAuth = () => {
       const token = localStorage.getItem("candidateToken");
-
+      
       if (!token) {
         setAuthState({ email: null, authorized: null, loading: false });
         return;

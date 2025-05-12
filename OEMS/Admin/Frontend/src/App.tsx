@@ -88,7 +88,7 @@ const App = () => {
               }
             />
             <Route
-              path="form-listing-page/submissions-page/:id"
+              path="/submissions-page/:formName/:id"
               element={
                 <CheckAuth>
                   <SubmissionsPage />

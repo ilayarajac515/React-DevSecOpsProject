@@ -15,6 +15,10 @@ import { logoutUser } from "../Services/adminService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/GlobalContext";
 import { useCandidate } from "../context/CandidateContext";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
+import ArticleIcon from '@mui/icons-material/Article';
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const adminStringToColor = (string: string) => {
   if (!string) return "#424242";
@@ -120,48 +124,49 @@ function Navbar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseMenu}
               >
-                {location.pathname.startsWith("/dashboard") ? null : (
+                {!location.pathname.startsWith("/dashboard") && (
                   <MenuItem
                     onClick={() => {
                       navigate("dashboard");
                       handleCloseMenu();
                     }}
                   >
-                    <Typography sx={{ textAlign: "center" }}>
-                      Dashboard
-                    </Typography>
+                    <DashboardIcon fontSize="small" sx={{ mr: 1 }} />
+                    <Typography textAlign="center">Dashboard</Typography>
                   </MenuItem>
                 )}
-                {location.pathname.startsWith(
+                {!location.pathname.startsWith(
                   "/registration-form-manager"
-                ) ? null : (
+                ) && (
                   <MenuItem
                     onClick={() => {
                       navigate("/registration-form-manager");
                       handleCloseMenu();
                     }}
                   >
-                    <Typography sx={{ textAlign: "center" }}>
+                    <AppRegistrationIcon fontSize="small" sx={{ mr: 1 }} />
+                    <Typography textAlign="center">
                       Registration Manager
                     </Typography>
                   </MenuItem>
                 )}
-                {location.pathname.startsWith(
-                  "/form-listing-page"
-                ) ? null : (
+                {!location.pathname.startsWith("/form-listing-page") && (
                   <MenuItem
                     onClick={() => {
                       navigate("/form-listing-page");
                       handleCloseMenu();
                     }}
                   >
-                    <Typography sx={{ textAlign: "center" }}>
+                    
+                    <ArticleIcon fontSize="small" sx={{ mr: 1 }} />
+                    <Typography textAlign="center">
                       Assessment Manager
                     </Typography>
                   </MenuItem>
                 )}
                 <MenuItem onClick={handleUserLogout}>
-                  <Typography sx={{ textAlign: "center" }}>Logout</Typography>
+                  <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+                  <Typography textAlign="center">Logout</Typography>
                 </MenuItem>
               </Menu>
             </>
