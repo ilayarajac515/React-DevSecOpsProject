@@ -14,6 +14,9 @@ export interface DeviceSession {
   id: string;
   ipAddress: string;
   userAgent: string;
+  os: string;
+  browser: string;
+  deviceType: string;
   createdAt: string;
   expiresAt: string;
 }

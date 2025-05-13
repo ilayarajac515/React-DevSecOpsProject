@@ -158,7 +158,7 @@ export const createForm = (req, res) => {
   } = req.body;
 
   if (!label || !duration || !manager || !formId) {
-    return res.status(400).json({ message: "Missing required fields" });
+    return res.status(BAD_REQUEST).json({ message: "Missing required fields" });
   }
 
   const insertQuery = `
@@ -182,14 +182,14 @@ export const createForm = (req, res) => {
     (err, results) => {
       if (err) {
         console.error("Error creating form:", err);
-        return res.status(500).json({ error: "Server error" });
+        return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
       const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
-      const tableName = `selectedCandidate_${sanitizedFormId}`;
 
-      const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS \`${tableName}\` (
+      const candidateTable = `selectedCandidate_${sanitizedFormId}`;
+      const createCandidateTableQuery = `
+        CREATE TABLE IF NOT EXISTS \`${candidateTable}\` (
           id INT AUTO_INCREMENT PRIMARY KEY,
           formId VARCHAR(36) NOT NULL,
           name VARCHAR(100) NOT NULL,
@@ -206,17 +206,47 @@ export const createForm = (req, res) => {
         )
       `;
 
-      connection.query(createTableQuery, (err2, results2) => {
+      connection.query(createCandidateTableQuery, (err2, results2) => {
         if (err2) {
-          console.error("Error creating dynamic candidate table:", err2);
+          console.error("Error creating candidate table:", err2);
           return res
-            .status(500)
+            .status(SERVER_ERROR)
             .json({ error: "Error creating candidate table" });
         }
 
-        res.status(200).json({
-          message: "Form and candidate table created successfully",
-          formId,
+        const valueTable = `valueTable_${sanitizedFormId}`;
+        const createValueTableQuery = `
+          CREATE TABLE IF NOT EXISTS \`${valueTable}\` (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            responseId VARCHAR(36) UNIQUE,
+            formId VARCHAR(36),
+            value JSON,
+            userEmail VARCHAR(36) UNIQUE NOT NULL,
+            startTime VARCHAR(36),
+            endTime VARCHAR(36),
+            duration VARCHAR(36),
+            score VARCHAR(36),
+            status VARCHAR(36) DEFAULT 'Not Submitted',
+            termsAccepted VARCHAR(36),
+            warnings INT,
+            Timer VARCHAR(36),
+            FOREIGN KEY (formId) REFERENCES FormTable(formId) ON DELETE CASCADE
+          )
+        `;
+
+        connection.query(createValueTableQuery, (err3, results3) => {
+          if (err3) {
+            console.error("Error creating value table:", err3);
+            return res
+              .status(SERVER_ERROR)
+              .json({ error: "Error creating value table" });
+          }
+
+          res.status(STATUS_OK).json({
+            message:
+              "Form, candidate table, and value table created successfully",
+            formId,
+          });
         });
       });
     }
@@ -229,7 +259,7 @@ export const insertSelectedCandidates = (req, res) => {
 
   if (!formId || !Array.isArray(candidates) || candidates.length === 0) {
     return res
-      .status(400)
+      .status(BAD_REQUEST)
       .json({ message: "formId and candidates are required" });
   }
 
@@ -262,11 +292,11 @@ export const insertSelectedCandidates = (req, res) => {
     if (err) {
       console.error("Error inserting candidates:", err);
       return res
-        .status(500)
+        .status(SERVER_ERROR)
         .json({ message: "Failed to insert candidates", error: err });
     }
 
-    res.status(200).json({
+    res.status(STATUS_OK).json({
       message: "Candidates inserted successfully",
       insertedCount: result.affectedRows,
     });
@@ -277,7 +307,9 @@ export const deleteSelectedCandidateByEmail = (req, res) => {
   const { formId, email } = req.params;
 
   if (!formId || !email) {
-    return res.status(400).json({ message: "formId and email are required" });
+    return res
+      .status(BAD_REQUEST)
+      .json({ message: "formId and email are required" });
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -289,11 +321,11 @@ export const deleteSelectedCandidateByEmail = (req, res) => {
     if (err) {
       console.error("Error deleting candidate:", err);
       return res
-        .status(500)
+        .status(SERVER_ERROR)
         .json({ message: "Failed to delete candidate", error: err });
     }
 
-    res.status(200).json({
+    res.status(STATUS_OK).json({
       message: "Candidate deleted successfully",
       affectedRows: result.affectedRows,
     });
@@ -304,7 +336,7 @@ export const getSelectedCandidatesByFormId = (req, res) => {
   const { formId } = req.params;
 
   if (!formId) {
-    return res.status(400).json({ message: "formId is required" });
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -316,11 +348,11 @@ export const getSelectedCandidatesByFormId = (req, res) => {
     if (err) {
       console.error("Error fetching candidates:", err);
       return res
-        .status(500)
+        .status(SERVER_ERROR)
         .json({ message: "Failed to fetch candidates", error: err });
     }
 
-    res.status(200).json({
+    res.status(STATUS_OK).json({
       candidates: results,
     });
   });
@@ -367,35 +399,49 @@ export const deleteForm = (req, res) => {
   const { formId } = req.params;
 
   if (!formId) {
-    return res.status(400).json({ message: "formId is required" });
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
-  const tableName = `selectedCandidate_${sanitizedFormId}`;
+  const candidateTable = `selectedCandidate_${sanitizedFormId}`;
+  const valueTable = `valueTable_${sanitizedFormId}`;
 
-  const dropTableQuery = `DROP TABLE IF EXISTS \`${tableName}\``;
+  const dropCandidateTableQuery = `DROP TABLE IF EXISTS \`${candidateTable}\``;
+  const dropValueTableQuery = `DROP TABLE IF EXISTS \`${valueTable}\``;
 
-  connection.query(dropTableQuery, (dropErr) => {
-    if (dropErr) {
-      console.error("Error dropping dynamic table:", dropErr);
-      return res.status(500).json({ error: "Failed to drop candidate table" });
+  connection.query(dropCandidateTableQuery, (dropErr1) => {
+    if (dropErr1) {
+      console.error("Error dropping candidate table:", dropErr1);
+      return res
+        .status(SERVER_ERROR)
+        .json({ error: "Failed to drop candidate table" });
     }
 
-    const deleteFormQuery = `DELETE FROM FormTable WHERE formId = ?`;
-
-    connection.query(deleteFormQuery, [formId], (deleteErr, results) => {
-      if (deleteErr) {
-        console.error("Error deleting form:", deleteErr);
-        return res.status(500).json({ error: "Server error" });
+    connection.query(dropValueTableQuery, (dropErr2) => {
+      if (dropErr2) {
+        console.error("Error dropping value table:", dropErr2);
+        return res
+          .status(SERVER_ERROR)
+          .json({ error: "Failed to drop value table" });
       }
 
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ message: "Form not found" });
-      }
+      const deleteFormQuery = `DELETE FROM FormTable WHERE formId = ?`;
 
-      res
-        .status(200)
-        .json({ message: "Form and candidate table deleted successfully" });
+      connection.query(deleteFormQuery, [formId], (deleteErr, results) => {
+        if (deleteErr) {
+          console.error("Error deleting form:", deleteErr);
+          return res.status(SERVER_ERROR).json({ error: "Server error" });
+        }
+
+        if (results.affectedRows === 0) {
+          return res.status(NOT_FOUND).json({ message: "Form not found" });
+        }
+
+        res.status(STATUS_OK).json({
+          message:
+            "Form, candidate table, and value table deleted successfully",
+        });
+      });
     });
   });
 };
@@ -407,18 +453,19 @@ export const getSubmissions = (req, res) => {
     return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
 
-  connection.query(
-    `SELECT * FROM ValueTable WHERE formId = ?`,
-    [formId],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching submissions:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
-      }
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
 
-      res.status(STATUS_OK).json(results);
+  const query = `SELECT * FROM \`${tableName}\``;
+
+  connection.query(query, [formId], (err, results) => {
+    if (err) {
+      console.error("Error fetching submissions:", err);
+      return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
-  );
+
+    res.status(STATUS_OK).json(results);
+  });
 };
 
 export const editSubmission = (req, res) => {
@@ -430,10 +477,13 @@ export const editSubmission = (req, res) => {
     return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+
   const query = `
-    UPDATE ValueTable
-    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?,
-    warnings = ? WHERE formId = ? AND userEmail = ?
+    UPDATE \`${tableName}\`
+    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?, warnings = ?
+    WHERE formId = ? AND userEmail = ?
   `;
 
   connection.query(
@@ -470,19 +520,22 @@ export const getSubmittedCount = (req, res) => {
     return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+
   const query = `
     SELECT COUNT(*) AS submittedCount
-    FROM ValueTable
-    WHERE formId = ? AND status = 'submitted'
+    FROM \`${tableName}\`
+    WHERE status = 'submitted'
   `;
 
-  connection.query(query, [formId], (err, results) => {
+  connection.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching submitted count:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
-    const submittedCount = results[0].submittedCount || 0;
+    const submittedCount = results[0]?.submittedCount || 0;
     res.status(STATUS_OK).json({ submittedCount });
   });
 };
@@ -583,7 +636,7 @@ export const addForm = (req, res) => {
     (err, results) => {
       if (err) {
         console.error("Add form error:", err);
-        return res.status(500).json({ error: "Database error" });
+        return res.status(SERVER_ERROR).json({ error: "Database error" });
       }
 
       const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -612,7 +665,7 @@ export const addForm = (req, res) => {
         if (err2) {
           console.error("Error creating registration table:", err2);
           return res
-            .status(500)
+            .status(SERVER_ERROR)
             .json({ error: "Failed to create registration table" });
         }
 
@@ -620,11 +673,11 @@ export const addForm = (req, res) => {
           if (err3) {
             console.error("Error creating selected table:", err3);
             return res
-              .status(500)
+              .status(SERVER_ERROR)
               .json({ error: "Failed to create selected table" });
           }
 
-          res.status(200).json({
+          res.status(STATUS_OK).json({
             message: "Form and related tables created successfully",
             formId,
           });
@@ -650,10 +703,10 @@ export const editForm = (req, res) => {
     (err, results) => {
       if (err) {
         console.error("Update form error:", err);
-        return res.status(500).json({ error: "Database error" });
+        return res.status(SERVER_ERROR).json({ error: "Database error" });
       }
 
-      res.status(200).json({ message: "Form updated" });
+      res.status(STATUS_OK).json({ message: "Form updated" });
     }
   );
 };
@@ -670,7 +723,7 @@ export const removeForm = (req, res) => {
   connection.query(query, [formId], (err, results) => {
     if (err) {
       console.error("Delete form error:", err);
-      return res.status(500).json({ error: "Database error" });
+      return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
     const dropRegistrationTableQuery = `DROP TABLE IF EXISTS \`${registrationTable}\``;
@@ -680,7 +733,7 @@ export const removeForm = (req, res) => {
       if (err) {
         console.error("Error dropping registration table:", err);
         return res
-          .status(500)
+          .status(SERVER_ERROR)
           .json({ error: "Failed to drop registration table" });
       }
 
@@ -688,12 +741,12 @@ export const removeForm = (req, res) => {
         if (err) {
           console.error("Error dropping selected table:", err);
           return res
-            .status(500)
+            .status(SERVER_ERROR)
             .json({ error: "Failed to drop selected table" });
         }
 
         res
-          .status(200)
+          .status(STATUS_OK)
           .json({ message: "Form and related tables deleted successfully" });
       });
     });
@@ -706,10 +759,10 @@ export const getAllRegistrationForms = (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching forms:", err);
-      return res.status(500).json({ error: "Database error" });
+      return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
-    res.status(200).json(results);
+    res.status(STATUS_OK).json(results);
   });
 };
 
@@ -720,10 +773,10 @@ export const getRegistrationForm = (req, res) => {
   connection.query(query, [formId], (err, results) => {
     if (err) {
       console.error("Error fetching forms:", err);
-      return res.status(500).json({ error: "Database error" });
+      return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
-    res.status(200).json(results[0]);
+    res.status(STATUS_OK).json(results[0]);
   });
 };
 
@@ -743,7 +796,7 @@ export const insertCandidates = (req, res) => {
 
   if (!formId || !tableType || !Array.isArray(candidates)) {
     return res
-      .status(400)
+      .status(BAD_REQUEST)
       .json({ error: "Missing formId, tableType or candidates array" });
   }
 
@@ -773,10 +826,10 @@ export const insertCandidates = (req, res) => {
   connection.query(insertQuery, [values], (err, results) => {
     if (err) {
       console.error("Insert error:", err);
-      return res.status(500).json({ error: "Database insert failed" });
+      return res.status(SERVER_ERROR).json({ error: "Database insert failed" });
     }
 
-    res.status(200).json({ message: "Candidates inserted successfully" });
+    res.status(STATUS_OK).json({ message: "Candidates inserted successfully" });
   });
 };
 
@@ -785,7 +838,7 @@ export const deleteCandidate = (req, res) => {
 
   if (!formId || !tableType || !email) {
     return res
-      .status(400)
+      .status(BAD_REQUEST)
       .json({ error: "Missing formId, tableType, or email" });
   }
 
@@ -800,16 +853,18 @@ export const deleteCandidate = (req, res) => {
   connection.query(deleteQuery, [formId, email], (err, result) => {
     if (err) {
       console.error("Delete error:", err);
-      return res.status(500).json({ error: "Failed to delete candidate" });
+      return res
+        .status(SERVER_ERROR)
+        .json({ error: "Failed to delete candidate" });
     }
 
     if (result.affectedRows === 0) {
       return res
-        .status(404)
+        .status(NOT_FOUND)
         .json({ message: "No candidate found with the provided email" });
     }
 
-    res.status(200).json({ message: "Candidate deleted successfully" });
+    res.status(STATUS_OK).json({ message: "Candidate deleted successfully" });
   });
 };
 
@@ -817,7 +872,9 @@ export const getCandidates = (req, res) => {
   const { formId, tableType } = req.params;
 
   if (!formId || !tableType) {
-    return res.status(400).json({ error: "Missing formId or tableType" });
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Missing formId or tableType" });
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -833,10 +890,12 @@ export const getCandidates = (req, res) => {
   connection.query(selectQuery, (err, results) => {
     if (err) {
       console.error("Error fetching candidates:", err);
-      return res.status(500).json({ error: "Failed to fetch candidates" });
+      return res
+        .status(SERVER_ERROR)
+        .json({ error: "Failed to fetch candidates" });
     }
 
-    res.status(200).json({ candidates: results });
+    res.status(STATUS_OK).json({ candidates: results });
   });
 };
 
@@ -844,7 +903,9 @@ export const getCandidateCount = (req, res) => {
   const { formId, tableType } = req.params;
 
   if (!formId || !tableType) {
-    return res.status(400).json({ error: "Missing formId or tableType" });
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Missing formId or tableType" });
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -855,9 +916,11 @@ export const getCandidateCount = (req, res) => {
   connection.query(countQuery, (err, results) => {
     if (err) {
       console.error("Error fetching candidate count:", err);
-      return res.status(500).json({ error: "Failed to fetch candidate count" });
+      return res
+        .status(SERVER_ERROR)
+        .json({ error: "Failed to fetch candidate count" });
     }
 
-    res.status(200).json({ count: results[0].count });
+    res.status(STATUS_OK).json({ count: results[0].count });
   });
 };

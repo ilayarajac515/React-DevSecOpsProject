@@ -3,9 +3,11 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import nodemailer from "nodemailer";
+import { UAParser } from "ua-parser-js";
 import { connection } from "../server.js";
 import {
   BAD_REQUEST,
+  NOT_FOUND,
   SERVER_ERROR,
   STATUS_OK,
   UNAUTHORIZED,
@@ -38,14 +40,14 @@ export const getActiveSessions = (req, res) => {
   const userId = req.jwtUser;
 
   connection.query(
-    `SELECT id, ipAddress, userAgent, createdAt, expiresAt 
+    `SELECT id, userId, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt
      FROM sessions 
      WHERE userId = ? AND isActive = 1`,
     [userId],
     (err, results) => {
       if (err) {
         console.error("Error fetching sessions:", err);
-        return res.status(500).json({ message: "Failed to fetch sessions" });
+        return res.status(SERVER_ERROR).json({ message: "Failed to fetch sessions" });
       }
 
       res.json({ devices: results });
@@ -56,9 +58,7 @@ export const getActiveSessions = (req, res) => {
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .json({ error: "Email and password are required" });
+    return res.status(BAD_REQUEST).json({ error: "Email and password are required" });
   }
 
   try {
@@ -68,49 +68,66 @@ export const loginUser = async (req, res) => {
     }
 
     const sessionId = uuidv4();
-    const ipAddress =
-      req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const userAgent = req.headers["user-agent"];
-    const accessToken = jwt.sign({ id: user.id, name: user.name }, process.env.SECRET_KEY, {
-      expiresIn: "15m",
-    });
-    const refreshToken = jwt.sign({ id: user.id, name: user.name }, process.env.REFRESH_KEY, {
-      expiresIn: "1y",
-    });
+    const parser = new UAParser(userAgent);
+    const parsed = parser.getResult();
+
+    const browser = parsed.browser?.name || "Unknown";
+    const os = parsed.os?.name || "Unknown";
+    const deviceType = parsed.device?.type || "desktop";
+
+    const accessToken = jwt.sign(
+      { id: user.id, name: user.name },
+      process.env.SECRET_KEY,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user.id, name: user.name },
+      process.env.REFRESH_KEY,
+      { expiresIn: "1y" }
+    );
 
     const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
     connection.query(
-      `INSERT INTO sessions (id, userId, refreshToken, ipAddress, userAgent, expiresAt) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [sessionId, user.id, refreshToken, ipAddress, userAgent, expiresAt]
+      `INSERT INTO sessions (id, userId, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [sessionId, user.id, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt],
+      (err) => {
+        if (err) {
+          console.error("DB insert error:", err);
+          return res.status(SERVER_ERROR).json({ error: "Session creation failed" });
+        }
+
+        res.cookie("accessToken", accessToken, {
+          httpOnly: true,
+          secure: false,
+          sameSite: "Lax",
+          maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: false,
+          sameSite: "Lax",
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        });
+
+        res.cookie("sessionId", sessionId, {
+          httpOnly: true,
+          secure: false,
+          sameSite: "Lax",
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        });
+
+        res.json({ name: user.name, email: user.email });
+      }
     );
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-      maxAge: 365 * 24 * 60 * 60 * 1000,
-    });
-
-    res.cookie("sessionId", sessionId, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-      maxAge: 365 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({ name: user.name, email: user.email });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(SERVER_ERROR).json({ error: "Internal server error" });
   }
 };
 
@@ -121,7 +138,7 @@ export const logoutSpecificDevice = (req, res) => {
 
   if (targetSessionId === currentSessionId) {
     return res
-      .status(400)
+      .status(BAD_REQUEST)
       .json({ message: "Cannot delete current session from this route" });
   }
 
@@ -132,16 +149,16 @@ export const logoutSpecificDevice = (req, res) => {
     (err, result) => {
       if (err) {
         console.error("Error logging out device:", err);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(SERVER_ERROR).json({ message: "Internal server error" });
       }
 
       if (result.affectedRows === 0) {
         return res
-          .status(404)
+          .status(NOT_FOUND)
           .json({ message: "Device not found or already logged out" });
       }
 
-      res.status(200).json({ message: "Device logged out successfully" });
+      res.status(STATUS_OK).json({ message: "Device logged out successfully" });
     }
   );
 };
@@ -162,7 +179,7 @@ export const logoutFromAllDevices = (req, res) => {
   connection.query(query, params, (err) => {
     if (err) {
       console.error("Logout all devices error:", err);
-      return res.status(500).json({ message: "Internal server error" });
+      return res.status(SERVER_ERROR).json({ message: "Internal server error" });
     }
 
     if (!exceptCurrent) {
@@ -172,7 +189,7 @@ export const logoutFromAllDevices = (req, res) => {
     }
 
     res
-      .status(200)
+      .status(STATUS_OK)
       .json({ message: "Logged out from all devices successfully" });
   });
 };
