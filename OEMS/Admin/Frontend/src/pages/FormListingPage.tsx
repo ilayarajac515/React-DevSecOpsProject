@@ -89,7 +89,7 @@ const FormListingPage = () => {
     "Form builder",
     "Copy test url",
     "View submissions",
-    "Eligible candidates",
+    "Eligible examinees",
   ];
 
   const columns: GridColDef[] = [
@@ -134,8 +134,8 @@ const FormListingPage = () => {
             handleCopyUrl={() => handleCopyUrl(params.row)}
             handleForm={() => handleForm(params.row)}
             handleViewSubmissions={() => handleViewSubmissions(params.row)}
-            handleViewEligibleCandidates={() =>
-              handleViewEligibleCandidates(params.row)
+            handleViewEligibleExaminees={() =>
+              handleViewEligibleExaminees(params.row)
             }
             Logoptions={Logoptions}
           />
@@ -143,7 +143,7 @@ const FormListingPage = () => {
       ),
     },
   ];
-  const handleViewEligibleCandidates = (row: any) => {
+  const handleViewEligibleExaminees = (row: any) => {
     navigate(`/eligible-examinees/${row.label}/${row.formId}`);
   };
   
