@@ -129,8 +129,8 @@ export const candidateSlice = createApi({
       ],
     }),
  
-    getCandidateSubmission: builder.query<CandidateSubmission, string>({
-      query: (responseId) => `/submission/${responseId}`,
+    getCandidateSubmission: builder.query<CandidateSubmission, {responseId: string, formId: string}>({
+      query: ({responseId, formId}) => `/submission/${responseId}/${formId}`,
     }),
  
     updateTimer: builder.mutation<{ message: string }, { formId: string, userEmail: string, Timer: string }>({

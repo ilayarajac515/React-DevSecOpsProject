@@ -78,8 +78,7 @@ export default function EligibleExaminees() {
   const { testId: formId } = useParams();
   
   const [deleteEligibleExaminees] = useDeleteSelectedCandidateByEmailMutation();
-    const { data: EligibleExaminees } = useGetSelectedCandidatesByFormIdQuery(formId ?? "");
-  console.log(EligibleExaminees);
+  const { data: EligibleExaminees } = useGetSelectedCandidatesByFormIdQuery(formId ?? "");
   
   const [rows, setRows] = useState<Candidate[]>([]);
 

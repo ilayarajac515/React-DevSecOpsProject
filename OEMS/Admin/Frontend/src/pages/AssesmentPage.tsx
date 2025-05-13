@@ -57,9 +57,12 @@ const AssessmentPage = () => {
 
   const submissionId = localStorage.getItem("responseId");
   const { data: candidateData } = useGetCandidateSubmissionQuery(
-    submissionId ?? "",
     {
-      skip: !submissionId,
+      responseId: submissionId ?? "",
+      formId: formId ?? "",
+    },
+    {
+      skip: !submissionId && !formId,
     }
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -239,7 +242,7 @@ const AssessmentPage = () => {
         duration,
         value: result,
       }).unwrap();
-      toast.success("Test Submitted")
+      toast.success("Test Submitted");
       setDeleteDialogOpen(true);
       setSubmitted(true);
       handleLogout();

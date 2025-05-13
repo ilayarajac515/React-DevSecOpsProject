@@ -11,6 +11,7 @@ import {
 
 export const candidateLogin = (req, res) => {
   const { email, password, formId } = req.body;
+  console.log(email, password, formId);
 
   if (!email || !password || !formId) {
     return res.status(BAD_REQUEST).json({
@@ -19,10 +20,11 @@ export const candidateLogin = (req, res) => {
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
-  const tableName = `selectedCandidate_${sanitizedFormId}`;
+  const candidateTable = `selectedCandidate_${sanitizedFormId}`;
+  const valueTable = `valueTable_${sanitizedFormId}`;
 
   const findCandidateQuery = `
-    SELECT * FROM \`${tableName}\`
+    SELECT * FROM \`${candidateTable}\`
     WHERE email = ? AND mobile = ?
   `;
 
@@ -34,6 +36,7 @@ export const candidateLogin = (req, res) => {
         console.error("Database error:", err);
         return res.status(SERVER_ERROR).json({ message: "Server error" });
       }
+
       if (candidateResults.length === 0) {
         return res
           .status(UNAUTHORIZED)
@@ -41,8 +44,10 @@ export const candidateLogin = (req, res) => {
       }
 
       const checkSubmissionQuery = `
-      SELECT * FROM ValueTable WHERE userEmail = ?
-    `;
+        SELECT * FROM \`${valueTable}\`
+        WHERE userEmail = ?
+      `;
+
       connection.query(checkSubmissionQuery, [email], (err2, valueResults) => {
         if (err2) {
           console.error("Error checking submission status:", err2);
@@ -58,6 +63,7 @@ export const candidateLogin = (req, res) => {
         const candidateToken = jwt.sign({ email }, process.env.SECRET_KEY, {
           expiresIn: "45m",
         });
+
         res.cookie("candidateToken", candidateToken, {
           httpOnly: true,
           secure: false,
@@ -74,15 +80,26 @@ export const candidateLogin = (req, res) => {
     }
   );
 };
+
 export const candidateLogout = (req, res) => {
   res.clearCookie("candidateToken");
   return res.status(STATUS_OK).json({ message: "Logout successful" });
 };
 
 export const getCandidateSubmission = (req, res) => {
-  const { responseId } = req.params;
+  const { formId, responseId } = req.params;
+
+  if (!formId || !responseId) {
+    return res
+      .status(BAD_REQUEST)
+      .json({ message: "formId and responseId are required" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+
   const query = `
-    SELECT * FROM ValueTable WHERE responseId = ?
+    SELECT * FROM \`${tableName}\` WHERE responseId = ?
   `;
 
   connection.query(query, [responseId], (err, results) => {
@@ -109,10 +126,13 @@ export const submitForm = (req, res) => {
       .json({ message: "Required fields are missing" });
   }
 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+
   const query = `
-        INSERT INTO ValueTable (responseId, formId , userEmail, startTime, termsAccepted)
-        VALUES (?, ?, ?, ?, ?)
-      `;
+    INSERT INTO \`${tableName}\` (responseId, formId, userEmail, startTime, termsAccepted)
+    VALUES (?, ?, ?, ?, ?)
+  `;
 
   connection.query(
     query,
@@ -137,10 +157,13 @@ export const editSubmission = (req, res) => {
     return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+
   const query = `
-    UPDATE ValueTable
-    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?,
-    warnings = ? WHERE formId = ? AND userEmail = ?
+    UPDATE \`${tableName}\`
+    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?, warnings = ?
+    WHERE formId = ? AND userEmail = ?
   `;
 
   connection.query(
@@ -245,8 +268,11 @@ export const updateTimer = (req, res) => {
       .json({ message: "Required fields are missing" });
   }
 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `ValueTable_${sanitizedFormId}`;
+
   const query = `
-    UPDATE ValueTable
+    UPDATE \`${tableName}\`
     SET Timer = ?
     WHERE formId = ? AND userEmail = ?
   `;
