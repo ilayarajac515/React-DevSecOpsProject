@@ -5,10 +5,28 @@ interface ForgotPasswordResponse {
   message: string;
   status: boolean;
 }
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  isAdmin: boolean;
+  imageUrl: string | null;
+}
 interface LoginResponse {
   name: string;
   email: string;
   accessToken: string;
+}
+interface EditUserPayload {
+  currentEmail: string;
+  newEmail: string;
+  name: string;
+  imageUrl?: string;
+}
+interface EditUserResponse {
+  message: string;
+  updatedEmail: string;
 }
 export interface DeviceSession {
   id: string;
@@ -199,5 +217,34 @@ export const checkAuth = async (): Promise<CheckAuthResponse> => {
     return data;
   } catch (error) {
     return { authorized: false };
+  }
+};
+
+export const editUser = async (
+  payload: EditUserPayload
+): Promise<EditUserResponse> => {
+  try {
+    const response: AxiosResponse<EditUserResponse> = await axiosInstance.put(
+      "/users/edit",
+      payload,
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error editing user:", error.response?.data || error);
+    throw error.response?.data || error;
+  }
+};
+
+export const getUserByEmail = async (email: string): Promise<User> => {
+  try {
+    const response: AxiosResponse<User> = await axiosInstance.get(
+      `/users/${encodeURIComponent(email)}`,
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching user:", error.response?.data || error);
+    throw error.response?.data || error;
   }
 };

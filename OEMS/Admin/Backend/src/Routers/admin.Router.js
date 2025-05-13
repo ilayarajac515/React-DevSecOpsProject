@@ -18,6 +18,8 @@ router.post("/logout", handler(adminController.logoutUser));
 router.get("/devices", authenticateJWT, handler(adminController.getActiveSessions));
 router.post("/logout-all", authenticateJWT, handler(adminController.logoutFromAllDevices));
 router.delete("/devices/:sessionId", authenticateJWT, handler(adminController.logoutSpecificDevice));
+router.put("/users/edit", authenticateJWT, handler(adminController.editUser));
+router.get("/users/:email", authenticateJWT, handler(adminController.getUserByEmail));
 
 router.get(
   "/check-auth",

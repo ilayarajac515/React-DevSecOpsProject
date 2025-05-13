@@ -258,16 +258,14 @@ export const insertSelectedCandidates = (req, res) => {
   const candidates = req.body.candidates;
 
   if (!formId || !Array.isArray(candidates) || candidates.length === 0) {
-    return res
-      .status(BAD_REQUEST)
-      .json({ message: "formId and candidates are required" });
+    return res.status(BAD_REQUEST).json({ message: "formId and candidates are required" });
   }
 
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
   const tableName = `selectedCandidate_${sanitizedFormId}`;
 
   const insertQuery = `
-    INSERT INTO \`${tableName}\` (
+    INSERT IGNORE INTO \`${tableName}\` (
       formId, name, email, mobile, degree, department,
       degree_percentage, sslc_percentage, hsc_percentage,
       location, relocate
@@ -291,20 +289,25 @@ export const insertSelectedCandidates = (req, res) => {
   connection.query(insertQuery, [values], (err, result) => {
     if (err) {
       console.error("Error inserting candidates:", err);
-      return res
-        .status(SERVER_ERROR)
-        .json({ message: "Failed to insert candidates", error: err });
+      return res.status(SERVER_ERROR).json({
+        message: "Failed to insert candidates",
+        error: err,
+      });
     }
 
+    const insertedCount = result.affectedRows;
+
     res.status(STATUS_OK).json({
-      message: "Candidates inserted successfully",
-      insertedCount: result.affectedRows,
+      message: "Candidates inserted successfully (duplicates ignored)",
+      insertedCount,
+      skippedCount: candidates.length - insertedCount,
     });
   });
 };
 
 export const deleteSelectedCandidateByEmail = (req, res) => {
-  const { formId, email } = req.params;
+  const { formId } = req.params;
+  const { email } = req.body;
 
   if (!formId || !email) {
     return res
@@ -315,9 +318,13 @@ export const deleteSelectedCandidateByEmail = (req, res) => {
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
   const tableName = `selectedCandidate_${sanitizedFormId}`;
 
-  const deleteQuery = `DELETE FROM \`${tableName}\` WHERE email = ?`;
+  const emails = Array.isArray(email) ? email : [email];
 
-  connection.query(deleteQuery, [email], (err, result) => {
+  const deleteQuery = `
+    DELETE FROM \`${tableName}\` WHERE email IN (?)
+  `;
+
+  connection.query(deleteQuery, [emails], (err, result) => {
     if (err) {
       console.error("Error deleting candidate:", err);
       return res
@@ -326,7 +333,7 @@ export const deleteSelectedCandidateByEmail = (req, res) => {
     }
 
     res.status(STATUS_OK).json({
-      message: "Candidate deleted successfully",
+      message: `${result.affectedRows} candidate(s) deleted successfully`,
       affectedRows: result.affectedRows,
     });
   });
@@ -804,7 +811,7 @@ export const insertCandidates = (req, res) => {
   const tableName = `${tableType}_${sanitizedFormId}`;
 
   const insertQuery = `
-    INSERT INTO \`${tableName}\` 
+    INSERT IGNORE INTO \`${tableName}\` 
     (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate)
     VALUES ?
   `;
@@ -845,12 +852,14 @@ export const deleteCandidate = (req, res) => {
   const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
   const tableName = `${tableType}_${sanitizedFormId}`;
 
+  const emails = Array.isArray(email) ? email : [email];
+
   const deleteQuery = `
     DELETE FROM \`${tableName}\`
-    WHERE formId = ? AND email = ?
+    WHERE formId = ? AND email IN (?)
   `;
 
-  connection.query(deleteQuery, [formId, email], (err, result) => {
+  connection.query(deleteQuery, [formId, emails], (err, result) => {
     if (err) {
       console.error("Delete error:", err);
       return res
@@ -861,10 +870,13 @@ export const deleteCandidate = (req, res) => {
     if (result.affectedRows === 0) {
       return res
         .status(NOT_FOUND)
-        .json({ message: "No candidate found with the provided email" });
+        .json({ message: "No candidates found with the provided email(s)" });
     }
 
-    res.status(STATUS_OK).json({ message: "Candidate deleted successfully" });
+    res.status(STATUS_OK).json({
+      message: `${result.affectedRows} candidate(s) deleted successfully`,
+      affectedRows: result.affectedRows,
+    });
   });
 };
 

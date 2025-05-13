@@ -36,6 +36,70 @@ export const registerUser = async (req, res) => {
   }
 };
 
+export const editUser = (req, res) => {
+  const { currentEmail, newEmail, name, imageUrl } = req.body;
+
+  if (!currentEmail || !newEmail || !name) {
+    return res.status(BAD_REQUEST).json({
+      message: "currentEmail, newEmail, and name are required",
+    });
+  }
+
+  const updateQuery = `
+    UPDATE users
+    SET email = ?, name = ?, imageUrl = ?
+    WHERE email = ?
+  `;
+
+  connection.query(
+    updateQuery,
+    [newEmail, name, imageUrl || null, currentEmail],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating user:", err);
+        return res.status(SERVER_ERROR).json({
+          message: "Failed to update user",
+          error: err,
+        });
+      }
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(NOT_FOUND)
+          .json({ message: "User not found with the provided currentEmail" });
+      }
+
+      return res.status(STATUS_OK).json({
+        message: "User updated successfully",
+        updatedEmail: newEmail,
+      });
+    }
+  );
+};
+
+export const getUserByEmail = (req, res) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return res.status(BAD_REQUEST).json({ message: "Email is required" });
+  }
+
+  const query = `SELECT * FROM users WHERE email = ?`;
+
+  connection.query(query, [email], (err, results) => {
+    if (err) {
+      console.error("Error fetching user:", err);
+      return res.status(SERVER_ERROR).json({ message: "Server error", error: err });
+    }
+
+    if (results.length === 0) {
+      return res.status(NOT_FOUND).json({ message: "User not found" });
+    }
+
+    return res.status(STATUS_OK).json(results[0]);
+  });
+};
+
 export const getActiveSessions = (req, res) => {
   const userId = req.jwtUser;
 
