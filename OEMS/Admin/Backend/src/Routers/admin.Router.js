@@ -5,7 +5,7 @@ import {
   BAD_REQUEST,
   STATUS_OK
 } from "../Constants/httpStatus.js";
-import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
+import { authenticateJWT } from "../Middleware/auth.mid.js";
 
 const router = Router();
 
@@ -13,19 +13,21 @@ router.post("/register", handler(adminController.registerUser));
 router.post("/login", handler(adminController.loginUser));
 router.post("/forgot-password", handler(adminController.forgotPassword));
 router.post("/registration",handler(adminController.registerCandidate));
-router.get("/candidate", authenticateJWT, authenticateSession, handler(adminController.getAllCandidates));
+router.get("/candidate", authenticateJWT, handler(adminController.getAllCandidates));
 router.post("/reset-password/:userId/:token/:expiry", handler(adminController.resetPassword));
 router.post("/verify-token", handler(adminController.verifyToken));
 router.post("/logout", handler(adminController.logoutUser));
 router.get('/registration/:formId', handler(adminController.getRegistrationsByFormId));
 router.get('/registration/:formId/count', handler(adminController.getFormCountByFormId));
+router.get("/devices", authenticateJWT, handler(adminController.getActiveSessions));
+router.post("/logout-all", authenticateJWT, handler(adminController.logoutFromAllDevices));
+router.delete("/devices/:sessionId", authenticateJWT, handler(adminController.logoutSpecificDevice));
 
 router.get(
   "/check-auth",
   authenticateJWT,
-  authenticateSession,
   handler(async (req, res) => {
-    if (req.user && req.jwtUser) {
+    if (req.jwtUser) {
       return res.status(STATUS_OK).json({
         authorized: true,
         name: req.jwtUser,

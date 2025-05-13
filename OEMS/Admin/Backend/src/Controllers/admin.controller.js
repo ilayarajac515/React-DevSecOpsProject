@@ -22,15 +22,36 @@ export const registerUser = async (req, res) => {
       return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
 
+    const userId = uuidv4();
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await createUser(name, email, hashedPassword);
+    await createUser(userId, name, email, hashedPassword);
 
     res.status(STATUS_OK).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
+};
+
+export const getActiveSessions = (req, res) => {
+  const userId = req.jwtUser;
+
+  connection.query(
+    `SELECT id, ipAddress, userAgent, createdAt, expiresAt 
+     FROM sessions 
+     WHERE userId = ? AND isActive = 1`,
+    [userId],
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching sessions:", err);
+        return res.status(500).json({ message: "Failed to fetch sessions" });
+      }
+
+      res.json({ devices: results });
+    }
+  );
 };
 
 export const loginUser = async (req, res) => {
@@ -48,35 +69,29 @@ export const loginUser = async (req, res) => {
     }
 
     const sessionId = uuidv4();
-    const accessToken = jwt.sign({ id: user.name }, process.env.SECRET_KEY, {
-      expiresIn: "1m",
+    const ipAddress =
+      req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+    const accessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
+      expiresIn: "15m",
     });
-    const refreshToken = jwt.sign({ id: user.name }, process.env.REFRESH_KEY, {
-      expiresIn: "1yr",
+    const refreshToken = jwt.sign({ id: user.id }, process.env.REFRESH_KEY, {
+      expiresIn: "1y",
     });
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const expiryTime = expiresAt.toISOString().slice(0, 19).replace("T", " ");
 
-    const updateQuery =
-      "UPDATE users SET sessionId = ?, expiryTime = ? WHERE email = ?";
+    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
     connection.query(
-      updateQuery,
-      [sessionId, expiryTime, email],
-      (updateErr, updateResult) => {
-        if (updateErr) {
-          console.error(updateErr);
-          return res
-            .status(SERVER_ERROR)
-            .json({ error: "Database error while updating session" });
-        }
-      }
+      `INSERT INTO sessions (id, userId, refreshToken, ipAddress, userAgent, expiresAt) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [sessionId, user.id, refreshToken, ipAddress, userAgent, expiresAt]
     );
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false,
       sameSite: "Lax",
-      maxAge: 1 * 60 * 1000,
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -93,31 +108,100 @@ export const loginUser = async (req, res) => {
       maxAge: 365 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ name: user.name, accessToken, email: user.email });
+    res.json({ name: user.name, email: user.email });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(SERVER_ERROR).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-export const logoutUser = (req, res) => {
-  const { email } = req.body;
+export const logoutSpecificDevice = (req, res) => {
+  const userId = req.jwtUser;
+  const targetSessionId = req.params.sessionId;
+  const currentSessionId = req.cookies["sessionId"];
 
-  if (!email) {
-    return res.status(BAD_REQUEST).json({ message: "Email is required" });
+  if (targetSessionId === currentSessionId) {
+    return res
+      .status(400)
+      .json({ message: "Cannot delete current session from this route" });
   }
+
   connection.query(
-    "UPDATE users SET sessionId = NULL, expiryTime = NULL WHERE email = ?",
-    [email],
-    (err, results) => {
+    `UPDATE sessions SET isActive = 0 
+     WHERE id = ? AND userId = ? AND isActive = 1`,
+    [targetSessionId, userId],
+    (err, result) => {
       if (err) {
-        console.error("Error updating session info:", err);
-        return res.status(SERVER_ERROR).json({ error: "Server error" });
+        console.error("Error logging out device:", err);
+        return res.status(500).json({ message: "Internal server error" });
       }
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ message: "Device not found or already logged out" });
+      }
+
+      res.status(200).json({ message: "Device logged out successfully" });
+    }
+  );
+};
+
+export const logoutFromAllDevices = (req, res) => {
+  const userId = req.jwtUser;
+  const currentSessionId = req.cookies["sessionId"];
+  const { exceptCurrent } = req.body;
+
+  let query = `UPDATE sessions SET isActive = 0 WHERE userId = ?`;
+  let params = [userId];
+
+  if (exceptCurrent) {
+    query += ` AND id != ?`;
+    params.push(currentSessionId);
+  }
+
+  connection.query(query, params, (err) => {
+    if (err) {
+      console.error("Logout all devices error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (!exceptCurrent) {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
       res.clearCookie("sessionId");
-      res.sendStatus(STATUS_OK);
+    }
+
+    res
+      .status(200)
+      .json({ message: "Logged out from all devices successfully" });
+  });
+};
+
+export const logoutUser = async (req, res) => {
+  const sessionId = req.cookies["sessionId"];
+  const refreshToken = req.cookies["refreshToken"];
+
+  if (!sessionId || !refreshToken) {
+    return res.status(BAD_REQUEST).json({ message: "No active session found" });
+  }
+
+  connection.query(
+    `UPDATE sessions SET isActive = 0 WHERE id = ? AND refreshToken = ?`,
+    [sessionId, refreshToken],
+    (err, results) => {
+      if (err) {
+        console.error("Logout DB error:", err);
+        return res
+          .status(SERVER_ERROR)
+          .json({ message: "Internal server error" });
+      }
+
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      res.clearCookie("sessionId");
+
+      return res.status(STATUS_OK).json({ message: "Logged out successfully" });
     }
   );
 };
@@ -234,153 +318,6 @@ export const verifyToken = async (req, res) => {
   }
 };
 
-export const registerCandidate = async (req, res) => {
-  const {
-    formId,
-    name,
-    email,
-    mobile,
-    degree,
-    department,
-    degree_percentage,
-    sslc_percentage,
-    hsc_percentage,
-    location,
-    relocate,
-  } = req.body;
-
-  try {
-    const canRelocate = relocate === true || relocate === "true" ? "Yes" : "No";
-    const formattedDate = new Date()
-      .toLocaleDateString("en-GB")
-      .split("/")
-      .join("-");
-
-    const emailCheckQuery =
-      "SELECT * FROM candidate_registration WHERE email = ?";
-    const mobileCheckQuery =
-      "SELECT * FROM candidate_registration WHERE mobile = ?";
-
-    connection.query(emailCheckQuery, [email], (emailErr, emailResults) => {
-      if (emailErr) {
-        return res
-          .status(SERVER_ERROR)
-          .json({ error: "Server error", status: false });
-      }
-
-      if (emailResults.length > 0) {
-        return res.status(BAD_REQUEST).json({ error: "Email already exists" });
-      }
-
-      connection.query(
-        mobileCheckQuery,
-        [mobile],
-        (mobileErr, mobileResults) => {
-          if (mobileErr) {
-            return res.status(SERVER_ERROR).json({ error: "Server error" });
-          }
-
-          if (mobileResults.length > 0) {
-            return res
-              .status(BAD_REQUEST)
-              .json({ error: "Mobile number already exists" });
-          }
-
-          const insertQuery = `
-          INSERT INTO candidate_registration 
-          (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate, submitted_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-          connection.query(
-            insertQuery,
-            [
-              formId,
-              name,
-              email,
-              mobile,
-              degree,
-              department,
-              degree_percentage,
-              sslc_percentage,
-              hsc_percentage,
-              location,
-              canRelocate,
-              formattedDate,
-            ],
-            (insertErr, insertResult) => {
-              if (insertErr) {
-                console.error(insertErr);
-                return res
-                  .status(SERVER_ERROR)
-                  .json({ error: "Database error" });
-              }
-
-              res.status(STATUS_OK).json({
-                message: "Registration successful",
-                id: insertResult.insertId,
-              });
-            }
-          );
-        }
-      );
-    });
-  } catch (error) {
-    console.error("Error during registration:", error);
-    res.status(SERVER_ERROR).json({ error: "Server error" });
-  }
-};
-
-export const getRegistrationsByFormId = (req, res) => {
-  const { formId } = req.params;
-
-  const query = "SELECT * FROM candidate_registration WHERE formId = ?";
-
-  connection.query(query, [formId], (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(SERVER_ERROR).json({ error: "Database error" });
-    }
-
-    if (results.length === 0) {
-      return res
-        .status(NOT_FOUND)
-        .json({ error: "No candidates found for this formId" });
-    }
-
-    res.status(STATUS_OK).json({ data: results });
-  });
-};
-
-export const getFormCountByFormId = (req, res) => {
-  const { formId } = req.params;
-
-  const query =
-    "SELECT COUNT(*) AS count FROM candidate_registration WHERE formId = ?";
-
-  connection.query(query, [formId], (err, results) => {
-    if (err) {
-      console.error("Count query error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-
-    res.status(200).json({ count: results[0].count });
-  });
-};
-
-export const getAllCandidates = (req, res) => {
-  const query = "SELECT * FROM candidate_registration";
-
-  connection.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching candidates:", err);
-      return res.status(SERVER_ERROR).json({ error: "Server error" });
-    }
-
-    res.status(STATUS_OK).json({ employees: results });
-  });
-};
-
 const findUserByEmail = (email) => {
   return new Promise((resolve, reject) => {
     connection.query(
@@ -407,11 +344,11 @@ const findUserById = (userId) => {
   });
 };
 
-const createUser = (name, email, password) => {
+const createUser = (userId, name, email, password) => {
   return new Promise((resolve, reject) => {
     connection.query(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, password],
+      "INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)",
+      [userId, name, email, password],
       (err, results) => {
         if (err) reject(err);
         else resolve(results);

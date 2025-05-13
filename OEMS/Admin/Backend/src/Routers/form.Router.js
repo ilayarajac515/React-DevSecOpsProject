@@ -2,14 +2,14 @@ import { Router } from "express";
 import * as formController from "../Controllers/form.controller.js";
 import multer from "multer";
 import handler from "express-async-handler";
-import { authenticateJWT, authenticateSession } from "../Middleware/auth.mid.js";
+import { authenticateJWT } from "../Middleware/auth.mid.js";
 
 const router = Router();
 const upload = multer();
 
 router.get('/form/:formId/registration', handler(formController.getRegistrationForm));
 router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
-router.use(authenticateJWT, authenticateSession);
+router.use(authenticateJWT);
  
 router.post("/upload-image", upload.single("image"), handler(formController.uploadImageController));
 router.put('/register/form/:formId', handler(formController.editForm));

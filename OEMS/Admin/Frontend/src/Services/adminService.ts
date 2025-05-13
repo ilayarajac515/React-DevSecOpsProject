@@ -10,25 +10,24 @@ interface LoginResponse {
   email: string;
   accessToken: string;
 }
-interface RegisterResponse {
+export interface DeviceSession {
+  id: string;
+  ipAddress: string;
+  userAgent: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface DevicesResponse {
+  devices: DeviceSession[];
+}
+
+export interface LogoutAllResponse {
   message: string;
-  id: number;
 }
-export interface Candidate {
-  id: number;
-  name: string;
-  email: string;
-  mobile: string;
-  degree: string;
-  department: string;
-  degree_percentage: number;
-  sslc_percentage: number;
-  hsc_percentage: number;
-  location: string;
-  relocate: boolean;
-}
-interface CandidatesResponse {
-  employees: Candidate[];
+
+export interface LogoutDeviceResponse {
+  message: string;
 }
 interface CheckAuthResponse {
   authorized: boolean;
@@ -135,67 +134,46 @@ export const verifyToken = async (
   }
 };
 
-export const register = async (
-  formId: string,
-  name: string,
-  email: string,
-  mobile: string,
-  degree: string,
-  department: string,
-  degree_percentage: number,
-  sslc_percentage: number,
-  hsc_percentage: number,
-  location: string,
-  relocate: boolean
-): Promise<RegisterResponse> => {
+export const getActiveDevices = async (): Promise<DeviceSession[]> => {
   try {
-    const response: AxiosResponse<RegisterResponse> = await axiosInstance.post(
-      "/registration",
-      {
-        formId,
-        name,
-        email,
-        mobile,
-        degree,
-        department,
-        degree_percentage,
-        sslc_percentage,
-        hsc_percentage,
-        location,
-        relocate,
-      }
+    const response: AxiosResponse<DevicesResponse> = await axiosInstance.get(
+      "/devices",
+      { withCredentials: true }
     );
- 
-    return response.data;
+    return response.data.devices;
   } catch (error: any) {
-    console.error("Registration error:", error.response?.data || error);
+    console.error("Error fetching devices:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
 
-export const getCandidatesByFormId = async (
-  formId: string
-): Promise<Candidate[]> => {
+export const logoutFromAllDevices = async (
+  exceptCurrent: boolean = false
+): Promise<LogoutAllResponse> => {
   try {
-    const response: AxiosResponse<{ data: Candidate[] }> = await axiosInstance.get(
-      `/registration/${formId}`
-    );
-    return response.data.data;
-  } catch (error: any) {
-    console.error("Fetch error:", error.response?.data || error);
-    throw error.response?.data || error;
-  }
-};
-
-export const getCandidates = async (): Promise<CandidatesResponse> => {
-  try {
-    const response: AxiosResponse<CandidatesResponse> = await axiosInstance.get(
-      "/candidate",
+    const response: AxiosResponse<LogoutAllResponse> = await axiosInstance.post(
+      "/logout-all",
+      { exceptCurrent },
       { withCredentials: true }
     );
     return response.data;
   } catch (error: any) {
-    console.error("Error fetching employees:", error.response?.data || error);
+    console.error("Error logging out from all devices:", error.response?.data || error);
+    throw error.response?.data || error;
+  }
+};
+
+export const logoutSpecificDevice = async (
+  sessionId: string
+): Promise<LogoutDeviceResponse> => {
+  try {
+    const response: AxiosResponse<LogoutDeviceResponse> = await axiosInstance.delete(
+      `/devices/${sessionId}`,
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Error logging out device:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -206,18 +184,5 @@ export const checkAuth = async (): Promise<CheckAuthResponse> => {
     return data;
   } catch (error) {
     return { authorized: false };
-  }
-};
-
-export const getFormCount = async (formId: string): Promise<{ count: number }> => {
-  try {
-    const response: AxiosResponse<{ count: number }> = await axiosInstance.get(
-      `/registration/${formId}/count`,
-      { withCredentials: true }
-    );
-    return response.data;
-  } catch (error: any) {
-    console.error("Error fetching form count:", error.response?.data || error);
-    throw error.response?.data || error;
   }
 };
