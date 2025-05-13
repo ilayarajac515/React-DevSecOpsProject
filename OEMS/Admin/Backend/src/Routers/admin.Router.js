@@ -23,11 +23,11 @@ router.get(
   "/check-auth",
   authenticateJWT,
   handler(async (req, res) => {
-    if (req.jwtUserId && req.jwtUser) {
+    if (req.jwtUserId && req.jwtUser && req.jwtEmail) {
       return res.status(STATUS_OK).json({
         authorized: true,
         name: req.jwtUser,
-        email: req.user,
+        email: req.jwtEmail,
       });
     }
     return res.status(BAD_REQUEST).json({ authorized: false });

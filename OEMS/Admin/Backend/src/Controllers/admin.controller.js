@@ -78,13 +78,13 @@ export const loginUser = async (req, res) => {
     const deviceType = parsed.device?.type || "desktop";
 
     const accessToken = jwt.sign(
-      { id: user.id, name: user.name },
+      { id: user.id, name: user.name, email: user.email },
       process.env.SECRET_KEY,
       { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
-      { id: user.id, name: user.name },
+      { id: user.id, name: user.name, email: user.email },
       process.env.REFRESH_KEY,
       { expiresIn: "1y" }
     );
