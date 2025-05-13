@@ -17,7 +17,19 @@ export interface DeviceSession {
   createdAt: string;
   expiresAt: string;
 }
-
+export interface Candidate {
+  id: number;
+  name: string;
+  email: string;
+  mobile: string;
+  degree: string;
+  department: string;
+  degree_percentage: number;
+  sslc_percentage: number;
+  hsc_percentage: number;
+  location: string;
+  relocate: boolean;
+}
 export interface DevicesResponse {
   devices: DeviceSession[];
 }

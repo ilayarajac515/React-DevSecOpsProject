@@ -13,12 +13,15 @@ export const authenticateJWT = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
-    req.jwtUser = decoded.id;
+    req.jwtUserId = decoded.id;
+    req.jwtUser = decoded.name;
+
     return next();
   } catch (err) {
     try {
       const decodedRefresh = jwt.verify(refreshToken, process.env.REFRESH_KEY);
       const userId = decodedRefresh.id;
+      const name = decodedRefresh.name;
 
       const [session] = await querySession(sessionId, refreshToken, userId);
       if (!session) {
@@ -27,7 +30,7 @@ export const authenticateJWT = async (req, res, next) => {
           .json({ message: "Session invalid or expired" });
       }
 
-      const newAccessToken = jwt.sign({ id: userId }, process.env.SECRET_KEY, {
+      const newAccessToken = jwt.sign({ id: userId, name: name }, process.env.SECRET_KEY, {
         expiresIn: "15m",
       });
 
@@ -38,7 +41,8 @@ export const authenticateJWT = async (req, res, next) => {
         maxAge: 15 * 60 * 1000,
       });
 
-      req.jwtUser = userId;
+      req.jwtUserId = userId;
+      req.jwtUser = name;
       return next();
     } catch (err) {
       console.error("Refresh error:", err);

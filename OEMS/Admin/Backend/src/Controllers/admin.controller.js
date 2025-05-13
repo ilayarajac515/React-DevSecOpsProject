@@ -6,7 +6,6 @@ import nodemailer from "nodemailer";
 import { connection } from "../server.js";
 import {
   BAD_REQUEST,
-  NOT_FOUND,
   SERVER_ERROR,
   STATUS_OK,
   UNAUTHORIZED,
@@ -72,10 +71,10 @@ export const loginUser = async (req, res) => {
     const ipAddress =
       req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const userAgent = req.headers["user-agent"];
-    const accessToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
+    const accessToken = jwt.sign({ id: user.id, name: user.name }, process.env.SECRET_KEY, {
       expiresIn: "15m",
     });
-    const refreshToken = jwt.sign({ id: user.id }, process.env.REFRESH_KEY, {
+    const refreshToken = jwt.sign({ id: user.id, name: user.name }, process.env.REFRESH_KEY, {
       expiresIn: "1y",
     });
 
