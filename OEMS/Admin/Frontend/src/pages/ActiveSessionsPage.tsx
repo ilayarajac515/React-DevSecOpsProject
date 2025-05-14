@@ -2,7 +2,6 @@ import {
   Box,
   Typography,
   Card,
-  CardHeader,
   Divider,
   CardContent,
   List,
@@ -10,8 +9,6 @@ import {
   Button,
   ListItemIcon,
   ListItemText,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import PhoneAndroidOutlinedIcon from "@mui/icons-material/PhoneAndroidOutlined";
 import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
@@ -21,12 +18,10 @@ import {
   logoutFromAllDevices,
   logoutSpecificDevice,
 } from "../Services/adminService";
-
+ 
 const ActiveSessionsPage = () => {
   const [loggedInSessions, setLoggedInSessions] = useState<any[]>([]);
-  const theme = useTheme();
-  const isXs = useMediaQuery(theme.breakpoints.down("sm")); // detects mobile
-
+ 
   const fetchActiveDevices = async () => {
     try {
       const devices = await getActiveDevices();
@@ -35,11 +30,11 @@ const ActiveSessionsPage = () => {
       console.error("Error fetching active devices:", error);
     }
   };
-
+ 
   useEffect(() => {
     fetchActiveDevices();
   }, []);
-
+ 
   const handleLogoutSession = async (sessionId: string) => {
     try {
       await logoutSpecificDevice(sessionId);
@@ -48,6 +43,7 @@ const ActiveSessionsPage = () => {
       console.error("Failed to terminate session:", e);
     }
   };
+ 
   const handleLogoutAllSessions = async () => {
     try {
       await logoutFromAllDevices(true);
@@ -56,7 +52,7 @@ const ActiveSessionsPage = () => {
       console.error("Failed to terminate session:", e);
     }
   };
-
+ 
   const sortedSessions = [...loggedInSessions].sort((a, b) => {
     if (a.isCurrentSession) return -1;
     if (b.isCurrentSession) return 1;
@@ -64,21 +60,39 @@ const ActiveSessionsPage = () => {
     if (!a.isActive && b.isActive) return 1;
     return 0;
   });
-
+ 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", marginTop: "30px" }}>
+    <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
       <Card sx={{ width: "100%", borderRadius: 2 }}>
-        <Box sx={{display:"flex" , justifyContent:"space-between"}}>
-
-        <CardHeader title="Active Sessions" />
-        <Button color="error" sx={{fontWeight:"bold"}} onClick={()=> handleLogoutAllSessions()}>Logout All Devices</Button>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 2,
+            pt: 2,
+            mb:2
+          }}
+        >
+          <Typography variant="h6">Active Sessions</Typography>
+          <Button
+            color="error"
+            sx={{ fontWeight: "bold" }}
+            onClick={handleLogoutAllSessions}
+          >
+            Logout All Devices
+          </Button>
         </Box>
         <Divider />
         <CardContent sx={{ height: 650, overflowY: "auto" }}>
           <List>
             {sortedSessions.map((session, index) => (
               <ListItem key={index} sx={{ alignItems: "flex-start" }}>
-                <ListItemIcon sx={{ marginTop: isXs ? "6px" : "12px" }}>
+                <ListItemIcon
+                  sx={{
+                    mt: { xs: "6px", sm: "12px" },
+                  }}
+                >
                   {(session.os === "Android" || session.os === "iOS") &&
                   session.deviceType === "mobile" ? (
                     <PhoneAndroidOutlinedIcon
@@ -90,10 +104,11 @@ const ActiveSessionsPage = () => {
                     />
                   )}
                 </ListItemIcon>
+ 
                 <Box
                   sx={{
                     display: "flex",
-                    flexDirection: isXs ? "column" : "row",
+                    flexDirection: { xs: "column", sm: "row" },
                     justifyContent: "space-between",
                     width: "100%",
                     gap: 1,
@@ -106,7 +121,12 @@ const ActiveSessionsPage = () => {
                     ).toLocaleString()}`}
                     sx={{ wordBreak: "break-word" }}
                   />
-                  <Box sx={{ minWidth: isXs ? "100%" : "auto", textAlign: isXs ? "left" : "right" }}>
+                  <Box
+                    sx={{
+                      minWidth: { xs: "100%", sm: "auto" },
+                      textAlign: { xs: "left", sm: "right" },
+                    }}
+                  >
                     {session.isCurrentSession ? (
                       <Typography
                         variant="caption"
@@ -130,7 +150,6 @@ const ActiveSessionsPage = () => {
                       </Button>
                     )}
                   </Box>
-                <Divider />
                 </Box>
               </ListItem>
             ))}
@@ -140,5 +159,6 @@ const ActiveSessionsPage = () => {
     </Box>
   );
 };
-
+ 
 export default ActiveSessionsPage;
+ 

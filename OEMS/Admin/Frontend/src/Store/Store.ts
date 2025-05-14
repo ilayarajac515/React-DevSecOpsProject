@@ -10,7 +10,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .concat(formSlice.middleware)
-      .concat(candidateSlice.middleware), // ✅ Add this line
+      .concat(candidateSlice.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
