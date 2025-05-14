@@ -33,14 +33,14 @@ export const authenticateJWT = async (req, res, next) => {
       }
 
       const newAccessToken = jwt.sign({ id: userId, name: name, email: email }, process.env.SECRET_KEY, {
-        expiresIn: "15m",
+        expiresIn: "1m",
       });
 
       res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
         secure: false,
         sameSite: "Lax",
-        maxAge: 15 * 60 * 1000,
+        maxAge: 1 * 60 * 1000,
       });
 
       req.jwtUserId = userId;

@@ -37,23 +37,23 @@ export const registerUser = async (req, res) => {
 };
 
 export const editUser = (req, res) => {
-  const { currentEmail, newEmail, name, imageUrl } = req.body;
+  const { userId, newEmail, name, imageUrl } = req.body;
 
-  if (!currentEmail || !newEmail || !name) {
+  if (!userId || !newEmail || !name) {
     return res.status(BAD_REQUEST).json({
-      message: "currentEmail, newEmail, and name are required",
+      message: "userId, newEmail, and name are required",
     });
   }
 
   const updateQuery = `
     UPDATE users
     SET email = ?, name = ?, imageUrl = ?
-    WHERE email = ?
+    WHERE id = ?
   `;
 
   connection.query(
     updateQuery,
-    [newEmail, name, imageUrl || null, currentEmail],
+    [newEmail, name, imageUrl || null, userId],
     (err, result) => {
       if (err) {
         console.error("Error updating user:", err);
@@ -77,16 +77,16 @@ export const editUser = (req, res) => {
   );
 };
 
-export const getUserByEmail = (req, res) => {
-  const { email } = req.params;
+export const getUserByUserId = (req, res) => {
+  const { userId } = req.params;
 
-  if (!email) {
+  if (!userId) {
     return res.status(BAD_REQUEST).json({ message: "Email is required" });
   }
 
-  const query = `SELECT * FROM users WHERE email = ?`;
+  const query = `SELECT * FROM users WHERE id = ?`;
 
-  connection.query(query, [email], (err, results) => {
+  connection.query(query, [userId], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
       return res.status(SERVER_ERROR).json({ message: "Server error", error: err });
@@ -101,7 +101,7 @@ export const getUserByEmail = (req, res) => {
 };
 
 export const getActiveSessions = (req, res) => {
-  const userId = req.jwtUser;
+  const userId = req.jwtUserId;
 
   connection.query(
     `SELECT id, userId, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt
@@ -144,7 +144,7 @@ export const loginUser = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user.id, name: user.name, email: user.email },
       process.env.SECRET_KEY,
-      { expiresIn: "15m" }
+      { expiresIn: "1m" }
     );
 
     const refreshToken = jwt.sign(
@@ -169,7 +169,7 @@ export const loginUser = async (req, res) => {
           httpOnly: true,
           secure: false,
           sameSite: "Lax",
-          maxAge: 15 * 60 * 1000,
+          maxAge: 1 * 60 * 1000,
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -186,7 +186,7 @@ export const loginUser = async (req, res) => {
           maxAge: 365 * 24 * 60 * 60 * 1000,
         });
 
-        res.json({ name: user.name, email: user.email });
+        res.json({ name: user.name, email: user.email, userId: user.id });
       }
     );
   } catch (err) {
@@ -196,7 +196,7 @@ export const loginUser = async (req, res) => {
 };
 
 export const logoutSpecificDevice = (req, res) => {
-  const userId = req.jwtUser;
+  const userId = req.jwtUserId;
   const targetSessionId = req.params.sessionId;
   const currentSessionId = req.cookies["sessionId"];
 
@@ -228,7 +228,7 @@ export const logoutSpecificDevice = (req, res) => {
 };
 
 export const logoutFromAllDevices = (req, res) => {
-  const userId = req.jwtUser;
+  const userId = req.jwtUserId;
   const currentSessionId = req.cookies["sessionId"];
   const { exceptCurrent } = req.body;
 

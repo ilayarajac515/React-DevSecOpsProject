@@ -14,10 +14,12 @@ interface AuthState {
   name: string | null;
   email: string | null;
   loading: boolean;
+  userId: string | null;
   setAuth: (auth: {
     isAdmin: boolean;
     name: string | null;
     email: string | null;
+    userId: string | null,
   }) => void;
 }
 
@@ -25,6 +27,7 @@ const defaultAuthState: AuthState = {
   isAdmin: false,
   name: null,
   email: null,
+  userId: null,
   loading: true,
   setAuth: () => {},
 };
@@ -40,6 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAdmin: false,
     name: null,
     email: null,
+    userId: null,
     loading: true,
   });
   const location = useLocation();
@@ -48,6 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     (authData: {
       isAdmin: boolean;
       name: string | null;
+      userId: string | null;
       email: string | null;
     }) => {
       setAuthState(() => ({ ...authData, loading: false }));
@@ -71,6 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setAuthState({
             isAdmin: true,
             name: data.name ?? null,
+            userId: data.userId ?? null,
             email: data.email ?? null,
             loading: false,
           });
@@ -79,6 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             isAdmin: false,
             name: null,
             email: null,
+            userId: null,
             loading: false,
           });
         }
@@ -86,6 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthState({
           isAdmin: false,
           name: null,
+          userId: null,
           email: null,
           loading: false,
         });

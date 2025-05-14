@@ -17,9 +17,10 @@ interface LoginResponse {
   name: string;
   email: string;
   accessToken: string;
+  userId: string;
 }
 interface EditUserPayload {
-  currentEmail: string;
+  userId: string;
   newEmail: string;
   name: string;
   imageUrl?: string;
@@ -66,6 +67,7 @@ interface CheckAuthResponse {
   authorized: boolean;
   name?: string;
   email?: string;
+  userId: string | null;
 }
 interface ResetPasswordResponse {
   message: string;
@@ -216,7 +218,7 @@ export const checkAuth = async (): Promise<CheckAuthResponse> => {
     const { data } = await axiosInstance.get<CheckAuthResponse>("/check-auth");
     return data;
   } catch (error) {
-    return { authorized: false };
+    return { authorized: false, userId: null };
   }
 };
 
@@ -236,10 +238,10 @@ export const editUser = async (
   }
 };
 
-export const getUserByEmail = async (email: string): Promise<User> => {
+export const getUserByUserId = async (userId: string): Promise<User> => {
   try {
     const response: AxiosResponse<User> = await axiosInstance.get(
-      `/users/${encodeURIComponent(email)}`,
+      `/users/${encodeURIComponent(userId)}`,
       { withCredentials: true }
     );
     return response.data;

@@ -49,7 +49,7 @@ const SignInPage = () => {
     const { email, password } = data;
     try {
       const result = await loginUser(email, password);
-      setAuth({ isAdmin: true, name: result.name, email: result.email });
+      setAuth({ isAdmin: true, name: result.name, email: result.email, userId: result.userId });
       setExistError("");
       reset();
       navigate("/dashboard");

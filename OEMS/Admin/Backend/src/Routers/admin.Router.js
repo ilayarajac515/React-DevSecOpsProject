@@ -19,7 +19,7 @@ router.get("/devices", authenticateJWT, handler(adminController.getActiveSession
 router.post("/logout-all", authenticateJWT, handler(adminController.logoutFromAllDevices));
 router.delete("/devices/:sessionId", authenticateJWT, handler(adminController.logoutSpecificDevice));
 router.put("/users/edit", authenticateJWT, handler(adminController.editUser));
-router.get("/users/:email", authenticateJWT, handler(adminController.getUserByEmail));
+router.get("/users/:userId", authenticateJWT, handler(adminController.getUserByUserId));
 
 router.get(
   "/check-auth",
@@ -30,6 +30,7 @@ router.get(
         authorized: true,
         name: req.jwtUser,
         email: req.jwtEmail,
+        userId: req.jwtUserId 
       });
     }
     return res.status(BAD_REQUEST).json({ authorized: false });
