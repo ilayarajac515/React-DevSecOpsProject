@@ -1,10 +1,4 @@
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  Tooltip,
-} from "@mui/material";
+import { Box, Button, Paper, Typography, Tooltip } from "@mui/material";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import {
@@ -18,13 +12,14 @@ import { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-    useAddSelectedCandidatesMutation,
+  useAddSelectedCandidatesMutation,
   useDeleteCandidateMutation,
   useGetCandidatesQuery,
   useGetFormsQuery,
 } from "../modules/admin_slice";
 import LongMenu from "../components/LogMenu";
-import SecurityIcon from '@mui/icons-material/Security';
+import SecurityIcon from "@mui/icons-material/Security";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function EligibleCandidates() {
   const Logoptions: string[] = ["Delete"];
@@ -113,18 +108,53 @@ export default function EligibleCandidates() {
     });
   };
 
-  const handleSelected = async () => {
+  const handleDeleteSelected = async () => {
     const selectedIDs = apiRef?.current?.getSelectedRows();
     const selectedRows = Array.from(selectedIDs!.values());
-    await formEligibleCandidates({
-      formId: selectedForm ?? "",
-      candidates: selectedRows,
-    });
     if (selectedRows.length === 0) {
       toast.error("Please select at least one row.");
       return;
     }
-    toast.success(`Added to the selected candidates`);
+
+    try {
+      for (const row of selectedRows) {
+        await deleteEligibleCandidate({
+          formId: formId ?? "",
+          email: row.email ?? "",
+          tableType: "selected",
+        });
+      }
+
+      toast.success(`Deleted ${selectedRows.length} candidate(s).`);
+    } catch (error) {
+      toast.error("Failed to delete selected candidates.");
+    }
+  };
+
+  const handleSelected = async () => {
+    const selectedIDs = apiRef?.current?.getSelectedRows();
+    const selectedRows = Array.from(selectedIDs!.values());
+
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one row.");
+      return;
+    }
+    if(selectedForm === ""){
+      toast.error("Please select form");
+      return;
+    }
+    try {
+      await formEligibleCandidates({
+        formId: selectedForm,
+        candidates: selectedRows,
+      });
+
+      toast.success(
+        `Added ${selectedRows.length} candidate(s) to the Eligible Examinees.`
+      );
+    } catch (error) {
+      toast.error("Failed to add selected candidates.");
+    }
   };
 
   return (
@@ -146,7 +176,27 @@ export default function EligibleCandidates() {
         >
           Eligible Candidates
         </Typography>
-        <Box sx={{ display: "flex", gap: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            alignItems: { xs: "stretch", sm: "center", lg: "center" },
+            minWidth: { xs: "200px", md: "600px" },
+          }}
+        >
+          <Tooltip title="Delete selected rows">
+            <Button
+              disableElevation
+              variant="contained"
+              color="error"
+              onClick={handleDeleteSelected}
+              startIcon={<DeleteIcon />}
+              fullWidth={true}
+            >
+              Delete
+            </Button>
+          </Tooltip>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel id="select-link-label">Select Form</InputLabel>
             <Select
@@ -155,8 +205,10 @@ export default function EligibleCandidates() {
               onChange={(e) => setSelectedForm(e.target.value)}
               label="Select Form"
             >
-              { data?.map((formName) => (
-                <MenuItem key={formName.formId} value={formName.formId}>{formName.label}</MenuItem>
+              {data?.map((formName) => (
+                <MenuItem key={formName.formId} value={formName.formId}>
+                  {formName.label}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -168,6 +220,7 @@ export default function EligibleCandidates() {
               color="primary"
               onClick={handleSelected}
               startIcon={<SecurityIcon />}
+              fullWidth={true}
             >
               Allow Access
             </Button>

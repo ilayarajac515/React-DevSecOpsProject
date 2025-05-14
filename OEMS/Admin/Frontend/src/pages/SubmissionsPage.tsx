@@ -1,19 +1,20 @@
 import { Box, Button, Typography } from "@mui/material";
-import { DataGridPro, GridColDef, GridRowsProp } from "@mui/x-data-grid-pro";
+import { DataGridPro, GridColDef, GridRowsProp, useGridApiRef } from "@mui/x-data-grid-pro";
 import LongMenu from "../components/LogMenu";
-import {
-  useGetSubmissionsByFormIdQuery,
-  useUpdateSubmissionMutation,
-} from "../modules/admin_slice";
-import { useParams } from "react-router-dom";
+import DownloadIcon from "@mui/icons-material/Download";
+import { useGetSubmissionsByFormIdQuery, useUpdateSubmissionMutation } from "../modules/admin_slice";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
 
 const SubmissionsPage = () => {
-  const Logoptions: string[] = ["edit", "delete"];
+  const apiRef = useGridApiRef();
+  const Logoptions: string[] = ["View Answers"];
   const { id: formId } = useParams();
-  const [editSubmission] = useUpdateSubmissionMutation();
   const [rows, setRows] = useState<GridRowsProp>([]);
-
+  const navigate = useNavigate();
   const columns: GridColDef[] = [
     { field: "userEmail", headerName: "Email", width: 350 },
     { field: "startTime", headerName: "Start Time", width: 150 },
@@ -36,11 +37,7 @@ const SubmissionsPage = () => {
       disableColumnMenu: true,
       align: "center",
       renderCell: (params) => (
-        <LongMenu
-          handleEdit={() => handleEdit(params.row)}
-          handleDelete={() => handleDelete(params.row)}
-          Logoptions={Logoptions}
-        />
+        <LongMenu handleViewAnswers={() => handleViewAnswers(params.row)} Logoptions={Logoptions} />
       ),
     },
   ];
@@ -52,27 +49,53 @@ const SubmissionsPage = () => {
       setRows(submissionData);
     }
   }, [submissionData]);
+  console.log(submissionData);
+  
+//   const handleViewAnswers = (row: any) => {
+//   // Create a PDF when the user clicks "View Answers"
+//   const doc = new jsPDF();
+//   doc.setFontSize(12);
 
-  const handleEdit = (row: any) => {
-    console.log("Edit action for row:", row);
-  };
+//   // Check if row.value is an object
+//   if (typeof row.value === 'object' && row.value !== null) {
+//     let yPosition = 10;
+    
+//     // Loop over the key-value pairs in row.value (questions and answers)
+//     for (const [question, answer] of Object.entries(row.value)) {
+//       doc.text(`${question}
+//       ${answer}`, 20, yPosition);
+//       yPosition += 10; // Increase the Y position for the next line
+//     }
+//   } else {
+//     // If it's not an object, just display the value as is
+//     doc.text(`User's Answers: ${row.value}`, 20, 10);
+//   }
 
-  const handleDelete = (row: any) => {
-    console.log("Delete action for row:", row);
-  };
+//   // Save or download the generated PDF
+//   doc.save(`${row.userEmail}_answers.pdf`);
+// };
 
-  const handleProcessRowUpdate = async (updatedRow: any) => {
-    try {
-      await editSubmission({
-        formId: formId!,
-        userEmail: updatedRow.userEmail,
-        ...updatedRow,
-      });
-      return updatedRow;
-    } catch (err) {
-      console.error("Update failed:", err);
-      return updatedRow;
+const handleViewAnswers = (row:any) =>{
+  navigate(`/examinee-answers/${row.formId}/${row.userEmail}`)
+}
+  const handleDownload = () => {
+    if (!apiRef.current) {
+      return;
     }
+    const selectedIDs = apiRef?.current.getSelectedRows();
+    const selectedRows = Array.from(selectedIDs.values());
+
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one row to download.");
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(selectedRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+
+    XLSX.writeFile(workbook, "selected_candidates.xlsx");
+    toast.success("Downloaded successfully!");
   };
 
   return (
@@ -90,10 +113,11 @@ const SubmissionsPage = () => {
       >
         <Typography sx={{ fontWeight: "bold" }}>Submissions</Typography>
         <Button
-          variant="text"
+          variant="contained"
           disableElevation
           disableRipple
-          sx={{ color: "white", background: "white", cursor: "default" }}
+          startIcon={<DownloadIcon />}
+          onClick={() => handleDownload()}
         >
           Download
         </Button>
@@ -101,10 +125,10 @@ const SubmissionsPage = () => {
 
       <Box sx={{ marginTop: "30px", height: "630px" }}>
         <DataGridPro
+          apiRef={apiRef}
           columns={columns}
           rows={rows}
           checkboxSelection
-          processRowUpdate={handleProcessRowUpdate}
           sx={{
             border: "1px solid lightgray",
             height: 631,
