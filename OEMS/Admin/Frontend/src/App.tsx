@@ -19,6 +19,7 @@ import CandidateRegistrationForm from "./pages/CandidateRegistrationForm";
 import DashboardPage from "./pages/DashboardPage";
 import EligibleCandidates from "./pages/EligibleCandidates";
 import EligibleExaminees from "./pages/EligibleExaminees";
+import ActiveSessionsPage from "./pages/ActiveSessionsPage";
 
 const App = () => {
   const location = useLocation();
@@ -86,6 +87,14 @@ const App = () => {
               element={
                 <CheckAuth>
                   <SignUpPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              path="/active-sessions"
+              element={
+                <CheckAuth>
+                  <ActiveSessionsPage />
                 </CheckAuth>
               }
             />

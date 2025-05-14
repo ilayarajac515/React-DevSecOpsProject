@@ -100,12 +100,14 @@ export const getUserByUserId = (req, res) => {
   });
 };
 
+ 
 export const getActiveSessions = (req, res) => {
   const userId = req.jwtUserId;
-
+  const currentSessionId = req.cookies["sessionId"];
+ 
   connection.query(
     `SELECT id, userId, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt
-     FROM sessions 
+     FROM sessions
      WHERE userId = ? AND isActive = 1`,
     [userId],
     (err, results) => {
@@ -113,8 +115,14 @@ export const getActiveSessions = (req, res) => {
         console.error("Error fetching sessions:", err);
         return res.status(SERVER_ERROR).json({ message: "Failed to fetch sessions" });
       }
-
-      res.json({ devices: results });
+ 
+      const sessions = results.map(session => ({
+      ...session,
+      isCurrentSession: session.id === currentSessionId,
+    }));
+ 
+    res.json({ devices: sessions });
+ 
     }
   );
 };
