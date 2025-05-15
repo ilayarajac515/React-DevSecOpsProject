@@ -111,13 +111,15 @@ export default function EligibleExaminees() {
         toast.error("Please select at least one row.");
         return;
       }
+      const emails = selectedRows.flatMap(row => row.email ? [row.email] : []);
+
       try {
-        for (const row of selectedRows) {
+
           await deleteEligibleExaminees({
             formId: formId ?? "",
-            email: row.email ?? "",
+            email: emails ?? "",
           });
-        }
+
         toast.success(`Deleted ${selectedRows.length} candidate(s).`);
       } catch (error) {
         toast.error("Failed to delete selected candidates.");

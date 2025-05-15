@@ -9,6 +9,7 @@ import {
   TextField,
   Switch,
   Tooltip,
+  Divider,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
@@ -27,6 +28,8 @@ import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
 import { useLazyGetSubmittedCountQuery } from "../modules/admin_slice";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import PreviewForm from "../components/PreviewForm";
+import CloseIcon from "@mui/icons-material/Close";
 
 type FormValues = {
   label: string;
@@ -49,9 +52,10 @@ const FormListingPage = () => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedForm, setSelectedForm] = useState<any>(null);
-
   const { register, handleSubmit, reset } = useForm<FormValues>();
   const [triggerGetSubmittedCount] = useLazyGetSubmittedCountQuery();
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewForm, setPreviewForm] = useState<any>(null);
 
   useEffect(() => {
     if (data) {
@@ -90,6 +94,7 @@ const FormListingPage = () => {
     "Copy test url",
     "View submissions",
     "Eligible examinees",
+    "Preview Form",
   ];
 
   const columns: GridColDef[] = [
@@ -134,6 +139,7 @@ const FormListingPage = () => {
             handleCopyUrl={() => handleCopyUrl(params.row)}
             handleForm={() => handleForm(params.row)}
             handleViewSubmissions={() => handleViewSubmissions(params.row)}
+            handlePreviewForm={() => handlePreviewForm(params.row)}
             handleViewEligibleExaminees={() =>
               handleViewEligibleExaminees(params.row)
             }
@@ -146,7 +152,12 @@ const FormListingPage = () => {
   const handleViewEligibleExaminees = (row: any) => {
     navigate(`/eligible-examinees/${row.label}/${row.formId}`);
   };
-  
+
+  const handlePreviewForm = (row: any) => {
+    setPreviewForm(row);
+    setPreviewOpen(true);
+  };
+
   const handleDeleteClick = (row: any) => {
     setSelectedForm(row);
     setDeleteDialogOpen(true);
@@ -352,6 +363,40 @@ const FormListingPage = () => {
           </DialogActions>
         </form>
       </Dialog>
+      <Dialog
+              open={previewOpen}
+              onClose={() => setPreviewOpen(false)}
+              maxWidth="md"
+              fullWidth
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <DialogTitle sx={{ fontWeight: "bold" }}>
+                  Preview Form - {previewForm?.label}
+                </DialogTitle>
+                <DialogTitle sx={{ fontWeight: "bold" }}>
+                  <Tooltip title="Close">
+                    <Button
+                      color="error"
+                      variant="outlined"
+                      onClick={() => setPreviewOpen(false)}
+                    >
+                      <CloseIcon />
+                    </Button>
+                  </Tooltip>
+                </DialogTitle>
+              </Box>
+              <Divider />
+              <DialogActions>
+                <PreviewForm form={previewForm} />
+              </DialogActions>
+            </Dialog>
+
       <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => {

@@ -10,6 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PeopleIcon from "@mui/icons-material/People";
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 
 type LongMenuProps = {
@@ -23,6 +24,7 @@ type LongMenuProps = {
   handleViewEligibleCandidates?: () => void;
   handleViewEligibleExaminees?: () => void;
   handleViewAnswers?: () => void;
+  handlePreviewForm?: () => void;
   Logoptions: string[];
 };
 
@@ -38,6 +40,7 @@ const LongMenu = ({
   handleViewRegistrations,
   handleViewEligibleExaminees,
   handleViewAnswers,
+  handlePreviewForm,
 }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -115,6 +118,9 @@ const LongMenu = ({
               if (option === "View Answers" && handleViewAnswers) {
                 handleViewAnswers();
               }
+              if (option === "Preview Form" && handlePreviewForm) {
+                handlePreviewForm();
+              }
             }}
           >
             {option === "Edit" && (
@@ -142,9 +148,10 @@ const LongMenu = ({
                 <FileCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
+
             {option === "View submissions" && (
               <ListItemIcon>
-                <VisibilityIcon fontSize="small" />
+                <ListAltIcon fontSize="small" />
               </ListItemIcon>
             )}
             {option === "View registrations" && (
@@ -165,6 +172,11 @@ const LongMenu = ({
             {option === "View Answers" && (
               <ListItemIcon>
                 <QuestionAnswerIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "Preview Form" && (
+              <ListItemIcon>
+                <VisibilityIcon fontSize="small" />
               </ListItemIcon>
             )}
 

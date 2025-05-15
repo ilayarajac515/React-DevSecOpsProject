@@ -9,14 +9,18 @@ import {
   TextField,
   MenuItem,
   IconButton,
+  Divider,
+  Tooltip,
 } from "@mui/material";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/Add";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { DataGridPro, GridColDef, GridRowsProp } from "@mui/x-data-grid-pro";
 import { GridRowOrderChangeParams } from "@mui/x-data-grid-pro";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
+import CloseIcon from "@mui/icons-material/Close";
 import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -32,6 +36,7 @@ import {
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
+import PreviewForm from "../components/PreviewForm";
 
 type Option = {
   value: string;
@@ -92,6 +97,12 @@ const FieldListingPage = () => {
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [targettedIndex, setTargettedIndex] = useState<number | null>();
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewForm, setPreviewForm] = useState<any>(null);
+  const handlePreviewForm = () => {
+    setPreviewOpen(true);
+    setPreviewForm(formId);
+  };
   const [uploadImageMutation] = useUploadImageMutation();
   const { register, handleSubmit, reset, watch, control } = useForm<FormValues>(
     {
@@ -180,8 +191,8 @@ const FieldListingPage = () => {
         data.type === "radio"
           ? data.options.map((opt) => opt.value.trim()).filter(Boolean)
           : data.type === "text"
-          ? "-"
-          : "Not Provided",
+            ? "-"
+            : "Not Provided",
       rta:
         data.type === "rta"
           ? {
@@ -225,6 +236,7 @@ const FieldListingPage = () => {
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
           background: "white",
           border: "1px solid lightGray",
@@ -233,10 +245,28 @@ const FieldListingPage = () => {
           borderRadius: "10px",
         }}
       >
-        <Typography sx={{ fontWeight: "bold" }}>{form}</Typography>
-        <Button variant="contained" disableElevation onClick={handleCreate}>
-          Create Field
-        </Button>
+        <Typography
+          sx={{ fontWeight: "bold", marginBottom: { xs: "10px", xl: "0px" } }}
+        >
+          {form}
+        </Typography>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <Button
+            startIcon={<VisibilityIcon />}
+            variant="text"
+            color="inherit"
+            disableElevation
+            disableFocusRipple
+            disableRipple
+            disableTouchRipple
+            onClick={handlePreviewForm}
+          >
+            Preview Form
+          </Button>
+          <Button variant="contained" disableElevation onClick={handleCreate}>
+            Create Field
+          </Button>
+        </Box>
       </Box>
       <Box sx={{ marginTop: "30px", height: "630px" }}>
         <DataGridPro
@@ -331,9 +361,8 @@ const FieldListingPage = () => {
                           return new CustomUploadAdapter(
                             loader,
                             async (formData: FormData) => {
-                              const result = await uploadImageMutation(
-                                formData
-                              ).unwrap();
+                              const result =
+                                await uploadImageMutation(formData).unwrap();
                               return { imageUrl: result.imageUrl };
                             }
                           );
@@ -458,6 +487,39 @@ const FieldListingPage = () => {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+      <Dialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            Preview Form - {form}
+          </DialogTitle>
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            <Tooltip title="Close">
+              <Button
+                color="error"
+                variant="outlined"
+                onClick={() => setPreviewOpen(false)}
+              >
+                <CloseIcon />
+              </Button>
+            </Tooltip>
+          </DialogTitle>
+        </Box>
+        <Divider />
+        <DialogActions>
+          <PreviewForm form={previewForm} />
+        </DialogActions>
       </Dialog>
     </Box>
   );
