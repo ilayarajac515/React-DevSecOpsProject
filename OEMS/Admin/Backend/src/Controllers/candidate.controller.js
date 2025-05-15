@@ -11,7 +11,6 @@ import {
 
 export const candidateLogin = (req, res) => {
   const { email, password, formId } = req.body;
-  console.log(email, password, formId);
 
   if (!email || !password || !formId) {
     return res.status(BAD_REQUEST).json({

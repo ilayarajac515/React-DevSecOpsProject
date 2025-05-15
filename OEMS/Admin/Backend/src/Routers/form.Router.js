@@ -24,6 +24,7 @@ router.put("/form/:formId", handler(formController.updateForm));
 router.delete("/form/:formId", handler(formController.deleteForm));
 router.put("/form/:formId/fields", handler(formController.replaceFields));
 router.get("/form/:formId/submissions", handler(formController.getSubmissions));
+router.get('/forms/:formId/submission/:email', handler(formController.getSubmissionByEmail));
 router.get("/form/:formId/submitted-count",handler(formController.getSubmittedCount));
 router.put("/form/:formId/submission", handler(formController.editSubmission));
 router.post('/register/form', handler(formController.addForm));

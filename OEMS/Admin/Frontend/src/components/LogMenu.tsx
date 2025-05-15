@@ -10,6 +10,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PeopleIcon from "@mui/icons-material/People";
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 
 type LongMenuProps = {
   handleEdit?: () => void;
@@ -21,6 +22,7 @@ type LongMenuProps = {
   handleViewRegistrations?: () => void;
   handleViewEligibleCandidates?: () => void;
   handleViewEligibleExaminees?: () => void;
+  handleViewAnswers?: () => void;
   Logoptions: string[];
 };
 
@@ -34,7 +36,8 @@ const LongMenu = ({
   Logoptions = [],
   handleViewSubmissions,
   handleViewRegistrations,
-  handleViewEligibleExaminees
+  handleViewEligibleExaminees,
+  handleViewAnswers,
 }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -109,6 +112,9 @@ const LongMenu = ({
               if (option === "Eligible examinees" && handleViewEligibleExaminees) {
                 handleViewEligibleExaminees();
               }
+              if (option === "View Answers" && handleViewAnswers) {
+                handleViewAnswers();
+              }
             }}
           >
             {option === "Edit" && (
@@ -154,6 +160,11 @@ const LongMenu = ({
             {option === "Eligible examinees" && (
               <ListItemIcon>
                 <PeopleIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "View Answers" && (
+              <ListItemIcon>
+                <QuestionAnswerIcon fontSize="small" />
               </ListItemIcon>
             )}
 

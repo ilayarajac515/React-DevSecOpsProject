@@ -21,7 +21,7 @@ import {
   useGetSelectedCandidatesByFormIdQuery,
 } from "../modules/admin_slice";
 import LongMenu from "../components/LogMenu";
-import SecurityIcon from '@mui/icons-material/Security';
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function EligibleExaminees() {
   const Logoptions: string[] = ["Delete"];
@@ -104,16 +104,25 @@ export default function EligibleExaminees() {
       email: row.email ?? "",
     });
   };
-
-  const handleSelected = async () => {
-    const selectedIDs = apiRef?.current?.getSelectedRows();
-    const selectedRows = Array.from(selectedIDs!.values());
-    if (selectedRows.length === 0) {
-      toast.error("Please select at least one row.");
-      return;
-    }
-    toast.success(`Added to the selected candidates`);
-  };
+  const handleDeleteSelected = async () => {
+      const selectedIDs = apiRef?.current?.getSelectedRows();
+      const selectedRows = Array.from(selectedIDs!.values());
+      if (selectedRows.length === 0) {
+        toast.error("Please select at least one row.");
+        return;
+      }
+      try {
+        for (const row of selectedRows) {
+          await deleteEligibleExaminees({
+            formId: formId ?? "",
+            email: row.email ?? "",
+          });
+        }
+        toast.success(`Deleted ${selectedRows.length} candidate(s).`);
+      } catch (error) {
+        toast.error("Failed to delete selected candidates.");
+      }
+    };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
@@ -135,15 +144,15 @@ export default function EligibleExaminees() {
           Eligible Examinees
         </Typography>
         <Box sx={{ display: "flex", gap: 3 }}>
-          <Tooltip title="Allow to grant access">
+          <Tooltip title="Delete selected Examinees">
             <Button
               disableElevation
               variant="contained"
-              color="primary"
-              onClick={handleSelected}
-              startIcon={<SecurityIcon />}
+              color="error"
+              onClick={()=> handleDeleteSelected()}
+              startIcon={<DeleteIcon />}
             >
-              Allow Access
+              Delete
             </Button>
           </Tooltip>
         </Box>

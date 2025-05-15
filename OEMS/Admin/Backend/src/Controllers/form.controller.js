@@ -475,6 +475,32 @@ export const getSubmissions = (req, res) => {
   });
 };
 
+export const getSubmissionByEmail = (req, res) => {
+  const { formId, email } = req.params;
+ 
+  if (!formId || !email) {
+    return res.status(BAD_REQUEST).json({ message: "Both formId and email are required" });
+  }
+ 
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+ 
+  const query = `SELECT * FROM \`${tableName}\` WHERE userEmail = ? AND formId = ?`;
+ 
+  connection.query(query, [email, formId], (err, results) => {
+    if (err) {
+      console.error("Error fetching submission by email:", err);
+      return res.status(SERVER_ERROR).json({ error: "Server error" });
+    }
+ 
+    if (results.length === 0) {
+      return res.status(NOT_FOUND).json({ message: "Submission not found" });
+    }
+ 
+    res.status(STATUS_OK).json(results[0]);
+  });
+};
+
 export const editSubmission = (req, res) => {
   const { formId } = req.params;
   const { value, userEmail, endTime, duration, score, status, warnings } =

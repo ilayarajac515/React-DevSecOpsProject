@@ -20,6 +20,7 @@ import DashboardPage from "./pages/DashboardPage";
 import EligibleCandidates from "./pages/EligibleCandidates";
 import EligibleExaminees from "./pages/EligibleExaminees";
 import ActiveSessionsPage from "./pages/ActiveSessionsPage";
+import ExamineeAnswerPage from "./pages/ExamineeAnswerPage";
 
 const App = () => {
   const location = useLocation();
@@ -95,6 +96,14 @@ const App = () => {
               element={
                 <CheckAuth>
                   <ActiveSessionsPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              path="/examinee-answers/:examineeFormId/:email"
+              element={
+                <CheckAuth>
+                  <ExamineeAnswerPage />
                 </CheckAuth>
               }
             />
