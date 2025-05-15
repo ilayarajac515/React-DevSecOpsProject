@@ -1,13 +1,17 @@
 import { Box, Button, Typography } from "@mui/material";
-import { DataGridPro, GridColDef, GridRowsProp, useGridApiRef } from "@mui/x-data-grid-pro";
+import {
+  DataGridPro,
+  GridColDef,
+  GridRowsProp,
+  useGridApiRef,
+} from "@mui/x-data-grid-pro";
 import LongMenu from "../components/LogMenu";
 import DownloadIcon from "@mui/icons-material/Download";
-import { useGetSubmissionsByFormIdQuery, useUpdateSubmissionMutation } from "../modules/admin_slice";
+import { useGetSubmissionsByFormIdQuery } from "../modules/admin_slice";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
 
 const SubmissionsPage = () => {
   const apiRef = useGridApiRef();
@@ -37,7 +41,12 @@ const SubmissionsPage = () => {
       disableColumnMenu: true,
       align: "center",
       renderCell: (params) => (
-        <LongMenu handleViewAnswers={() => handleViewAnswers(params.row)} Logoptions={Logoptions} />
+        <Box onClick={(event) => event.stopPropagation()}>
+          <LongMenu
+            handleViewAnswers={() => handleViewAnswers(params.row)}
+            Logoptions={Logoptions}
+          />
+        </Box>
       ),
     },
   ];
@@ -50,34 +59,10 @@ const SubmissionsPage = () => {
     }
   }, [submissionData]);
   console.log(submissionData);
-  
-//   const handleViewAnswers = (row: any) => {
-//   // Create a PDF when the user clicks "View Answers"
-//   const doc = new jsPDF();
-//   doc.setFontSize(12);
 
-//   // Check if row.value is an object
-//   if (typeof row.value === 'object' && row.value !== null) {
-//     let yPosition = 10;
-    
-//     // Loop over the key-value pairs in row.value (questions and answers)
-//     for (const [question, answer] of Object.entries(row.value)) {
-//       doc.text(`${question}
-//       ${answer}`, 20, yPosition);
-//       yPosition += 10; // Increase the Y position for the next line
-//     }
-//   } else {
-//     // If it's not an object, just display the value as is
-//     doc.text(`User's Answers: ${row.value}`, 20, 10);
-//   }
-
-//   // Save or download the generated PDF
-//   doc.save(`${row.userEmail}_answers.pdf`);
-// };
-
-const handleViewAnswers = (row:any) =>{
-  navigate(`/examinee-answers/${row.formId}/${row.userEmail}`)
-}
+  const handleViewAnswers = (row: any) => {
+    navigate(`/examinee-answers/${row.formId}/${row.userEmail}`);
+  };
   const handleDownload = () => {
     if (!apiRef.current) {
       return;

@@ -96,11 +96,12 @@ const ExamineeAnswerPage = () => {
               )}
 
               {question.type === "textArea" && (
-                <TextareaAutosize
-                  minRows={4}
+                <TextField
+                  rows={10}
+                  multiline
                   value={userAnswer || ""}
                   placeholder={question.placeholder}
-                  style={{ width: "100%", resize: "none" }}
+                  fullWidth
                 />
               )}
 
