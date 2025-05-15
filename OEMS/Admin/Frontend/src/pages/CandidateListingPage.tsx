@@ -4,13 +4,6 @@ import {
   Paper,
   Typography,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  InputAdornment,
-  TextField,
 } from "@mui/material";
 import {
   DataGridPro,
@@ -19,13 +12,13 @@ import {
   GridFilterModel,
 } from "@mui/x-data-grid-pro";
 import DownloadIcon from "@mui/icons-material/Download";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { toast } from "react-toastify";
 import { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useGetCandidatesQuery, useInsertCandidatesMutation } from "../modules/admin_slice";
-
+import * as XLSX from "xlsx";
+ 
 const columns: GridColDef[] = [
   { field: "name", headerName: "Name", width: 150 },
   { field: "email", headerName: "Email", width: 250 },
@@ -53,7 +46,7 @@ const columns: GridColDef[] = [
   { field: "location", headerName: "Location", width: 120 },
   { field: "relocate", headerName: "Relocate?", width: 100 },
 ];
-
+ 
 export default function CandidatesListingPage() {
   const apiRef = useGridApiRef();
   const { registerFormId: formId } = useParams();
@@ -63,42 +56,60 @@ export default function CandidatesListingPage() {
   });
   const [selectedCandidates] = useInsertCandidatesMutation();
   const [rows, setRows] = useState<Candidate[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const registrationLink =
-    "http://devopsinfoane.site/candidate-registration-page";
-
+ 
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
     page: 0,
   });
-  
+ 
   const [filterModel, setFilterModel] = useState<GridFilterModel>({
     items: [],
   });
-
+ 
   useEffect(() => {
     if (data) {
-
       setRows(data.candidates);
     }
   }, [data]);
-
-  const handleDownload = async () => {
-    const selectedIDs = apiRef?.current?.getSelectedRows();
-    const selectedRows = Array.from(selectedIDs!.values());
-    await selectedCandidates({formId: formId ?? "", tableType : "Selected" , candidates: selectedRows})
-    if (selectedRows.length === 0) {
-      toast.error("Please select at least one row.");
-      return;
-    }
-    toast.success(`Added to the selected candidates`);
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(registrationLink);
-    toast.success("Link copied!");
-  };
-
+ 
+const handleDownload = () => {
+  if (!apiRef.current) {
+    return;
+  }
+  const selectedIDs = apiRef?.current.getSelectedRows();
+  const selectedRows = Array.from(selectedIDs.values());
+ 
+  if (selectedRows.length === 0) {
+    toast.error("Please select at least one row to download.");
+    return;
+  }
+ 
+  const worksheet = XLSX.utils.json_to_sheet(selectedRows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+ 
+  XLSX.writeFile(workbook, "selected_candidates.xlsx");
+  toast.success("Downloaded successfully!");
+}; // <-- ✅ Missing this brace
+ 
+const handleSelectCandidates = async () => {
+  const selectedIDs = apiRef?.current?.getSelectedRows();
+  const selectedRows = Array.from(selectedIDs!.values());
+ 
+  if (selectedRows.length === 0) {
+    toast.error("Please select at least one row.");
+    return;
+  }
+ 
+  await selectedCandidates({
+    formId: formId ?? "",
+    tableType: "Selected",
+    candidates: selectedRows,
+  });
+ 
+  toast.success(`Added to the selected candidates`);
+};
+ 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
       <Box
@@ -119,25 +130,25 @@ export default function CandidatesListingPage() {
           Registered Candidates
         </Typography>
         <Box sx={{ display: "flex", gap: 3 }}>
-          <Tooltip title="Registration Link">
-            <Button
-              disableElevation
-              variant="contained"
-              color="primary"
-              onClick={() => setOpenDialog(true)}
-            >
-              Get Apply Link
-            </Button>
-          </Tooltip>
           <Tooltip title="Download Selected">
             <Button
               disableElevation
               variant="contained"
               color="primary"
-              onClick={handleDownload}
+              onClick={() => handleDownload()}
               startIcon={<DownloadIcon />}
             >
               Download
+            </Button>
+          </Tooltip>
+          <Tooltip title="Registration Link">
+            <Button
+              disableElevation
+              variant="contained"
+              color="primary"
+              onClick={() => handleSelectCandidates()}
+            >
+              Select Candidates
             </Button>
           </Tooltip>
         </Box>
@@ -171,36 +182,7 @@ export default function CandidatesListingPage() {
           />
         </Paper>
       </Box>
-
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>Registration Link</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            value={registrationLink}
-            InputProps={{
-              readOnly: true,
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={handleCopy}>
-                    <ContentCopyIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+ 
     </Box>
   );
 }
