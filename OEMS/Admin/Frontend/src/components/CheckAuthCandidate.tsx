@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useCandidate } from "../context/CandidateContext";
-import CircularProgressBar from "./CircularProgressBar"; // same loader as admin
+import CircularProgressBar from "./CircularProgressBar";
 
 interface CheckAuthProps {
   children: ReactNode;

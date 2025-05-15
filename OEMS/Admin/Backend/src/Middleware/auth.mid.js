@@ -84,13 +84,13 @@ async function querySession(sessionId, refreshToken, userId) {
 }
  
 export const authenticateCandidateJWT = (req, res, next) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+  const accessToken = req.cookies["candidateToken"];
  
-  if (!token) {
+  if (!accessToken) {
     return res.status(BAD_REQUEST).json({ message: "No token provided" });
   }
  
-  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+  jwt.verify(accessToken, process.env.SECRET_KEY, (err, decoded) => {
     if (err) {
       return res
         .status(UNAUTHORIZED)

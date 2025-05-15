@@ -60,14 +60,14 @@ export const candidateLogin = (req, res) => {
         }
 
         const candidateToken = jwt.sign({ email }, process.env.SECRET_KEY, {
-          expiresIn: "45m",
+          expiresIn: "3h",
         });
 
         res.cookie("candidateToken", candidateToken, {
           httpOnly: true,
           secure: false,
           sameSite: "Lax",
-          maxAge: 45 * 60 * 1000,
+          maxAge: 3 * 60 * 60 * 1000,
         });
 
         return res.status(STATUS_OK).json({
