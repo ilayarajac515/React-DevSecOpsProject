@@ -259,7 +259,7 @@ export const formSlice = createApi({
 
     deleteSelectedCandidateByEmail: builder.mutation<
       { message: string; affectedRows: number },
-      { formId: string; email: string }
+      { formId: string; email: string[] }
     >({
       query: ({ formId, email }) => ({
         url: `selected-candidates/${formId}/${email}`,
@@ -294,7 +294,7 @@ export const formSlice = createApi({
 
     deleteCandidate: builder.mutation<
       { message: string; affectedRows?: number },
-      { tableType: string; formId: string; email: string }
+      { tableType: string; formId: string; email: string[] }
     >({
       query: ({ tableType, formId, email }) => ({
         url: `candidates/${tableType}/${formId}/${email}`,

@@ -115,15 +115,15 @@ export default function EligibleCandidates() {
       toast.error("Please select at least one row.");
       return;
     }
-
+    const emails = selectedRows.flatMap((row) =>
+      row.email ? [row.email] : []
+    );
     try {
-      for (const row of selectedRows) {
-        await deleteEligibleCandidate({
-          formId: formId ?? "",
-          email: row.email ?? "",
-          tableType: "selected",
-        });
-      }
+      await deleteEligibleCandidate({
+        formId: formId ?? "",
+        email: emails ?? "",
+        tableType: "selected",
+      });
 
       toast.success(`Deleted ${selectedRows.length} candidate(s).`);
     } catch (error) {
@@ -139,7 +139,7 @@ export default function EligibleCandidates() {
       toast.error("Please select at least one row.");
       return;
     }
-    if(selectedForm === ""){
+    if (selectedForm === "") {
       toast.error("Please select form");
       return;
     }

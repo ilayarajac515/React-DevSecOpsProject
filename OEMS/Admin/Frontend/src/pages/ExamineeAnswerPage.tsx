@@ -8,6 +8,7 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
+  Button,
 } from "@mui/material";
 import {
   useGetFieldsByFormIdQuery,
@@ -15,6 +16,7 @@ import {
 } from "../modules/admin_slice";
 import { useParams } from "react-router-dom";
 import { useGetFormByIdQuery } from "../modules/candidate_slice";
+import { toast } from "react-toastify";
 
 const toRoman = (num: number) => {
   const romanNumerals: string[] = [
@@ -50,16 +52,46 @@ const ExamineeAnswerPage = () => {
   });
   const { data: formData } = useGetFormByIdQuery(formId ?? "");
   const { data: assessmentData } = useGetFieldsByFormIdQuery(formId ?? "");
+  const formatted = assessmentData
+    ?.map((q: any) => {
+      const answer = userAnswers?.value?.[q.label];
+      if (!answer) return "";
+      if (Array.isArray(answer)) {
+        const subAnswers = answer
+          .map((sub: any, index: number) => {
+            const qText = sub?.question || `Sub-question ${index + 1}`;
+            const aText = sub?.answer || "No answer";
+            return `${toRoman(index + 1)}. ${qText}\n   Ans: ${aText}`;
+          })
+          .join("\n");
 
+        return `Q: ${q.label}\n${subAnswers}\n`;
+      }
+      return `Q: ${q.label}\nA: ${answer}\n`;
+    })
+    .filter(Boolean)
+    .join("\n");
+    
+const handleCopy = () => {
+  if (!formatted) return toast.error("Nothing to copy");;
+  navigator.clipboard.writeText(formatted).then(() => {
+    toast.success("Answers copied to clipboard!");
+  }, () => {
+    alert("Failed to copy answers.");
+  });
+};
   return (
     <Container maxWidth="md">
       <Box
         p={4}
         mt={{ xs: 8, sm: 0, md: 4 }}
-        sx={{backgroundColor: "#f9f9f9",  borderRadius: 2 }}
+        sx={{ backgroundColor: "#f9f9f9", borderRadius: 2 }}
         component="form"
         onSubmit={(e) => e.preventDefault()}
       >
+        <Button variant="outlined" onClick={handleCopy} sx={{ mb: 3 }}>
+  Copy All Answers
+</Button>
         <Box
           sx={{
             display: "flex",
