@@ -8,7 +8,6 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
-  TextareaAutosize,
 } from "@mui/material";
 import {
   useGetFieldsByFormIdQuery,
