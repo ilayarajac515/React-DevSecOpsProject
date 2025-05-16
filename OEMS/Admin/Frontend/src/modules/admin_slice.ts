@@ -90,6 +90,18 @@ export const formSlice = createApi({
       invalidatesTags: ["Forms"],
     }),
 
+    cloneForm: builder.mutation<
+      { message: string; newFormId: string },
+      { form: Form; fields: Field[] }
+    >({
+      query: (body) => ({
+        url: "form/clone",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Forms", "Fields"],
+    }),
+
     updateForm: builder.mutation<
       { message: string },
       { data: Omit<Form, "createdAt"> }
@@ -344,6 +356,7 @@ export const {
   useEditFieldMutation,
   useDeleteFieldMutation,
   useGetSubmissionsByFormIdQuery,
+  useCloneFormMutation,
   useGetSubmissionByEmailQuery,
   useUpdateSubmissionMutation,
   useLazyGetSubmittedCountQuery,

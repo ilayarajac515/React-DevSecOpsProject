@@ -20,6 +20,7 @@ router.put("/form/:formId/field/:fieldId", handler(formController.updateField));
 router.delete("/form/:formId/field/:fieldId", handler(formController.deleteField));
 router.post("/form/:formId/field", handler(formController.addField));
 router.post("/form", handler(formController.createForm));
+router.post("/form/clone", handler(formController.cloneForm));
 router.put("/form/:formId", handler(formController.updateForm));
 router.delete("/form/:formId", handler(formController.deleteForm));
 router.put("/form/:formId/fields", handler(formController.replaceFields));

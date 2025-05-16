@@ -720,6 +720,134 @@ export const addForm = (req, res) => {
   );
 };
 
+export const cloneForm = (req, res) => {
+  const { form, fields } = req.body;
+
+  if (!form || !fields || !Array.isArray(fields)) {
+    return res.status(BAD_REQUEST).json({ message: "Missing form or fields data" });
+  }
+
+  const newFormId = uuidv4();
+  const {
+    label,
+    description,
+    startContent,
+    endContent,
+    duration,
+    manager,
+    status = "inactive"
+  } = form;
+
+  const insertFormQuery = `
+    INSERT INTO FormTable (
+      formId, label, description, startContent, endContent, duration, manager, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  connection.query(
+    insertFormQuery,
+    [
+      newFormId,
+      label || null,
+      description || null,
+      startContent || null,
+      endContent || null,
+      duration,
+      manager,
+      status
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Error inserting cloned form:", err);
+        return res.status(SERVER_ERROR).json({ error: "Failed to clone form" });
+      }
+
+      const fieldValues = fields.map((field) => [
+        uuidv4(),
+        newFormId,
+        field.type || null,
+        field.label || null,
+        field.placeholder || null,
+        JSON.stringify(field.options || []),
+        JSON.stringify(field.rta || [])
+      ]);
+
+      const insertFieldsQuery = `
+        INSERT INTO FieldTable (
+          fieldId, formId, type, label, placeholder, options, rta
+        ) VALUES ?
+      `;
+
+      connection.query(insertFieldsQuery, [fieldValues], (err2) => {
+        if (err2) {
+          console.error("Error inserting cloned fields:", err2);
+          return res.status(SERVER_ERROR).json({ error: "Failed to clone fields" });
+        }
+
+        const sanitizedFormId = newFormId.replace(/[^a-zA-Z0-9_]/g, "_");
+
+        const candidateTable = `selectedCandidate_${sanitizedFormId}`;
+        const createCandidateTableQuery = `
+          CREATE TABLE IF NOT EXISTS \`${candidateTable}\` (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            formId VARCHAR(36) NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            mobile VARCHAR(15) UNIQUE NOT NULL,
+            degree VARCHAR(50) NOT NULL,
+            department VARCHAR(50) NOT NULL,
+            degree_percentage DECIMAL(5,2) NOT NULL,
+            sslc_percentage DECIMAL(5,2) NOT NULL,
+            hsc_percentage DECIMAL(5,2) NOT NULL,
+            location VARCHAR(100) NOT NULL,
+            relocate VARCHAR(100) NOT NULL,
+            FOREIGN KEY (formId) REFERENCES FormTable(formId) ON DELETE CASCADE
+          )
+        `;
+
+        connection.query(createCandidateTableQuery, (err3) => {
+          if (err3) {
+            console.error("Error creating candidate table:", err3);
+            return res.status(SERVER_ERROR).json({ error: "Failed to create candidate table" });
+          }
+
+          const valueTable = `valueTable_${sanitizedFormId}`;
+          const createValueTableQuery = `
+            CREATE TABLE IF NOT EXISTS \`${valueTable}\` (
+              id INT PRIMARY KEY AUTO_INCREMENT,
+              responseId VARCHAR(36) UNIQUE,
+              formId VARCHAR(36),
+              value JSON,
+              userEmail VARCHAR(36) UNIQUE NOT NULL,
+              startTime VARCHAR(36),
+              endTime VARCHAR(36),
+              duration VARCHAR(36),
+              score VARCHAR(36),
+              status VARCHAR(36) DEFAULT 'Not Submitted',
+              termsAccepted VARCHAR(36),
+              warnings INT,
+              Timer VARCHAR(36),
+              FOREIGN KEY (formId) REFERENCES FormTable(formId) ON DELETE CASCADE
+            )
+          `;
+
+          connection.query(createValueTableQuery, (err4) => {
+            if (err4) {
+              console.error("Error creating value table:", err4);
+              return res.status(SERVER_ERROR).json({ error: "Failed to create value table" });
+            }
+
+            return res.status(200).json({
+              message: "Form cloned successfully",
+              newFormId
+            });
+          });
+        });
+      });
+    }
+  );
+};
+
 export const editForm = (req, res) => {
   const { formId } = req.params;
   const { branch, label, description, manager, status } = req.body;
