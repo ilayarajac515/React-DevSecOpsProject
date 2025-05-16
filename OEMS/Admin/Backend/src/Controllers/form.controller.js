@@ -1,4 +1,5 @@
 import { connection } from "../server.js";
+import {v4 as uuid} from "uuid"
 import {
   BAD_REQUEST,
   SERVER_ERROR,
@@ -727,7 +728,7 @@ export const cloneForm = (req, res) => {
     return res.status(BAD_REQUEST).json({ message: "Missing form or fields data" });
   }
 
-  const newFormId = uuidv4();
+  const newFormId = uuid();
   const {
     label,
     description,
@@ -763,7 +764,7 @@ export const cloneForm = (req, res) => {
       }
 
       const fieldValues = fields.map((field) => [
-        uuidv4(),
+        uuid(),
         newFormId,
         field.type || null,
         field.label || null,
@@ -837,7 +838,7 @@ export const cloneForm = (req, res) => {
               return res.status(SERVER_ERROR).json({ error: "Failed to create value table" });
             }
 
-            return res.status(200).json({
+            return res.status(STATUS_OK).json({
               message: "Form cloned successfully",
               newFormId
             });

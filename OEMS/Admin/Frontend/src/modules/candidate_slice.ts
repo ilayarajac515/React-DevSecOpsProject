@@ -171,6 +171,7 @@ export const {
   useLoginCandidateMutation,
   useCheckCandidateAuthQuery,
   useGetFormByIdQuery,
+  useLazyGetFormByIdQuery,
   useLogoutCandidateMutation,
   useGetFieldsByCandidateFormIdQuery,
   useUpdateTimerMutation,

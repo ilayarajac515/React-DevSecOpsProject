@@ -62,7 +62,7 @@ const AssessmentPage = () => {
       formId: formId ?? "",
     },
     {
-      skip: !submissionId && !formId,
+      skip: !submissionId,
     }
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

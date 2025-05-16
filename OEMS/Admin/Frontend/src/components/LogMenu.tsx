@@ -5,6 +5,7 @@ import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Box, ListItemIcon } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
@@ -25,6 +26,7 @@ type LongMenuProps = {
   handleViewEligibleExaminees?: () => void;
   handleViewAnswers?: () => void;
   handlePreviewForm?: () => void;
+  handleCloneForm?: () => void;
   Logoptions: string[];
 };
 
@@ -41,6 +43,7 @@ const LongMenu = ({
   handleViewEligibleExaminees,
   handleViewAnswers,
   handlePreviewForm,
+  handleCloneForm,
 }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -121,6 +124,9 @@ const LongMenu = ({
               if (option === "Preview Form" && handlePreviewForm) {
                 handlePreviewForm();
               }
+              if (option === "Clone Form" && handleCloneForm) {
+                handleCloneForm();
+              }
             }}
           >
             {option === "Edit" && (
@@ -140,12 +146,12 @@ const LongMenu = ({
             )}
             {option === "Copy test url" && (
               <ListItemIcon>
-                <FileCopyIcon fontSize="small" />
+                <ContentCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
             {option === "Copy apply url" && (
               <ListItemIcon>
-                <FileCopyIcon fontSize="small" />
+                <ContentCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
 
@@ -177,6 +183,11 @@ const LongMenu = ({
             {option === "Preview Form" && (
               <ListItemIcon>
                 <VisibilityIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "Clone Form" && (
+              <ListItemIcon>
+                <FileCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
 

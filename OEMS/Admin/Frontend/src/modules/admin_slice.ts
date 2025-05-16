@@ -352,6 +352,7 @@ export const {
   useUpdateFormMutation,
   useDeleteFormMutation,
   useGetFieldsByFormIdQuery,
+  useLazyGetFieldsByFormIdQuery,
   useAddFieldMutation,
   useEditFieldMutation,
   useDeleteFieldMutation,
