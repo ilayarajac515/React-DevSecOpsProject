@@ -87,7 +87,8 @@ export const candidateLogout = (req, res) => {
 
 export const getCandidateSubmission = (req, res) => {
   const { formId, responseId } = req.params;
-
+  console.log(formId , responseId);
+  
   if (!formId || !responseId) {
     return res
       .status(BAD_REQUEST)

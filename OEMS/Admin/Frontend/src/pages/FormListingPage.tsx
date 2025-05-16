@@ -23,6 +23,8 @@ import {
   useUpdateFormMutation,
   useDeleteFormMutation,
   useGetFormsQuery,
+  useLazyGetFieldsByFormIdQuery,
+  useCloneFormMutation,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
@@ -30,6 +32,7 @@ import { useLazyGetSubmittedCountQuery } from "../modules/admin_slice";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import PreviewForm from "../components/PreviewForm";
 import CloseIcon from "@mui/icons-material/Close";
+import { useLazyGetFormByIdQuery } from "../modules/candidate_slice";
 
 type FormValues = {
   label: string;
@@ -95,6 +98,7 @@ const FormListingPage = () => {
     "View submissions",
     "Eligible examinees",
     "Preview Form",
+    "Clone Form"
   ];
 
   const columns: GridColDef[] = [
@@ -143,12 +147,29 @@ const FormListingPage = () => {
             handleViewEligibleExaminees={() =>
               handleViewEligibleExaminees(params.row)
             }
+            handleCloneForm={() => handleCloneForm(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
       ),
     },
   ];
+  const [triggerField , {data: fieldsData}] = useLazyGetFieldsByFormIdQuery();
+  const [triggerForm, {data:formData}] = useLazyGetFormByIdQuery(); 
+  const [cloneForm] = useCloneFormMutation();
+  
+  const handleCloneForm = (row: any) => {
+    const formId = row.formId || "";
+    triggerField(formId);
+    triggerForm(formId);
+  }
+
+  useEffect(() => {
+    if(fieldsData && formData){
+      cloneForm({form: formData, fields: fieldsData});
+    }
+  }, [fieldsData, formData])
+
   const handleViewEligibleExaminees = (row: any) => {
     navigate(`/eligible-examinees/${row.label}/${row.formId}`);
   };

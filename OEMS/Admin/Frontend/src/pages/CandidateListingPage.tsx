@@ -20,6 +20,8 @@ import {
 import DownloadIcon from "@mui/icons-material/Download";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadIcon from "@mui/icons-material/Upload";
+import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { toast } from "react-toastify";
 import { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
@@ -77,7 +79,7 @@ export default function CandidatesListingPage() {
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadedRows, setUploadedRows] = useState<Candidate[]>([]);
-
+  const [candidateRegister] = useInsertCandidatesMutation();
   useEffect(() => {
     if (data) {
       setRows(data.candidates);
@@ -135,9 +137,15 @@ export default function CandidatesListingPage() {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleAddUploadedCandidates = () => {
-    setRows((prev) => [...prev, ...uploadedRows]);
+  const handleAddUploadedCandidates = async () => {
+    await candidateRegister({
+      formId: formId ?? "",
+      tableType: "Registration",
+      candidates: uploadedRows,
+    });
+
     setUploadDialogOpen(false);
+    setUploadedRows([]);
     toast.success("Candidates added from uploaded file.");
   };
 
@@ -161,6 +169,17 @@ export default function CandidatesListingPage() {
           Registered Candidates
         </Typography>
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Tooltip title="Upload Candidates">
+            <Button
+              disableElevation
+              variant="contained"
+              color="secondary"
+              startIcon={<UploadFileRoundedIcon />}
+              onClick={() => setUploadDialogOpen(true)}
+            >
+              Upload
+            </Button>
+          </Tooltip>
           <Tooltip title="Download Selected">
             <Button
               disableElevation
@@ -177,19 +196,10 @@ export default function CandidatesListingPage() {
               disableElevation
               variant="contained"
               color="primary"
+              startIcon={<GroupAddIcon />}
               onClick={handleSelectCandidates}
             >
-              Select Candidates
-            </Button>
-          </Tooltip>
-          <Tooltip title="Upload Candidates">
-            <Button
-              disableElevation
-              variant="contained"
-              color="secondary"
-              onClick={() => setUploadDialogOpen(true)}
-            >
-              Upload
+              Eligible Candidates
             </Button>
           </Tooltip>
         </Box>
@@ -225,8 +235,10 @@ export default function CandidatesListingPage() {
         </Paper>
       </Box>
 
-      {/* Upload Dialog */}
-      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)}>
+      <Dialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+      >
         <DialogTitle>
           Upload Candidates
           <IconButton
