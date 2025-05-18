@@ -21,6 +21,7 @@ import EligibleCandidates from "./pages/EligibleCandidates";
 import EligibleExaminees from "./pages/EligibleExaminees";
 import ActiveSessionsPage from "./pages/ActiveSessionsPage";
 import ExamineeAnswerPage from "./pages/ExamineeAnswerPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const App = () => {
   const location = useLocation();
@@ -147,6 +148,15 @@ const App = () => {
               element={
                 <CheckAuth>
                   <CandidateRegistrationPage />
+                </CheckAuth>
+              }
+            />
+            <Route
+              caseSensitive
+              path="/profile-page"
+              element={
+                <CheckAuth>
+                  <ProfilePage />
                 </CheckAuth>
               }
             />

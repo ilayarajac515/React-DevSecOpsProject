@@ -55,11 +55,9 @@ export interface Candidate {
 export interface DevicesResponse {
   devices: DeviceSession[];
 }
-
 export interface LogoutAllResponse {
   message: string;
 }
-
 export interface LogoutDeviceResponse {
   message: string;
 }
@@ -72,13 +70,50 @@ interface CheckAuthResponse {
 interface ResetPasswordResponse {
   message: string;
 }
+interface SendOtpResponse {
+  message: string;
+  otpId: string;
+}
+interface VerifyOtpResponse {
+  message: string;
+  otpId: string;
+}
+
+export const sendOtp = async (
+  fullName: string,
+  email: string,
+  password: string
+): Promise<SendOtpResponse> => {
+  try {
+    const { data } = await axiosInstance.post<SendOtpResponse>("/send-otp", { fullName, email, password });
+    return data;
+  } catch (error: any) {
+    console.error("Error sending OTP:", error);
+    throw error.response?.data || new Error("Failed to send OTP");
+  }
+};
+
+export const verifyOtp = async (
+  otpId: string,
+  otp: string
+): Promise<VerifyOtpResponse> => {
+  try {
+    const { data } = await axiosInstance.post<VerifyOtpResponse>("/verify-otp", { otpId, otp });
+    return data;
+  } catch (error: any) {
+    console.error("Error verifying OTP:", error);
+    throw error.response?.data || new Error("Failed to verify OTP");
+  }
+};
 
 export const signUp = async (
   name: string,
   email: string,
-  password: string
+  password: string,
+  otp: string,
+  otpId: string
 ): Promise<void> => {
-  await axiosInstance.post("/register", { name, email, password });
+  await axiosInstance.post("/register", { name, email, password, otp, otpId });
 };
 
 export const loginUser = async (
