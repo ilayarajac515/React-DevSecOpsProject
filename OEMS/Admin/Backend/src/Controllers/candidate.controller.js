@@ -87,8 +87,7 @@ export const candidateLogout = (req, res) => {
 
 export const getCandidateSubmission = (req, res) => {
   const { formId, responseId } = req.params;
-  console.log(formId , responseId);
-  
+
   if (!formId || !responseId) {
     return res
       .status(BAD_REQUEST)
@@ -290,5 +289,29 @@ export const updateTimer = (req, res) => {
     }
 
     res.status(STATUS_OK).json({ message: "Timer updated successfully" });
+  });
+};
+
+export const getStartTime = (req, res) => {
+  const { formId, responseId } = req.params;
+
+  if (!formId || !responseId) {
+    return res.status(400).json({ message: "Missing formId or responseId" });
+  }
+
+  const tableName = `valueTable_${formId.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+  const query = `SELECT startTime FROM \`${tableName}\` WHERE responseId = ?`;
+
+  connection.query(query, [responseId], (err, results) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Start time not found" });
+    }
+
+    res.status(200).json({ startTime: results[0].startTime });
   });
 };

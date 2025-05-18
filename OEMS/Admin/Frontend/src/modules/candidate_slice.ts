@@ -1,6 +1,10 @@
-import { BaseQueryFn, createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import {
+  BaseQueryFn,
+  createApi,
+  fetchBaseQuery,
+} from "@reduxjs/toolkit/query/react";
 import { Field, Form } from "./admin_slice";
- 
+
 export interface LoginCandidateInput {
   email: string;
   password: string;
@@ -53,12 +57,12 @@ export interface LoginCandidateResponse {
   email: string;
   candidateToken: string;
 }
- 
+
 interface AddSubmissionResponse {
-  message:string;
+  message: string;
   responseId: string;
 }
- 
+
 export interface CandidateAuthResponse {
   authorized: boolean;
   email: string;
@@ -83,34 +87,37 @@ const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (
 
   return result;
 };
- 
+
 export const candidateSlice = createApi({
   reducerPath: "candidate_api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Forms', 'Fields', 'Submissions'],
+  tagTypes: ["Forms", "Fields", "Submissions"],
   endpoints: (builder) => ({
-    loginCandidate: builder.mutation<LoginCandidateResponse, LoginCandidateInput>({
+    loginCandidate: builder.mutation<
+      LoginCandidateResponse,
+      LoginCandidateInput
+    >({
       query: ({ email, password, formId }) => ({
-        url: '/login',
-        method: 'POST',
+        url: "/login",
+        method: "POST",
         body: { email, password, formId },
       }),
     }),
- 
+
     checkCandidateAuth: builder.query<CandidateAuthResponse, void>({
       query: () => ({
         url: "/check-auth",
         method: "GET",
       }),
     }),
- 
+
     logoutCandidate: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: "/logout",
         method: "POST",
       }),
     }),
- 
+
     addSubmission: builder.mutation<
       AddSubmissionResponse,
       { formId: string; data: Submission }
@@ -124,7 +131,7 @@ export const candidateSlice = createApi({
         { type: "Submissions", id: formId },
       ],
     }),
- 
+
     editSubmission: builder.mutation<
       EditSubmissionResponse,
       EditSubmissionInput
@@ -138,35 +145,44 @@ export const candidateSlice = createApi({
         { type: "Submissions", id: formId },
       ],
     }),
- 
-    getCandidateSubmission: builder.query<CandidateSubmission, {responseId: string, formId: string}>({
-      query: ({responseId, formId}) => `/submission/${responseId}/${formId}`,
+
+    getCandidateSubmission: builder.query<
+      CandidateSubmission,
+      { responseId: string; formId: string }
+    >({
+      query: ({ responseId, formId }) => `/submission/${responseId}/${formId}`,
     }),
- 
-    updateTimer: builder.mutation<{ message: string }, { formId: string, userEmail: string, Timer: string }>({
+
+    updateTimer: builder.mutation<
+      { message: string },
+      { formId: string; userEmail: string; Timer: string }
+    >({
       query: ({ formId, userEmail, Timer }) => ({
         url: `/form/${formId}/candidate/${userEmail}/timer`,
-        method: 'PUT',
+        method: "PUT",
         body: { Timer },
       }),
     }),
- 
+
     getFieldsByCandidateFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/field`,
       providesTags: (_result, _error, formId) => [
         { type: "Fields", id: formId },
       ],
     }),
- 
+
     getFormById: builder.query<Form, string>({
       query: (formId) => `form/${formId}`,
       providesTags: (_result, _error, formId) => [
         { type: "Forms", id: formId },
       ],
     }),
+    getStartTime: builder.query({
+      query: ({ formId, responseId }) => `/start-time/${formId}/${responseId}`,
+    }),
   }),
 });
- 
+
 export const {
   useLoginCandidateMutation,
   useCheckCandidateAuthQuery,
@@ -177,7 +193,6 @@ export const {
   useUpdateTimerMutation,
   useAddSubmissionMutation,
   useEditSubmissionMutation,
-  useGetCandidateSubmissionQuery
+  useGetCandidateSubmissionQuery,
+  useGetStartTimeQuery,
 } = candidateSlice;
- 
- 

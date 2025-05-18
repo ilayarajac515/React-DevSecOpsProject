@@ -14,44 +14,27 @@ import {
   useGetFieldsByFormIdQuery,
   useGetSubmissionByEmailQuery,
 } from "../modules/admin_slice";
-import { useParams } from "react-router-dom";
 import { useGetFormByIdQuery } from "../modules/candidate_slice";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const toRoman = (num: number) => {
   const romanNumerals: string[] = [
-    "i",
-    "ii",
-    "iii",
-    "iv",
-    "v",
-    "vi",
-    "vii",
-    "viii",
-    "ix",
-    "x",
-    "xi",
-    "xii",
-    "xiii",
-    "xiv",
-    "xv",
-    "xvi",
-    "xvii",
-    "xviii",
-    "xix",
-    "xx",
+    "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
+    "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx",
   ];
   return romanNumerals[num - 1] || num.toString();
 };
 
 const ExamineeAnswerPage = () => {
   const { examineeFormId: formId, email } = useParams();
-  const { data: userAnswers } = useGetSubmissionByEmailQuery({
+  const { data: userAnswers, isLoading: isUserAnswersLoading } = useGetSubmissionByEmailQuery({
     formId: formId ?? "",
     email: email ?? "",
   });
-  const { data: formData } = useGetFormByIdQuery(formId ?? "");
-  const { data: assessmentData } = useGetFieldsByFormIdQuery(formId ?? "");
+  const { data: formData, isLoading: isFormLoading } = useGetFormByIdQuery(formId ?? "");
+  const { data: assessmentData, isLoading: isAssessmentLoading } = useGetFieldsByFormIdQuery(formId ?? "");
+
   const formatted = assessmentData
     ?.map((q: any) => {
       const answer = userAnswers?.value?.[q.label];
@@ -64,56 +47,113 @@ const ExamineeAnswerPage = () => {
             return `${toRoman(index + 1)}. ${qText}\n   Ans: ${aText}`;
           })
           .join("\n");
-
         return `Q: ${q.label}\n${subAnswers}\n`;
       }
       return `Q: ${q.label}\nA: ${answer}\n`;
     })
     .filter(Boolean)
     .join("\n");
-    
-const handleCopy = () => {
-  if (!formatted) return toast.error("Nothing to copy");;
-  navigator.clipboard.writeText(formatted).then(() => {
-    toast.success("Answers copied to clipboard!");
-  }, () => {
-    alert("Failed to copy answers.");
-  });
-};
+
+  const handleCopy = () => {
+    if (!formatted) {
+      toast.error("Nothing to copy");
+      return;
+    }
+    navigator.clipboard.writeText(formatted).then(
+      () => {
+        toast.success("Answers copied to clipboard!");
+      },
+      () => {
+        toast.error("Failed to copy answers.");
+      }
+    );
+  };
+
+  // Prevent rendering until all data is loaded
+  if (isUserAnswersLoading || isFormLoading || isAssessmentLoading || !userAnswers || !formData || !assessmentData) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ py: 2, textAlign: "center" }}>
+          <Typography variant="h6">Loading answers...</Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  // Handle case where no answers are available
+  if (!userAnswers.value) {
+    return (
+      <Container maxWidth="lg">
+        <Box
+          p={{ xs: 2, sm: 3, md: 4 }}
+          mt={{ xs: 2, sm: 0, md: 4 }}
+          sx={{ backgroundColor: "#f9f9f9", borderRadius: 2 }}
+        >
+          <Typography variant="h4" gutterBottom fontWeight="bold">
+            {formData.label} Assessment
+          </Typography>
+          <Typography variant="body1" color="error">
+            No answers found for this submission.
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="lg">
       <Box
-        p={4}
-        mt={{ xs: 8, sm: 0, md: 4 }}
+        p={{ xs: 2, sm: 3, md: 4 }}
+        mt={{ xs: 2, sm: 0, md: 4 }}
         sx={{ backgroundColor: "#f9f9f9", borderRadius: 2 }}
         component="form"
         onSubmit={(e) => e.preventDefault()}
       >
-        <Button variant="outlined" onClick={handleCopy} sx={{ mb: 3 }}>
-  Copy All Answers
-</Button>
+        <Button
+          variant="outlined"
+          onClick={handleCopy}
+          sx={{ mb: 3, width: { xs: "100%", sm: "auto" } }}
+        >
+          Copy All Answers
+        </Button>
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 2,
           }}
         >
-          <Typography variant="h4" gutterBottom fontWeight="bold">
-            {formData?.label} Assessment
+          <Typography
+            variant="h4"
+            gutterBottom
+            fontWeight="bold"
+            sx={{ fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" } }}
+          >
+            {formData.label} Assessment
           </Typography>
-          <Typography gutterBottom variant="h6" fontWeight="bold">
-            {userAnswers?.userEmail}
+          <Typography
+            gutterBottom
+            variant="h6"
+            fontWeight="bold"
+            sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+          >
+            {userAnswers.userEmail}
           </Typography>
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
-        {assessmentData?.map((question) => {
-          const userAnswer = userAnswers?.value[question.label];
+        {assessmentData.map((question) => {
+          const userAnswer = userAnswers.value[question.label];
           return (
             <Box key={question.fieldId} mb={4}>
-              <Typography variant="h6" gutterBottom>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+              >
                 {question.label}
               </Typography>
 
@@ -123,6 +163,8 @@ const handleCopy = () => {
                   value={userAnswer || ""}
                   placeholder={question.placeholder}
                   variant="outlined"
+                  InputProps={{ readOnly: true }}
+                  sx={{ "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } } }}
                 />
               )}
 
@@ -133,12 +175,18 @@ const handleCopy = () => {
                   value={userAnswer || ""}
                   placeholder={question.placeholder}
                   fullWidth
+                  variant="outlined"
+                  InputProps={{ readOnly: true }}
+                  sx={{ "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } } }}
                 />
               )}
 
               {question.type === "radio" && question.options && (
                 <FormControl component="fieldset">
-                  <RadioGroup value={userAnswer || ""} row>
+                  <RadioGroup
+                    value={userAnswer || ""}
+                    sx={{ flexDirection: { xs: "column", sm: "row" } }}
+                  >
                     {question.options.length > 0 ? (
                       question.options.map((option: any, index: number) => (
                         <FormControlLabel
@@ -146,10 +194,15 @@ const handleCopy = () => {
                           value={option}
                           control={<Radio />}
                           label={option}
+                          sx={{ "& .MuiFormControlLabel-label": { fontSize: { xs: "0.9rem", sm: "1rem" } } }}
                         />
                       ))
                     ) : (
-                      <Typography variant="body2" color="textSecondary">
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+                      >
                         No options available
                       </Typography>
                     )}
@@ -167,6 +220,8 @@ const handleCopy = () => {
                       borderRadius: "5px",
                       overflowX: "auto",
                       marginBottom: "20px",
+                      p: { xs: 1, sm: 2 },
+                      fontSize: { xs: "0.9rem", sm: "1rem" },
                     }}
                     dangerouslySetInnerHTML={{
                       __html: question.rta?.content || "",
@@ -176,26 +231,27 @@ const handleCopy = () => {
                   {(question.rta?.questions || []).map(
                     (subQuestion: any, qIndex: number) => (
                       <Box key={qIndex} sx={{ marginBottom: "16px" }}>
-                        <Typography variant="body1" fontWeight="bold">
+                        <Typography
+                          variant="body1"
+                          fontWeight="bold"
+                          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+                        >
                           {toRoman(qIndex + 1)}. {subQuestion}
                         </Typography>
 
                         <TextField
                           value={
-                            userAnswer?.find(
+                            Array.isArray(userAnswer) && userAnswer.find(
                               (answer: any) => answer.question === subQuestion
-                            )
-                              ? userAnswer.find(
-                                  (answer: any) =>
-                                    answer.question === subQuestion
-                                )?.answer
-                              : ""
+                            )?.answer || ""
                           }
                           fullWidth
                           multiline
                           rows={3}
                           variant="outlined"
                           size="small"
+                          InputProps={{ readOnly: true }}
+                          sx={{ "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } } }}
                         />
                       </Box>
                     )
