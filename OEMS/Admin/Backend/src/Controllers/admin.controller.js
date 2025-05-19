@@ -47,7 +47,9 @@ export const sendOtp = async (req, res) => {
   const { fullName, email, password } = req.body;
 
   if (!fullName || !email || !password) {
-    return res.status(BAD_REQUEST).json({ error: "Full name, email, and password are required" });
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Full name, email, and password are required" });
   }
 
   try {
@@ -55,7 +57,7 @@ export const sendOtp = async (req, res) => {
     if (user) {
       return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpId = uuidv4();
@@ -72,9 +74,131 @@ export const sendOtp = async (req, res) => {
       from: process.env.SENDER_MAIL,
       to: process.env.ADMIN_EMAIL,
       subject: "New User Signup OTP Verification",
-      text: `A new user has requested signup.\n\nName: ${fullName}\nEmail: ${email}\nOTP: ${otp}\n\nPlease verify this OTP to approve the registration.`,
+      text: `A new user is attempting to register.\n\nName: ${fullName}\nEmail: ${email}\n\nPlease verify this user by providing the OTP: ${otp}\nThis OTP is valid for 10 minutes.`,
+      html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New User Registration Request</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Arial', sans-serif;
+          background-color: #f4f4f4;
+          color: #333333;
+        }
+        .container {
+          max-width: 600px;
+          margin: 20px auto;
+          background-color: #ffffff;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+        }
+        .header {
+          background-color: #4a90e2;
+          padding: 20px;
+          text-align: center;
+          color: #ffffff;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 24px;
+        }
+        .content {
+          padding: 30px;
+        }
+        .content p {
+          font-size: 16px;
+          line-height: 1.6;
+          margin: 10px 0;
+        }
+        .user-details {
+          background-color: #f9f9f9;
+          padding: 15px;
+          border-radius: 6px;
+          margin: 20px 0;
+        }
+        .user-details ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .user-details li {
+          font-size: 16px;
+          margin: 10px 0;
+          color: #333333;
+        }
+        .otp-container {
+          text-align: center;
+          margin: 30px 0;
+        }
+        .otp {
+          display: inline-block;
+          background-color: #4a90e2;
+          color: #ffffff;
+          font-size: 32px;
+          font-weight: bold;
+          padding: 15px 25px;
+          border-radius: 6px;
+          letter-spacing: 5px;
+          border: 2px solid #2a6cc0;
+        }
+        .footer {
+          background-color: #f4f4f4;
+          padding: 15px;
+          text-align: center;
+          font-size: 14px;
+          color: #666666;
+        }
+        .footer p {
+          margin: 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .container {
+            margin: 10px;
+          }
+          .content {
+            padding: 20px;
+          }
+          .otp {
+            font-size: 28px;
+            padding: 10px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>New User Registration Request</h1>
+        </div>
+        <div class="content">
+          <p>Dear Administrator,</p>
+          <p>A new user is attempting to register with the following details:</p>
+          <div class="user-details">
+            <ul>
+              <li><strong>Name:</strong> ${fullName}</li>
+              <li><strong>Email:</strong> ${email}</li>
+            </ul>
+          </div>
+          <p>Please verify this user by providing the following OTP to them:</p>
+          <div class="otp-container">
+            <span class="otp">${otp}</span>
+          </div>
+          <p><strong>Note:</strong> This OTP is valid for 10 minutes.</p>
+        </div>
+        <div class="footer">
+          <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
     };
-
     await transporter.sendMail(mailOptions);
     res.status(STATUS_OK).json({ message: "OTP sent to admin", otpId });
   } catch (error) {
@@ -239,7 +363,9 @@ export const getUserByUserId = (req, res) => {
   connection.query(query, [userId], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
-      return res.status(SERVER_ERROR).json({ message: "Server error", error: err });
+      return res
+        .status(SERVER_ERROR)
+        .json({ message: "Server error", error: err });
     }
 
     if (results.length === 0) {
@@ -262,10 +388,12 @@ export const getActiveSessions = (req, res) => {
     (err, results) => {
       if (err) {
         console.error("Error fetching sessions:", err);
-        return res.status(SERVER_ERROR).json({ message: "Failed to fetch sessions" });
+        return res
+          .status(SERVER_ERROR)
+          .json({ message: "Failed to fetch sessions" });
       }
 
-      const sessions = results.map(session => ({
+      const sessions = results.map((session) => ({
         ...session,
         isCurrentSession: session.id === currentSessionId,
       }));
@@ -278,7 +406,9 @@ export const getActiveSessions = (req, res) => {
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(BAD_REQUEST).json({ error: "Email and password are required" });
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Email and password are required" });
   }
 
   try {
@@ -288,7 +418,8 @@ export const loginUser = async (req, res) => {
     }
 
     const sessionId = uuidv4();
-    const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const ipAddress =
+      req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const userAgent = req.headers["user-agent"];
     const parser = new UAParser(userAgent);
     const parsed = parser.getResult();
@@ -314,11 +445,23 @@ export const loginUser = async (req, res) => {
     connection.query(
       `INSERT INTO sessions (id, userId, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [sessionId, user.id, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt],
+      [
+        sessionId,
+        user.id,
+        refreshToken,
+        ipAddress,
+        userAgent,
+        browser,
+        os,
+        deviceType,
+        expiresAt,
+      ],
       (err) => {
         if (err) {
           console.error("DB insert error:", err);
-          return res.status(SERVER_ERROR).json({ error: "Session creation failed" });
+          return res
+            .status(SERVER_ERROR)
+            .json({ error: "Session creation failed" });
         }
 
         res.cookie("accessToken", accessToken, {
@@ -369,7 +512,9 @@ export const logoutSpecificDevice = (req, res) => {
     (err, result) => {
       if (err) {
         console.error("Error logging out device:", err);
-        return res.status(SERVER_ERROR).json({ message: "Internal server error" });
+        return res
+          .status(SERVER_ERROR)
+          .json({ message: "Internal server error" });
       }
 
       if (result.affectedRows === 0) {
@@ -399,7 +544,9 @@ export const logoutFromAllDevices = (req, res) => {
   connection.query(query, params, (err) => {
     if (err) {
       console.error("Logout all devices error:", err);
-      return res.status(SERVER_ERROR).json({ message: "Internal server error" });
+      return res
+        .status(SERVER_ERROR)
+        .json({ message: "Internal server error" });
     }
 
     if (!exceptCurrent) {
