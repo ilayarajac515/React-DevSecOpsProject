@@ -296,7 +296,7 @@ export const getStartTime = (req, res) => {
   const { formId, responseId } = req.params;
 
   if (!formId || !responseId) {
-    return res.status(400).json({ message: "Missing formId or responseId" });
+    return res.status(BAD_REQUEST).json({ message: "Missing formId or responseId" });
   }
 
   const tableName = `valueTable_${formId.replace(/[^a-zA-Z0-9_]/g, "_")}`;
@@ -305,13 +305,13 @@ export const getStartTime = (req, res) => {
   connection.query(query, [responseId], (err, results) => {
     if (err) {
       console.error("DB Error:", err);
-      return res.status(500).json({ message: "Database error" });
+      return res.status(SERVER_ERROR).json({ message: "Database error" });
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ message: "Start time not found" });
+      return res.status(NOT_FOUND).json({ message: "Start time not found" });
     }
 
-    res.status(200).json({ startTime: results[0].startTime });
+    res.status(STATUS_OK).json({ startTime: results[0].startTime });
   });
 };

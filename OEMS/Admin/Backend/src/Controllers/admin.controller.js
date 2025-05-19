@@ -13,7 +13,6 @@ import {
   UNAUTHORIZED,
 } from "../Constants/httpStatus.js";
 
-// Existing functions (unchanged, included for context)
 export const registerUser = async (req, res) => {
   const { name, email, password, otp, otpId } = req.body;
 
@@ -23,7 +22,6 @@ export const registerUser = async (req, res) => {
       return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
 
-    // Verify OTP
     const otpRecord = await findOtpById(otpId);
     if (!otpRecord || otpRecord.is_used || otpRecord.expires_at < Date.now()) {
       return res.status(BAD_REQUEST).json({ error: "Invalid or expired OTP" });
@@ -45,7 +43,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// New OTP-related functions
 export const sendOtp = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -58,12 +55,13 @@ export const sendOtp = async (req, res) => {
     if (user) {
       return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
-
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpId = uuidv4();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    await saveOtp(otpId, email, fullName, password, otp, expiresAt);
+    await saveOtp(otpId, email, fullName, hashedPassword, otp, expiresAt);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -110,7 +108,6 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
-// Existing helper functions (unchanged, included for context)
 const findUserByEmail = (email) => {
   return new Promise((resolve, reject) => {
     connection.query(
@@ -150,7 +147,6 @@ const createUser = (userId, name, email, password) => {
   });
 };
 
-// New OTP helper functions
 const saveOtp = (otpId, email, fullName, password, otp, expiresAt) => {
   return new Promise((resolve, reject) => {
     connection.query(
@@ -190,7 +186,6 @@ const markOtpAsUsed = (otpId) => {
   });
 };
 
-// Existing functions (unchanged, included for completeness)
 export const editUser = (req, res) => {
   const { userId, newEmail, name, imageUrl } = req.body;
 

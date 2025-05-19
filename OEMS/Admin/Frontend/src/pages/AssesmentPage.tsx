@@ -63,14 +63,12 @@ const AssessmentPage = () => {
 
   const { register, handleSubmit, control } = useForm();
 
-  // Save responseId to localStorage when received
   useEffect(() => {
     if (submissionResponse?.responseId) {
       localStorage.setItem("responseId", submissionResponse.responseId);
     }
   }, [submissionResponse]);
 
-  // Format duration in mm:ss
   const formatDuration = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -78,7 +76,6 @@ const AssessmentPage = () => {
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Check if assessment is expired on mount
   useEffect(() => {
     if (!formData?.duration || !startTimeData?.startTime || !candidateData)
       return;
@@ -96,11 +93,10 @@ const AssessmentPage = () => {
 
     if (remainingMs <= 0 && candidateData.status !== "submitted") {
       setExpired(true);
-      handleSubmitAssessment(); // Auto-submit if time is up
+      handleSubmitAssessment();
     }
   }, [formData, startTimeData, candidateData]);
 
-  // Timer logic for active assessment
   useEffect(() => {
     if (
       !formData?.duration ||
@@ -147,7 +143,6 @@ const AssessmentPage = () => {
     return () => clearInterval(interval);
   }, [formData?.duration, startTimeData?.startTime, candidateData, expired]);
 
-  // Handle terms dialog
   useEffect(() => {
     if (candidateData?.termsAccepted === "true") {
       setOpenDialog(false);
@@ -295,7 +290,6 @@ const AssessmentPage = () => {
     return romanNumerals[num - 1] || num.toString();
   };
 
-  // Prevent rendering if loading or expired
   if (
     isFieldsLoading ||
     isFormLoading ||
@@ -307,7 +301,6 @@ const AssessmentPage = () => {
     return null;
   }
 
-  // Show terms dialog if not accepted
   if (openDialog && candidateData?.termsAccepted !== "true") {
     return (
       <AgreeToTermsDialog
@@ -322,7 +315,6 @@ const AssessmentPage = () => {
     );
   }
 
-  // Render the assessment form
   return (
     <Container maxWidth="md">
       <TimerButton elapsedTime={elapsedTime} />

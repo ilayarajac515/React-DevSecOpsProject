@@ -161,7 +161,6 @@ const SignUpPage = () => {
         }}
       />
 
-      {/* Confirm Password + OTP side-by-side */}
       <Box sx={{ width: "100%", display: "flex", gap: 2, flexWrap: "wrap" }}>
         <TextField
           fullWidth

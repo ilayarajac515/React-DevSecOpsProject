@@ -177,6 +177,7 @@ export const candidateSlice = createApi({
         { type: "Forms", id: formId },
       ],
     }),
+    
     getStartTime: builder.query({
       query: ({ formId, responseId }) => `/start-time/${formId}/${responseId}`,
     }),
