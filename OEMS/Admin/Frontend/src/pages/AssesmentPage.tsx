@@ -28,6 +28,7 @@ import {
 import AgreeToTermsDialog from "../components/AgreeToTermsDialog";
 import { TimerButton } from "../components/TimerButton";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import WarningDialog from "../components/WarningDialog";
 
 const AssessmentPage = () => {
   const { email, setAuth } = useCandidate();
@@ -46,22 +47,113 @@ const AssessmentPage = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [expired, setExpired] = useState(false);
   const [elapsedTime, setElapsedTime] = useState("00:00");
+  const [warningDialogOpen, setWarningDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const maxTabSwitches = 3;
 
   const submissionId = localStorage.getItem("responseId");
   const { data: candidateData } = useGetCandidateSubmissionQuery(
-    {
-      responseId: submissionId ?? "",
-      formId: formId ?? "",
-    },
+    { responseId: submissionId ?? "", formId: formId ?? "" },
     { skip: !submissionId }
   );
   const { data: startTimeData } = useGetStartTimeQuery({
     formId: formId,
     responseId: submissionId,
   });
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { register, handleSubmit, control } = useForm();
+
+  useEffect(() => {
+    if (
+      candidateData?.warnings !== undefined &&
+      tabSwitchCount !== Number(candidateData.warnings)
+    ) {
+      setTabSwitchCount(Number(candidateData.warnings));
+    }
+  }, [candidateData]);
+
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (
+        document.visibilityState === "hidden" &&
+        candidateData?.status !== "submitted"
+      ) {
+        setTabSwitchCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount > maxTabSwitches) {
+            toast.error(
+              "Too many tab switches detected. Submitting assessment."
+            );
+            handleSubmitAssessment();
+          } else {
+            setWarningDialogOpen(true);
+            toast.warn(
+              `Tab switch detected. Warning ${newCount} of ${maxTabSwitches}.`
+            );
+          }
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [candidateData?.status, formId, submissionId, email]);
+
+  useEffect(() => {
+    endSubmit({
+      formId: formId ?? "",
+      userEmail: email ?? "",
+      warnings: tabSwitchCount,
+      status: "Not Submitted",
+    });
+  }, [tabSwitchCount]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && (e.key === "c" || e.key === "v" || e.key === "x")) ||
+        e.key === "F11" ||
+        e.key === "F12" ||
+        e.key === "Escape"
+      ) {
+        e.preventDefault();
+        toast.warn(
+          `${e.key === "Escape" ? "Esc" : e.key} key is disabled during the assessment.`
+        );
+      }
+      if (
+        e.key === "PrintScreen" ||
+        (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4"))
+      ) {
+        e.preventDefault();
+        toast.warn("Screenshots are not allowed during the assessment.");
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      toast.warn("Right-click is disabled during the assessment.");
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("contextmenu", handleContextMenu);
+
+    document.body.style.userSelect = "none";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.body.style.userSelect = "auto";
+    };
+  }, []);
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    toast.warn("Pasting is disabled during the assessment.");
+  };
 
   useEffect(() => {
     if (submissionResponse?.responseId) {
@@ -171,6 +263,7 @@ const AssessmentPage = () => {
           userEmail: email ?? "",
           startTime: formattedTime,
           responseId: uuid(),
+          warnings: 0,
         },
       }).unwrap();
       setOpenDialog(false);
@@ -183,7 +276,6 @@ const AssessmentPage = () => {
   const handleLogout = async () => {
     try {
       await logoutCandidate().unwrap();
-      localStorage.removeItem("candidateToken");
       localStorage.removeItem("responseId");
       setAuth({ email: null, authorized: null });
     } catch (err) {
@@ -197,7 +289,7 @@ const AssessmentPage = () => {
     handleSubmit(onSubmit)();
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Record<string, any>) => {
     try {
       const result: Record<string, any> = {};
       (fields || []).forEach((field, index) => {
@@ -254,6 +346,7 @@ const AssessmentPage = () => {
         endTime: formattedTime,
         duration: calculatedDuration,
         value: result,
+        warnings: candidateData?.warnings || tabSwitchCount || 0,
       }).unwrap();
 
       toast.success("Test submitted successfully.");
@@ -305,12 +398,12 @@ const AssessmentPage = () => {
     return (
       <AgreeToTermsDialog
         open={openDialog}
-        onClose={() => {}}
+        onClose={() => {
+          handleLogout();
+        }}
         onAgree={handleAgree}
         termsAccepted={termsAccepted}
-        handleTermsChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          setTermsAccepted(event.target.checked)
-        }
+        handleTermsChange={(event) => setTermsAccepted(event.target.checked)}
       />
     );
   }
@@ -321,7 +414,7 @@ const AssessmentPage = () => {
       <Box
         p={4}
         mt={{ xs: 8, sm: 0, md: 7 }}
-        sx={{ backgroundColor: "#f9f9f9", borderRadius: 2 }}
+        sx={{ backgroundColor: "#f9f9f9", borderRadius: 2, userSelect: "none" }}
         component="form"
         onSubmit={(e) => e.preventDefault()}
       >
@@ -341,6 +434,7 @@ const AssessmentPage = () => {
                 fullWidth
                 variant="outlined"
                 size="small"
+                onPaste={handlePaste}
                 {...register(`field_${index}`)}
               />
             ) : field.type === "textArea" ? (
@@ -351,6 +445,7 @@ const AssessmentPage = () => {
                 rows={10}
                 variant="outlined"
                 size="small"
+                onPaste={handlePaste}
                 {...register(`field_${index}`)}
               />
             ) : field.type === "radio" ? (
@@ -361,7 +456,7 @@ const AssessmentPage = () => {
                 render={({ field: radioField }) => (
                   <RadioGroup {...radioField}>
                     {(Array.isArray(field.options) ? field.options : []).map(
-                      (opt: string, idx: number) => (
+                      (opt, idx) => (
                         <FormControlLabel
                           key={idx}
                           value={opt}
@@ -399,6 +494,7 @@ const AssessmentPage = () => {
                         rows={3}
                         variant="outlined"
                         size="small"
+                        onPaste={handlePaste}
                         {...register(`field_${index}_question_${qIndex}`)}
                       />
                     </Box>
@@ -433,6 +529,12 @@ const AssessmentPage = () => {
         confirmLabel="Submit"
         title="Submit Test"
         description="Are you sure you want to submit your test now?"
+      />
+      <WarningDialog
+        open={warningDialogOpen}
+        onClose={() => setWarningDialogOpen(false)}
+        tabSwitchCount={tabSwitchCount}
+        maxTabSwitches={maxTabSwitches}
       />
     </Container>
   );

@@ -48,13 +48,12 @@ const CandidateLogin = () => {
   
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      const result = await candidateLogin({
+      await candidateLogin({
         email: data.email,
         password: data.password,
         formId: formId ?? "",
       }).unwrap();
       setAuth({ email: data.email, authorized: true });
-      localStorage.setItem("candidateToken", result.candidateToken);
       setExistError("");
       reset();
       navigate(`/assessment-page/${formId}`);

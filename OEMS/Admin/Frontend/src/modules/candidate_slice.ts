@@ -34,6 +34,7 @@ export interface EditSubmissionInput {
   termsAccepted?: string;
   score?: number;
   status?: string;
+  warnings?: number;
 }
 export interface CandidateSubmission {
   id: number;
