@@ -153,7 +153,7 @@ export const createForm = (req, res) => {
     description,
     manager,
     startContent,
-    endContent,
+    branch,
     duration,
     status,
   } = req.body;
@@ -164,7 +164,7 @@ export const createForm = (req, res) => {
 
   const insertQuery = `
     INSERT INTO FormTable (
-      formId, label, description, startContent, endContent, duration, manager, status
+      formId, label, description, startContent, branch, duration, manager, status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -175,7 +175,7 @@ export const createForm = (req, res) => {
       label || null,
       description,
       startContent || null,
-      endContent || null,
+      branch || null,
       duration,
       manager,
       status,
@@ -368,7 +368,7 @@ export const getSelectedCandidatesByFormId = (req, res) => {
 
 export const updateForm = (req, res) => {
   const { formId } = req.params;
-  const { label, description, startContent, endContent, duration, status } =
+  const { label, description, startContent, branch, duration, status } =
     req.body;
 
   if (!label) {
@@ -377,13 +377,13 @@ export const updateForm = (req, res) => {
 
   connection.query(
     `UPDATE FormTable
-       SET label = ?, description = ?, startContent = ?, endContent = ?, duration = ?, status = ?
+       SET label = ?, description = ?, startContent = ?, branch = ?, duration = ?, status = ?
        WHERE formId = ?`,
     [
       label,
       description || null,
       startContent || null,
-      endContent || null,
+      branch || null,
       duration,
       status,
       formId,
@@ -733,7 +733,7 @@ export const cloneForm = (req, res) => {
     label,
     description,
     startContent,
-    endContent,
+    branch,
     duration,
     manager,
     status = "inactive"
@@ -741,7 +741,7 @@ export const cloneForm = (req, res) => {
 
   const insertFormQuery = `
     INSERT INTO FormTable (
-      formId, label, description, startContent, endContent, duration, manager, status
+      formId, label, description, startContent, branch, duration, manager, status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -752,7 +752,7 @@ export const cloneForm = (req, res) => {
       label || null,
       description || null,
       startContent || null,
-      endContent || null,
+      branch || null,
       duration,
       manager,
       status

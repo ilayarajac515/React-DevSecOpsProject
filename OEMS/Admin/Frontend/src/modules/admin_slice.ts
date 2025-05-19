@@ -35,7 +35,7 @@ export interface Form {
   duration: string;
   status?: string;
   startContent?: string;
-  endContent?: string;
+  branch?: string;
 }
 
 export interface RegistrationForm {

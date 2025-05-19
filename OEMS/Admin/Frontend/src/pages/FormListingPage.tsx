@@ -38,7 +38,7 @@ type FormValues = {
   label: string;
   description: string;
   startContent: string;
-  endContent: string;
+  branch: string;
   duration: string;
   manager: string;
 };
@@ -104,9 +104,10 @@ const FormListingPage = () => {
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
-    { field: "submissions", headerName: "Submissions", width: 200 },
-    { field: "duration", headerName: "Duration (In mins)", width: 200 },
-    { field: "manager", headerName: "Manager", width: 250 },
+    { field: "branch", headerName: "Branch", width: 150 },
+    { field: "duration", headerName: "Duration (In mins)", width: 150 },
+    { field: "submissions", headerName: "Submissions", width: 120 },
+    { field: "manager", headerName: "Manager", width: 200 },
     {
       field: "status",
       headerName: "Status",
@@ -218,7 +219,7 @@ const FormListingPage = () => {
       label: row.label,
       description: row.description,
       startContent: row.startContent,
-      endContent: row.endContent,
+      branch: row.branch,
       duration: row.duration,
       manager: row.manager,
     });
@@ -245,7 +246,7 @@ const FormListingPage = () => {
         label: formData.label,
         description: formData.description,
         startContent: formData.startContent,
-        endContent: formData.endContent,
+        branch: formData.branch,
         duration: formData.duration,
         manager: name ?? "",
         status: "inactive",
@@ -280,7 +281,7 @@ const FormListingPage = () => {
       label: "",
       description: "",
       startContent: "",
-      endContent: "",
+      branch: "",
       duration: "",
       manager: "",
     });
@@ -311,7 +312,7 @@ const FormListingPage = () => {
           disableElevation
           onClick={() => handleCreate()}
         >
-          Add Assessment
+          Create
         </Button>
       </Box>
 
@@ -361,11 +362,9 @@ const FormListingPage = () => {
               rows={10}
             />
             <TextField
-              label="End Content"
-              {...register("endContent", { required: true })}
+              label="Branch"
+              {...register("branch", { required: true })}
               fullWidth
-              multiline
-              rows={3}
             />
             <TextField
               label="Duration"
