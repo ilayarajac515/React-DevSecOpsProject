@@ -13,21 +13,30 @@ import {
   UNAUTHORIZED,
 } from "../Constants/httpStatus.js";
 
+// Existing functions (unchanged, included for context)
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, otp, otpId } = req.body;
 
   try {
     let user = await findUserByEmail(email);
-
     if (user) {
       return res.status(BAD_REQUEST).json({ error: "User already exists" });
     }
 
-    const userId = uuidv4();
+    // Verify OTP
+    const otpRecord = await findOtpById(otpId);
+    if (!otpRecord || otpRecord.is_used || otpRecord.expires_at < Date.now()) {
+      return res.status(BAD_REQUEST).json({ error: "Invalid or expired OTP" });
+    }
+    if (otpRecord.otp !== otp) {
+      return res.status(BAD_REQUEST).json({ error: "Incorrect OTP" });
+    }
 
+    const userId = uuidv4();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await createUser(userId, name, email, hashedPassword);
+    await markOtpAsUsed(otpId);
 
     res.status(STATUS_OK).json({ message: "User registered successfully" });
   } catch (error) {
@@ -36,6 +45,152 @@ export const registerUser = async (req, res) => {
   }
 };
 
+// New OTP-related functions
+export const sendOtp = async (req, res) => {
+  const { fullName, email, password } = req.body;
+
+  if (!fullName || !email || !password) {
+    return res.status(BAD_REQUEST).json({ error: "Full name, email, and password are required" });
+  }
+
+  try {
+    let user = await findUserByEmail(email);
+    if (user) {
+      return res.status(BAD_REQUEST).json({ error: "User already exists" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpId = uuidv4();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await saveOtp(otpId, email, fullName, password, otp, expiresAt);
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: process.env.SENDER_MAIL, pass: process.env.PASS_KEY },
+    });
+
+    const mailOptions = {
+      from: process.env.SENDER_MAIL,
+      to: process.env.ADMIN_EMAIL,
+      subject: "New User Signup OTP Verification",
+      text: `A new user has requested signup.\n\nName: ${fullName}\nEmail: ${email}\nOTP: ${otp}\n\nPlease verify this OTP to approve the registration.`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(STATUS_OK).json({ message: "OTP sent to admin", otpId });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(SERVER_ERROR).json({ error: "Server error" });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  const { otpId, otp } = req.body;
+
+  try {
+    const otpRecord = await findOtpById(otpId);
+    if (!otpRecord) {
+      return res.status(BAD_REQUEST).json({ error: "Invalid OTP ID" });
+    }
+    if (otpRecord.is_used) {
+      return res.status(BAD_REQUEST).json({ error: "OTP already used" });
+    }
+    if (otpRecord.expires_at < Date.now()) {
+      return res.status(BAD_REQUEST).json({ error: "OTP expired" });
+    }
+    if (otpRecord.otp !== otp) {
+      return res.status(BAD_REQUEST).json({ error: "Incorrect OTP" });
+    }
+
+    res.status(STATUS_OK).json({ message: "OTP verified", otpId });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    res.status(SERVER_ERROR).json({ error: "Server error" });
+  }
+};
+
+// Existing helper functions (unchanged, included for context)
+const findUserByEmail = (email) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      }
+    );
+  });
+};
+
+const findUserById = (userId) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "SELECT * FROM users WHERE id = ?",
+      [userId],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      }
+    );
+  });
+};
+
+const createUser = (userId, name, email, password) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)",
+      [userId, name, email, password],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      }
+    );
+  });
+};
+
+// New OTP helper functions
+const saveOtp = (otpId, email, fullName, password, otp, expiresAt) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "INSERT INTO otps (id, email, full_name, password, otp, expires_at) VALUES (?, ?, ?, ?, ?, ?)",
+      [otpId, email, fullName, password, otp, expiresAt],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      }
+    );
+  });
+};
+
+const findOtpById = (otpId) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "SELECT * FROM otps WHERE id = ?",
+      [otpId],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      }
+    );
+  });
+};
+
+const markOtpAsUsed = (otpId) => {
+  return new Promise((resolve, reject) => {
+    connection.query(
+      "UPDATE otps SET is_used = TRUE WHERE id = ?",
+      [otpId],
+      (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      }
+    );
+  });
+};
+
+// Existing functions (unchanged, included for completeness)
 export const editUser = (req, res) => {
   const { userId, newEmail, name, imageUrl } = req.body;
 
@@ -100,11 +255,10 @@ export const getUserByUserId = (req, res) => {
   });
 };
 
- 
 export const getActiveSessions = (req, res) => {
   const userId = req.jwtUserId;
   const currentSessionId = req.cookies["sessionId"];
- 
+
   connection.query(
     `SELECT id, userId, refreshToken, ipAddress, userAgent, browser, os, deviceType, expiresAt
      FROM sessions
@@ -115,14 +269,13 @@ export const getActiveSessions = (req, res) => {
         console.error("Error fetching sessions:", err);
         return res.status(SERVER_ERROR).json({ message: "Failed to fetch sessions" });
       }
- 
+
       const sessions = results.map(session => ({
-      ...session,
-      isCurrentSession: session.id === currentSessionId,
-    }));
- 
-    res.json({ devices: sessions });
- 
+        ...session,
+        isCurrentSession: session.id === currentSessionId,
+      }));
+
+      res.json({ devices: sessions });
     }
   );
 };
@@ -404,45 +557,6 @@ export const verifyToken = async (req, res) => {
     console.error("Token verification error:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
-};
-
-const findUserByEmail = (email) => {
-  return new Promise((resolve, reject) => {
-    connection.query(
-      "SELECT * FROM users WHERE email = ?",
-      [email],
-      (err, results) => {
-        if (err) reject(err);
-        else resolve(results[0]);
-      }
-    );
-  });
-};
-
-const findUserById = (userId) => {
-  return new Promise((resolve, reject) => {
-    connection.query(
-      "SELECT * FROM users WHERE id = ?",
-      [userId],
-      (err, results) => {
-        if (err) reject(err);
-        else resolve(results[0]);
-      }
-    );
-  });
-};
-
-const createUser = (userId, name, email, password) => {
-  return new Promise((resolve, reject) => {
-    connection.query(
-      "INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)",
-      [userId, name, email, password],
-      (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      }
-    );
-  });
 };
 
 const savePasswordResetToken = (userId, hashedToken, expirationTime) => {

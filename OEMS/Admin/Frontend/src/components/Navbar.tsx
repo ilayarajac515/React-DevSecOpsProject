@@ -17,9 +17,10 @@ import { useAuth } from "../context/GlobalContext";
 import { useCandidate } from "../context/CandidateContext";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
-import ArticleIcon from '@mui/icons-material/Article';
+import ArticleIcon from "@mui/icons-material/Article";
 import LogoutIcon from "@mui/icons-material/Logout";
-import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsIcon from "@mui/icons-material/Settings";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const adminStringToColor = (string: string) => {
   if (!string) return "#424242";
@@ -69,7 +70,7 @@ function Navbar() {
 
   const handleLogout = () => {
     logoutUser(email!);
-    setAuth({ isAdmin: false, name: null, email: null , userId:null});
+    setAuth({ isAdmin: false, name: null, email: null, userId: null });
     localStorage.removeItem("accessToken");
   };
 
@@ -125,6 +126,14 @@ function Navbar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseMenu}
               >
+                {!location.pathname.startsWith("/profile-page") && (
+                  <MenuItem onClick={() => {
+                    navigate("/profile-page") 
+                    handleCloseMenu()}}>
+                    <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
+                    <Typography textAlign="center">Profile</Typography>
+                  </MenuItem>
+                )}
                 {!location.pathname.startsWith("/dashboard") && (
                   <MenuItem
                     onClick={() => {
@@ -164,13 +173,17 @@ function Navbar() {
                     </Typography>
                   </MenuItem>
                 )}
-                {!location.pathname.startsWith("/active-sessions") && (<MenuItem onClick={()=>{navigate("/active-sessions")
-                  handleCloseMenu()
-                }}>
-                  <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
-                  <Typography textAlign="center">Settings</Typography>
-                </MenuItem>
-)}
+                {!location.pathname.startsWith("/active-sessions") && (
+                  <MenuItem
+                    onClick={() => {
+                      navigate("/active-sessions");
+                      handleCloseMenu();
+                    }}
+                  >
+                    <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
+                    <Typography textAlign="center">Settings</Typography>
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleUserLogout}>
                   <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
                   <Typography textAlign="center">Logout</Typography>

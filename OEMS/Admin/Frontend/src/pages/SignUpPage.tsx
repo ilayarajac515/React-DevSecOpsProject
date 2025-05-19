@@ -8,9 +8,10 @@ import {
   Typography,
   IconButton,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { signUp } from "../Services/adminService";
+import { signUp, sendOtp, verifyOtp } from "../Services/adminService";
 import { toast } from "react-toastify";
 
 type FormValues = {
@@ -18,6 +19,7 @@ type FormValues = {
   email: string;
   password: string;
   confirmPassword: string;
+  otpCode: string;
 };
 
 const SignUpPage = () => {
@@ -32,6 +34,10 @@ const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [existError, setExistError] = useState("");
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpId, setOtpId] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const emailValue = watch("email");
 
@@ -42,15 +48,35 @@ const SignUpPage = () => {
   }, [emailValue]);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    const { fullName, email, password } = data;
-    try {
-      await signUp(fullName, email, password);
-      setExistError("");
-      navigate("/");
-      toast.success("Sign Up successfull!");
-    } catch (err: any) {
-      console.log(err.response.data.error);
-      setExistError(err.response.data.error);
+    const { fullName, email, password, otpCode } = data;
+    setIsLoading(true);
+
+    if (!otpStep) {
+      try {
+        const response = await sendOtp(fullName, email, password);
+        setOtpId(response.otpId);
+        setOtpStep(true);
+        toast.info("OTP sent to admin for verification");
+      } catch (err: any) {
+        console.error("Send OTP error:", err);
+        setExistError(err?.error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        await verifyOtp(otpId, otpCode);
+        await signUp(fullName, email, password, otpCode, otpId);
+        setExistError("");
+        setOtpError("");
+        navigate("/");
+        toast.success("Sign Up successful!");
+      } catch (err: any) {
+        console.error("Verify OTP error:", err.response?.data?.error);
+        setOtpError(err.response?.data?.error || "Invalid OTP");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -58,6 +84,7 @@ const SignUpPage = () => {
     <Box
       component="form"
       onSubmit={handleSubmit(onSubmit)}
+      autoComplete="off"
       sx={{
         width: { xs: "90%", sm: "400px", md: "450px" },
         padding: "40px",
@@ -83,6 +110,7 @@ const SignUpPage = () => {
         label="Full Name"
         variant="outlined"
         placeholder="Your full name"
+        disabled={otpStep}
         {...register("fullName", { required: "Full name is required" })}
         error={!!errors.fullName}
         helperText={errors.fullName?.message}
@@ -94,6 +122,8 @@ const SignUpPage = () => {
         label="Email"
         variant="outlined"
         placeholder="Your email"
+        autoComplete="new-email"
+        disabled={otpStep}
         {...register("email", {
           required: "Email is required",
           pattern: {
@@ -112,59 +142,95 @@ const SignUpPage = () => {
         label="Password"
         variant="outlined"
         placeholder="Your password"
+        autoComplete="new-password"
+        disabled={otpStep}
         {...register("password", { required: "Password is required" })}
         error={!!errors.password}
         helperText={errors.password?.message}
-        slotProps={{
-          input: {
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword((prev) => !prev)}>
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          },
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowPassword((prev) => !prev)}
+                disabled={otpStep}
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
         }}
       />
 
-      <TextField
-        sx={{ width: "100%" }}
-        id="confirmPassword"
-        type={showConfirmPassword ? "text" : "password"}
-        label="Confirm Password"
-        variant="outlined"
-        placeholder="Confirm your password"
-        {...register("confirmPassword", {
-          required: "Confirm password is required",
-          validate: (value) =>
-            value === watch("password") || "Passwords do not match",
-        })}
-        error={!!errors.confirmPassword}
-        helperText={errors.confirmPassword?.message}
-        slotProps={{
-          input: {
+      {/* Confirm Password + OTP side-by-side */}
+      <Box sx={{ width: "100%", display: "flex", gap: 2, flexWrap: "wrap" }}>
+        <TextField
+          fullWidth
+          id="confirmPassword"
+          type={showConfirmPassword ? "text" : "password"}
+          label="Confirm Password"
+          variant="outlined"
+          placeholder="Confirm your password"
+          autoComplete="new-password"
+          disabled={otpStep}
+          {...register("confirmPassword", {
+            required: "Confirm password is required",
+            validate: (value) =>
+              value === watch("password") || "Passwords do not match",
+          })}
+          error={!!errors.confirmPassword}
+          helperText={errors.confirmPassword?.message}
+          InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  disabled={otpStep}
                 >
                   {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
             ),
-          },
-        }}
-      />
+          }}
+        />
+
+        {otpStep && (
+          <TextField
+            sx={{ minWidth: "160px" }}
+            id="otp"
+            label="OTP"
+            fullWidth
+            variant="outlined"
+            placeholder="Enter OTP"
+            autoComplete="one-time-code"
+            {...register("otpCode", {
+              required: "OTP is required",
+              pattern: {
+                value: /^\d{6}$/,
+                message: "OTP must be 6 digits",
+              },
+            })}
+            error={!!errors.otpCode || !!otpError}
+            helperText={errors.otpCode?.message || otpError}
+          />
+        )}
+      </Box>
 
       <Button
         sx={{ width: "100%", padding: "12px", fontSize: "16px" }}
         variant="contained"
         color="primary"
         type="submit"
+        disabled={isLoading}
       >
-        Sign Up
+        {isLoading ? (
+          <CircularProgress size={24} />
+        ) : otpStep ? (
+          "Verify OTP"
+        ) : (
+          "Sign Up"
+        )}
       </Button>
+
       <Typography>
         Already have an account?{" "}
         <span

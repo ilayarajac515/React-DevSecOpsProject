@@ -58,7 +58,6 @@ const SubmissionsPage = () => {
       setRows(submissionData);
     }
   }, [submissionData]);
-  console.log(submissionData);
 
   const handleViewAnswers = (row: any) => {
     navigate(`/examinee-answers/${row.formId}/${row.userEmail}`);

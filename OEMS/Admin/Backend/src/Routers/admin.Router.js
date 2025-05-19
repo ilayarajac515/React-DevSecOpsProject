@@ -9,6 +9,8 @@ import { authenticateJWT } from "../Middleware/auth.mid.js";
 
 const router = Router();
 
+router.post("/send-otp", handler(adminController.sendOtp));
+router.post("/verify-otp", handler(adminController.verifyOtp));
 router.post("/register", handler(adminController.registerUser));
 router.post("/login", handler(adminController.loginUser));
 router.post("/forgot-password", handler(adminController.forgotPassword));
