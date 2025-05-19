@@ -31,13 +31,7 @@ interface CandidateProviderProps {
 export const CandidateProvider: React.FC<CandidateProviderProps> = ({
   children,
 }) => {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("candidateToken")
-      : null;
-  const { data } = useCheckCandidateAuthQuery(undefined, {
-    skip: !token,
-  });
+  const { data } = useCheckCandidateAuthQuery();
   const [auth, setAuthState] = useState<Omit<CandidateState, "setAuth">>({
     email: null,
     authorized: null,
@@ -53,12 +47,6 @@ export const CandidateProvider: React.FC<CandidateProviderProps> = ({
 
   useEffect(() => {
     const loadAuth = () => {
-      const token = localStorage.getItem("candidateToken");
-
-      if (!token) {
-        setAuthState({ email: null, authorized: null, loading: false });
-        return;
-      }
 
       if (data?.authorized) {
         setAuthState({

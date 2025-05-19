@@ -25,7 +25,7 @@ const SubmissionsPage = () => {
     { field: "endTime", headerName: "End Time", width: 150 },
     { field: "duration", headerName: "Duration", width: 150 },
     { field: "status", headerName: "Status", width: 150 },
-    { field: "warning", headerName: "Warnings", width: 150 },
+    { field: "warnings", headerName: "Warnings", width: 150 },
     {
       field: "score",
       headerName: "Score",
