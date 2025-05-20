@@ -8,6 +8,7 @@ import {
   useGetFormByIdQuery,
   useGetStartTimeQuery,
   useUpdateTimerMutation,
+  useUpdateWarningsMutation,
 } from "../modules/candidate_slice";
 import { useParams } from "react-router-dom";
 import { useLogoutCandidateMutation } from "../modules/candidate_slice";
@@ -39,6 +40,7 @@ const AssessmentPage = () => {
     formId ?? ""
   );
   const [logoutCandidate] = useLogoutCandidateMutation();
+  const [warningsUpdate] = useUpdateWarningsMutation();
   const [endSubmit] = useEditSubmissionMutation();
   const [startSubmit, { data: submissionResponse }] =
     useAddSubmissionMutation();
@@ -103,11 +105,10 @@ const AssessmentPage = () => {
   }, [candidateData?.status, formId, submissionId, email]);
 
   useEffect(() => {
-    endSubmit({
+    warningsUpdate({
       formId: formId ?? "",
-      userEmail: email ?? "",
-      warnings: tabSwitchCount,
-      status: "Not Submitted",
+      userEmail: candidateData?.userEmail ?? email ?? "",
+      warnings: tabSwitchCount
     });
   }, [tabSwitchCount]);
 
@@ -262,8 +263,7 @@ const AssessmentPage = () => {
           termsAccepted: "true",
           userEmail: email ?? "",
           startTime: formattedTime,
-          responseId: uuid(),
-          warnings: 0,
+          responseId: uuid()
         },
       }).unwrap();
       setOpenDialog(false);
@@ -338,17 +338,14 @@ const AssessmentPage = () => {
       const totalMinutes = Math.floor(totalSeconds / 60);
       const remainingSeconds = totalSeconds % 60;
       const calculatedDuration = `${totalMinutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-
       await endSubmit({
         formId: candidateData?.formId ?? "",
         userEmail: candidateData?.userEmail ?? "",
         status: "submitted",
         endTime: formattedTime,
         duration: calculatedDuration,
-        value: result,
-        warnings: candidateData?.warnings || tabSwitchCount || 0,
+        value: result
       }).unwrap();
-
       toast.success("Test submitted successfully.");
       handleLogout();
     } catch (err) {

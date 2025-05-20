@@ -40,7 +40,7 @@ export const candidateLogin = (req, res) => {
         return res
           .status(UNAUTHORIZED)
           .json({ message: "Invalid credentials" });
-      }
+      }``
 
       const checkSubmissionQuery = `
         SELECT * FROM \`${valueTable}\`
@@ -149,7 +149,7 @@ export const submitForm = (req, res) => {
 
 export const editSubmission = (req, res) => {
   const { formId } = req.params;
-  const { value, userEmail, endTime, duration, score, status, warnings } =
+  const { value, userEmail, endTime, duration, score, status } =
     req.body;
 
   if (!formId) {
@@ -161,7 +161,7 @@ export const editSubmission = (req, res) => {
 
   const query = `
     UPDATE \`${tableName}\`
-    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?, warnings = ?
+    SET value = ?, endTime = ?, duration = ?, score = ?, status = ?
     WHERE formId = ? AND userEmail = ?
   `;
 
@@ -173,7 +173,6 @@ export const editSubmission = (req, res) => {
       duration || null,
       score,
       status,
-      warnings,
       formId,
       userEmail,
     ],
@@ -188,6 +187,45 @@ export const editSubmission = (req, res) => {
       }
 
       res.status(STATUS_OK).json({ message: "Submission updated" });
+    }
+  );
+};
+
+export const updateWarnings = (req, res) => {
+  const { formId, userEmail } = req.params;
+  const { warnings } = req.body;
+
+  if (!formId) {
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+  }
+
+  if (!userEmail) {
+    return res.status(BAD_REQUEST).json({ message: "userEmail is required" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `valueTable_${sanitizedFormId}`;
+
+  const query = `
+    UPDATE \`${tableName}\`
+    SET warnings = ?
+    WHERE formId = ? AND userEmail = ?
+  `;
+
+  connection.query(
+    query,
+    [warnings, formId, userEmail],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating warnings:", err);
+        return res.status(SERVER_ERROR).json({ message: "Server error" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(NOT_FOUND).json({ message: "Submission not found" });
+      }
+
+      res.status(STATUS_OK).json({ message: "Warnings updated" });
     }
   );
 };

@@ -20,7 +20,6 @@ interface Submission {
   duration?: string;
   score?: string;
   status?: string;
-  warnings?: number;
   termsAccepted?: string;
 }
 export interface EditSubmissionInput {
@@ -34,7 +33,6 @@ export interface EditSubmissionInput {
   termsAccepted?: string;
   score?: number;
   status?: string;
-  warnings?: number;
 }
 export interface CandidateSubmission {
   id: number;
@@ -165,6 +163,20 @@ export const candidateSlice = createApi({
       }),
     }),
 
+    updateWarnings: builder.mutation<
+      EditSubmissionResponse,
+      { formId: string; userEmail: string; warnings: number }
+    >({
+      query: ({ formId, userEmail, warnings }) => ({
+        url: `/form/${formId}/candidate/${userEmail}/warnings`,
+        method: "PUT",
+        body: { warnings },
+      }),
+      invalidatesTags: (_result, _error, { formId }) => [
+        { type: "Submissions", id: formId },
+      ],
+    }),
+
     getFieldsByCandidateFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/field`,
       providesTags: (_result, _error, formId) => [
@@ -178,7 +190,7 @@ export const candidateSlice = createApi({
         { type: "Forms", id: formId },
       ],
     }),
-    
+
     getStartTime: builder.query({
       query: ({ formId, responseId }) => `/start-time/${formId}/${responseId}`,
     }),
@@ -192,6 +204,7 @@ export const {
   useLazyGetFormByIdQuery,
   useLogoutCandidateMutation,
   useGetFieldsByCandidateFormIdQuery,
+  useUpdateWarningsMutation,
   useUpdateTimerMutation,
   useAddSubmissionMutation,
   useEditSubmissionMutation,
