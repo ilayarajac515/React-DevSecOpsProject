@@ -9,6 +9,7 @@ export interface Field {
   placeholder?: string;
   options?: any;
   rta?: any;
+  textArea?: any;
 }
 interface Candidate {
   candidates: any[];

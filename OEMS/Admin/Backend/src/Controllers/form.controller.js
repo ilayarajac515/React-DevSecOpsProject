@@ -41,7 +41,7 @@ export const getForms = (req, res) => {
 
 export const updateField = (req, res) => {
   const { formId, fieldId } = req.params;
-  const { label, placeholder, options, rta } = req.body;
+  const { label, placeholder, options, rta, textArea } = req.body;
 
   if (!formId || !fieldId) {
     return res
@@ -56,12 +56,13 @@ export const updateField = (req, res) => {
   }
 
   connection.query(
-    "UPDATE FieldTable SET label = ?, placeholder = ?, options = ?, rta = ? WHERE formId = ? AND fieldId = ?",
+    "UPDATE FieldTable SET label = ?, placeholder = ?, options = ?, rta = ? textArea = ? WHERE formId = ? AND fieldId = ?",
     [
       label,
       placeholder || null,
       JSON.stringify(options),
       JSON.stringify(rta),
+      JSON.stringify(textArea),
       formId,
       fieldId,
     ],
@@ -109,7 +110,7 @@ export const deleteField = (req, res) => {
 
 export const addField = (req, res) => {
   const { formId } = req.params;
-  const { fieldId, type, label, placeholder, options, rta } = req.body;
+  const { fieldId, type, label, placeholder, options, rta, textArea } = req.body;
 
   if (!formId || !type || !label) {
     return res
@@ -118,8 +119,8 @@ export const addField = (req, res) => {
   }
 
   const query = `
-      INSERT INTO FieldTable (fieldId, formId, type, label, placeholder, options, rta)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO FieldTable (fieldId, formId, type, label, placeholder, options, rta, textArea)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
   connection.query(
@@ -132,6 +133,7 @@ export const addField = (req, res) => {
       placeholder || null,
       JSON.stringify(options || {}),
       JSON.stringify(rta || {}),
+      JSON.stringify(textArea || {}),
     ],
     (err, results) => {
       if (err) {
