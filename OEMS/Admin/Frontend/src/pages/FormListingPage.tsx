@@ -167,7 +167,7 @@ const FormListingPage = () => {
 
   useEffect(() => {
     if(fieldsData && formData){
-      cloneForm({form: formData, fields: fieldsData});
+      cloneForm({form: {...formData, manager: name ?? formData.manager}, fields: fieldsData});
     }
   }, [fieldsData, formData])
 
