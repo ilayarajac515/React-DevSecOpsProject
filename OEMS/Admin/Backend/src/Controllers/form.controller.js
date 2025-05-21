@@ -56,7 +56,7 @@ export const updateField = (req, res) => {
   }
 
   connection.query(
-    "UPDATE FieldTable SET label = ?, placeholder = ?, options = ?, rta = ? textArea = ? WHERE formId = ? AND fieldId = ?",
+    "UPDATE FieldTable SET label = ?, placeholder = ?, options = ?, rta = ? , textArea = ? WHERE formId = ? AND fieldId = ?",
     [
       label,
       placeholder || null,

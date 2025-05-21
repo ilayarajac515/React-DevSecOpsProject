@@ -40,7 +40,7 @@ const AssessmentPage = () => {
     formId ?? ""
   );
   const [logoutCandidate] = useLogoutCandidateMutation();
-  const [warningsUpdate ] = useUpdateWarningsMutation();
+  const [warningsUpdate] = useUpdateWarningsMutation();
   const [endSubmit] = useEditSubmissionMutation();
   const [startSubmit, { data: submissionResponse }] =
     useAddSubmissionMutation();
@@ -175,7 +175,7 @@ const AssessmentPage = () => {
       handleSubmitAssessment();
     }
   }, [formData, startTimeData, candidateData]);
-  
+
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -433,16 +433,29 @@ const AssessmentPage = () => {
                 {...register(`field_${index}`)}
               />
             ) : field.type === "textArea" ? (
-              <TextField
-                placeholder={field.placeholder || ""}
-                fullWidth
-                multiline
-                rows={10}
-                variant="outlined"
-                size="small"
-                onPaste={handlePaste}
-                {...register(`field_${index}`)}
-              />
+              <>
+                { field.textArea?.content &&  (<Box
+                  className="ck-content"
+                  sx={{
+                    backgroundColor: "white",
+                    border: "1px solid #ddd",
+                    borderRadius: "5px",
+                    overflowX: "auto",
+                    marginBottom: "20px",
+                  }}
+                  dangerouslySetInnerHTML={{ __html: field.textArea?.content || "" }}
+                />) }
+                <TextField
+                  placeholder={field.placeholder || ""}
+                  fullWidth
+                  multiline
+                  rows={10}
+                  variant="outlined"
+                  size="small"
+                  onPaste={handlePaste}
+                  {...register(`field_${index}`)}
+                />
+              </>
             ) : field.type === "radio" ? (
               <Controller
                 name={`field_${index}`}

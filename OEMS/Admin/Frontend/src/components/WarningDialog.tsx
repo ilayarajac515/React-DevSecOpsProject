@@ -62,11 +62,14 @@ const WarningDialog = ({
             sx={{ lineHeight: 1.6 }}
           >
             Switching tabs or minimizing the browser is prohibited during the
-            assessment. You have received{" "}
-            <strong>
+            assessment. 
+          </Typography>
+          <Typography>
+
+            You have received{" "}
+            <strong style={{color:"red"}}>
               warning {tabSwitchCount || 0} of {maxTabSwitches}
             </strong>
-            .
           </Typography>
           <Typography
             variant="body2"
