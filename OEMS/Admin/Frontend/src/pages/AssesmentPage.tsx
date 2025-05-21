@@ -40,7 +40,7 @@ const AssessmentPage = () => {
     formId ?? ""
   );
   const [logoutCandidate] = useLogoutCandidateMutation();
-  const [warningsUpdate] = useUpdateWarningsMutation();
+  const [warningsUpdate ] = useUpdateWarningsMutation();
   const [endSubmit] = useEditSubmissionMutation();
   const [startSubmit, { data: submissionResponse }] =
     useAddSubmissionMutation();
@@ -67,12 +67,7 @@ const AssessmentPage = () => {
   const { register, handleSubmit, control } = useForm();
 
   useEffect(() => {
-    if (
-      candidateData?.warnings !== undefined &&
-      tabSwitchCount !== Number(candidateData.warnings)
-    ) {
-      setTabSwitchCount(Number(candidateData.warnings));
-    }
+    setTabSwitchCount(Number(candidateData?.warnings));
   }, [candidateData]);
 
   useEffect(() => {
@@ -81,67 +76,56 @@ const AssessmentPage = () => {
         document.visibilityState === "hidden" &&
         candidateData?.status !== "submitted"
       ) {
-        setTabSwitchCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount > maxTabSwitches) {
-            toast.error(
-              "Too many tab switches detected. Submitting assessment."
-            );
-            handleSubmitAssessment();
-          } else {
-            setWarningDialogOpen(true);
-            toast.warn(
-              `Tab switch detected. Warning ${newCount} of ${maxTabSwitches}.`
-            );
-          }
-          return newCount;
+        const newCount = tabSwitchCount + 1;
+        setTabSwitchCount(newCount);
+        await warningsUpdate({
+          formId: formId ?? "",
+          userEmail: candidateData?.userEmail ?? email ?? "",
+          warnings: newCount,
         });
+
+        if (newCount > maxTabSwitches) {
+          handleSubmitAssessment();
+        } else {
+          if (!openDialog) {
+            setWarningDialogOpen(true);
+          }
+        }
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [candidateData?.status, formId, submissionId, email]);
-
-  useEffect(() => {
-    warningsUpdate({
-      formId: formId ?? "",
-      userEmail: candidateData?.userEmail ?? email ?? "",
-      warnings: tabSwitchCount
-    });
-  }, [tabSwitchCount]);
+  }, [tabSwitchCount, candidateData?.status, formId, submissionId, email]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key;
       if (
-        (e.ctrlKey && (e.key === "c" || e.key === "v" || e.key === "x")) ||
-        e.key === "F11" ||
-        e.key === "F12" ||
-        e.key === "Escape"
+        (e.ctrlKey && (key === "c" || key === "v" || key === "x")) ||
+        key === "F11" ||
+        key === "F12" ||
+        key === "Escape"
       ) {
         e.preventDefault();
-        toast.warn(
-          `${e.key === "Escape" ? "Esc" : e.key} key is disabled during the assessment.`
-        );
-      }
-      if (
-        e.key === "PrintScreen" ||
-        (e.metaKey && e.shiftKey && (e.key === "3" || e.key === "4"))
-      ) {
-        e.preventDefault();
-        toast.warn("Screenshots are not allowed during the assessment.");
+        if (!openDialog) {
+          toast.warn(
+            `${key === "Escape" ? "Esc" : key} key is disabled during the assessment.`
+          );
+        }
       }
     };
 
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      toast.warn("Right-click is disabled during the assessment.");
+      if (!openDialog) {
+        toast.warn("Right-click is disabled during the assessment.");
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("contextmenu", handleContextMenu);
-
     document.body.style.userSelect = "none";
 
     return () => {
@@ -153,7 +137,9 @@ const AssessmentPage = () => {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    toast.warn("Pasting is disabled during the assessment.");
+    if (!openDialog) {
+      toast.warn("Pasting is disabled during the assessment.");
+    }
   };
 
   useEffect(() => {
@@ -189,6 +175,17 @@ const AssessmentPage = () => {
       handleSubmitAssessment();
     }
   }, [formData, startTimeData, candidateData]);
+  
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   useEffect(() => {
     if (
@@ -263,7 +260,7 @@ const AssessmentPage = () => {
           termsAccepted: "true",
           userEmail: email ?? "",
           startTime: formattedTime,
-          responseId: uuid()
+          responseId: uuid(),
         },
       }).unwrap();
       setOpenDialog(false);
@@ -344,9 +341,9 @@ const AssessmentPage = () => {
         status: "submitted",
         endTime: formattedTime,
         duration: calculatedDuration,
-        value: result
+        value: result,
       }).unwrap();
-      toast.success("Test submitted successfully.");
+      toast.success("Test submitted!");
       handleLogout();
     } catch (err) {
       console.error("Failed to submit test", err);
@@ -401,6 +398,7 @@ const AssessmentPage = () => {
         onAgree={handleAgree}
         termsAccepted={termsAccepted}
         handleTermsChange={(event) => setTermsAccepted(event.target.checked)}
+        instructions={formData.startContent ?? ""}
       />
     );
   }
@@ -416,7 +414,7 @@ const AssessmentPage = () => {
         onSubmit={(e) => e.preventDefault()}
       >
         <Typography variant="h4" gutterBottom fontWeight="bold">
-          Assessment
+          {formData.label ?? ""} Assessment
         </Typography>
         <Divider sx={{ my: 2 }} />
         {fields.map((field, index) => (

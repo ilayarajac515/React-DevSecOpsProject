@@ -18,6 +18,7 @@ interface AgreeToTermsDialogProps {
   onAgree: () => void;
   termsAccepted: boolean;
   handleTermsChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  instructions: string;
 }
 
 const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
@@ -26,6 +27,7 @@ const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
   onAgree,
   termsAccepted,
   handleTermsChange,
+  instructions,
 }) => {
   return (
     <Dialog
@@ -61,22 +63,45 @@ const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
         Terms and Conditions
       </DialogTitle>
       <DialogContent sx={{ padding: "24px" }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 , marginTop:"10px"}}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            marginTop: "10px",
+          }}
+        >
           <Typography
             id="terms-dialog-description"
             variant="body1"
             color="text.primary"
             sx={{ lineHeight: 1.6 }}
           >
-            Before proceeding with the assessment, please review and acknowledge the terms and conditions outlined below.
+            Before proceeding with the assessment, please review and acknowledge
+            the terms and conditions outlined below.
           </Typography>
           <Typography
             variant="body2"
             color="error.main"
             sx={{ fontWeight: "medium", lineHeight: 1.5 }}
           >
-            <strong>Important:</strong> This assessment contains sensitive information. Ensure you understand our privacy policies, as your submission is subject to these terms.
+            <strong>Important:</strong> This assessment contains sensitive
+            information. Ensure you understand our privacy policies, as your
+            submission is subject to these terms.
           </Typography>
+          <Box component="ul" sx={{ pl: 3, m: 0 }}>
+            {instructions
+              .split("\n")
+              .filter((line) => line.trim() !== "")
+              .map((line, index) => (
+                <li key={index}>
+                  <Typography variant="body2">
+                    {line.replace(/^[-–•]\s*/, "")}
+                  </Typography>
+                </li>
+              ))}
+          </Box>
+
           <FormControlLabel
             control={
               <Checkbox
@@ -89,7 +114,7 @@ const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
             }
             label={
               <Typography variant="body1" sx={{ fontWeight: "medium" }}>
-                I agree to the terms and conditions
+                I agree to the Terms and Conditions and Proceed to Start Test
               </Typography>
             }
             sx={{ mt: 1 }}
@@ -108,7 +133,6 @@ const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
           onClick={onClose}
           variant="outlined"
           color="primary"
-          
           sx={{
             textTransform: "none",
             fontWeight: "medium",
@@ -124,19 +148,16 @@ const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
         <Button
           onClick={onAgree}
           variant="contained"
-          color="primary"
+          color="success"
           disabled={!termsAccepted}
           sx={{
             textTransform: "none",
             fontWeight: "medium",
             padding: "8px 16px",
             borderRadius: "8px",
-            "&:hover": {
-              backgroundColor: "#1565c0",
-            },
           }}
         >
-          Agree
+          Start Test
         </Button>
       </DialogActions>
     </Dialog>

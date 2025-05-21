@@ -12,7 +12,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
-
+ 
 const SubmissionsPage = () => {
   const apiRef = useGridApiRef();
   const Logoptions: string[] = ["View Answers"];
@@ -24,7 +24,15 @@ const SubmissionsPage = () => {
     { field: "startTime", headerName: "Start Time", width: 150 },
     { field: "endTime", headerName: "End Time", width: 150 },
     { field: "duration", headerName: "Duration", width: 150 },
-    { field: "status", headerName: "Status", width: 150 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 150,
+      cellClassName: (params) =>
+        params.value === "submitted"
+          ? "status-submitted"
+          : "status-not-submitted",
+    },
     { field: "warnings", headerName: "Warnings", width: 150 },
     {
       field: "score",
@@ -50,15 +58,15 @@ const SubmissionsPage = () => {
       ),
     },
   ];
-
+ 
   const { data: submissionData } = useGetSubmissionsByFormIdQuery(formId ?? "");
-
+ 
   useEffect(() => {
     if (submissionData) {
       setRows(submissionData);
     }
   }, [submissionData]);
-
+ 
   const handleViewAnswers = (row: any) => {
     navigate(`/examinee-answers/${row.formId}/${row.userEmail}`);
   };
@@ -68,20 +76,20 @@ const SubmissionsPage = () => {
     }
     const selectedIDs = apiRef?.current.getSelectedRows();
     const selectedRows = Array.from(selectedIDs.values());
-
+ 
     if (selectedRows.length === 0) {
       toast.error("Please select at least one row to download.");
       return;
     }
-
+ 
     const worksheet = XLSX.utils.json_to_sheet(selectedRows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
-
+ 
     XLSX.writeFile(workbook, "selected_candidates.xlsx");
     toast.success("Downloaded successfully!");
   };
-
+ 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
       <Box
@@ -106,7 +114,7 @@ const SubmissionsPage = () => {
           Download
         </Button>
       </Box>
-
+ 
       <Box sx={{ marginTop: "30px", height: "630px" }}>
         <DataGridPro
           apiRef={apiRef}
@@ -126,11 +134,20 @@ const SubmissionsPage = () => {
             "& .MuiDataGrid-row:hover": {
               backgroundColor: "#f0f7ff",
             },
+            "& .status-submitted": {
+              backgroundColor: "#e6f4ea",
+              color: "#2e7d32",
+            },
+            "& .status-not-submitted": {
+              backgroundColor: "#fdecea",
+              color: "#d32f2f",
+            },
           }}
         />
+ 
       </Box>
     </Box>
   );
 };
-
+ 
 export default SubmissionsPage;
