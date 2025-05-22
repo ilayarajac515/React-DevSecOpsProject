@@ -33,7 +33,10 @@ const SubmissionsPage = () => {
           ? "status-submitted"
           : "status-not-submitted",
     },
-    { field: "warnings", headerName: "Warnings", width: 150 },
+    { field: "warnings", headerName: "Warnings", width: 150 ,
+      cellClassName: (params) =>
+        params.value > 3 ? "status-warning" : "",
+    },
     {
       field: "score",
       headerName: "Score",
@@ -140,6 +143,9 @@ const SubmissionsPage = () => {
             },
             "& .status-not-submitted": {
               backgroundColor: "#fdecea",
+              color: "#d32f2f",
+            },
+            "& .status-warning": {
               color: "#d32f2f",
             },
           }}

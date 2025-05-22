@@ -35,7 +35,7 @@ export default function DashboardPage() {
                 <Typography variant="h6">Form Manager</Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" mb={2}>
-                View, edit, and manage all assessment forms.
+                Create , View, edit, and manage all assessment forms.
               </Typography>
             </Box>
             <Button

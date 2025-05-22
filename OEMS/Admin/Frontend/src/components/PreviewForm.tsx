@@ -54,7 +54,6 @@ const PreviewForm = ({ form }: { form: any }) => {
         component="form"
         onSubmit={(e) => e.preventDefault()}
       >
-
         {fields?.map((field, index) => (
           <Box key={field.fieldId || index} my={3}>
             <Typography variant="subtitle1" gutterBottom fontWeight="bold">
@@ -70,14 +69,27 @@ const PreviewForm = ({ form }: { form: any }) => {
                 size="small"
               />
             ) : field.type === "textArea" ? (
-              <TextField
-                placeholder={field.placeholder || ""}
-                fullWidth
-                multiline
-                rows={10}
-                variant="outlined"
-                size="small"
-              />
+              <>
+              { field.textArea?.content &&  (<Box
+                  className="ck-content"
+                  sx={{
+                    backgroundColor: "white",
+                    border: "1px solid #ddd",
+                    borderRadius: "5px",
+                    overflowX: "auto",
+                    marginBottom: "20px",
+                  }}
+                  dangerouslySetInnerHTML={{ __html: field.textArea?.content || "" }}
+                />) }
+                <TextField
+                  placeholder={field.placeholder || ""}
+                  fullWidth
+                  multiline
+                  rows={10}
+                  variant="outlined"
+                  size="small"
+                />
+              </>
             ) : field.type === "radio" ? (
               <Controller
                 name={`field_${index}`}
