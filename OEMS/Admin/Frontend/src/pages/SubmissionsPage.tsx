@@ -7,7 +7,7 @@ import {
 } from "@mui/x-data-grid-pro";
 import LongMenu from "../components/LogMenu";
 import DownloadIcon from "@mui/icons-material/Download";
-import { useGetSubmissionsByFormIdQuery } from "../modules/admin_slice";
+import { useGetSubmissionsByFormIdQuery, useUpdateSubmissionMutation } from "../modules/admin_slice";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -18,7 +18,9 @@ const SubmissionsPage = () => {
   const Logoptions: string[] = ["View Answers"];
   const { id: formId } = useParams();
   const [rows, setRows] = useState<GridRowsProp>([]);
+    const [editSubmission] = useUpdateSubmissionMutation();
   const navigate = useNavigate();
+  
   const columns: GridColDef[] = [
     { field: "userEmail", headerName: "Email", width: 350 },
     { field: "startTime", headerName: "Start Time", width: 150 },
@@ -42,6 +44,7 @@ const SubmissionsPage = () => {
       headerName: "Score",
       width: 150,
       editable: true,
+      filterable:true,
     },
     {
       field: "actions",
@@ -69,7 +72,21 @@ const SubmissionsPage = () => {
       setRows(submissionData);
     }
   }, [submissionData]);
- 
+ const handleProcessRowUpdate = async (updatedRow: any) => {
+    try {
+      await editSubmission({
+        formId: formId!,
+        userEmail: updatedRow.userEmail,
+        ...updatedRow,
+      });
+      return updatedRow;
+    } catch (err) {
+      console.error("Update failed:", err);
+      return updatedRow;
+
+    }
+
+  };
   const handleViewAnswers = (row: any) => {
     navigate(`/examinee-answers/${row.formId}/${row.userEmail}`);
   };
@@ -124,6 +141,7 @@ const SubmissionsPage = () => {
           columns={columns}
           rows={rows}
           checkboxSelection
+          processRowUpdate={handleProcessRowUpdate}
           sx={{
             border: "1px solid lightgray",
             height: 631,

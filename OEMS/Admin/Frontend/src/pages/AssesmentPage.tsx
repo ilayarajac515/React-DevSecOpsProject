@@ -7,7 +7,6 @@ import {
   useGetFieldsByCandidateFormIdQuery,
   useGetFormByIdQuery,
   useGetStartTimeQuery,
-  useUpdateTimerMutation,
   useUpdateWarningsMutation,
 } from "../modules/candidate_slice";
 import { useParams } from "react-router-dom";
@@ -44,7 +43,6 @@ const AssessmentPage = () => {
   const [endSubmit] = useEditSubmissionMutation();
   const [startSubmit, { data: submissionResponse }] =
     useAddSubmissionMutation();
-  const [updateTimer] = useUpdateTimerMutation();
   const [openDialog, setOpenDialog] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [expired, setExpired] = useState(false);
@@ -69,6 +67,13 @@ const AssessmentPage = () => {
   useEffect(() => {
     setTabSwitchCount(Number(candidateData?.warnings));
   }, [candidateData]);
+  const submitForm = async () => {
+    try {
+      await handleSubmit(onSubmit)();
+    } catch (error) {
+      console.error("Submit failed", error);
+    }
+  };
 
   useEffect(() => {
     const handleVisibilityChange = async () => {
@@ -85,7 +90,7 @@ const AssessmentPage = () => {
         });
 
         if (newCount > maxTabSwitches) {
-          handleSubmitAssessment();
+          await submitForm();
         } else {
           if (!openDialog) {
             setWarningDialogOpen(true);
@@ -217,18 +222,16 @@ const AssessmentPage = () => {
         return;
       }
 
-      setElapsedTime(formatDuration(remainingMs));
-
-      updateTimer({
-        formId: candidateData?.formId ?? "",
-        userEmail: candidateData?.userEmail ?? "",
-        Timer: formatDuration(remainingMs),
-      });
+      const formattedTime = formatDuration(remainingMs);
+      setElapsedTime(formattedTime);
+      localStorage.setItem("assessmentTimer", formattedTime);
     }, 1000);
 
     const initialElapsedMs = Date.now() - startTime.getTime();
     const initialRemainingMs = Math.max(durationMs - initialElapsedMs, 0);
-    setElapsedTime(formatDuration(initialRemainingMs));
+    const initialFormatted = formatDuration(initialRemainingMs);
+    setElapsedTime(initialFormatted);
+    localStorage.setItem("assessmentTimer", initialFormatted);
 
     return () => clearInterval(interval);
   }, [formData?.duration, startTimeData?.startTime, candidateData, expired]);
@@ -434,17 +437,21 @@ const AssessmentPage = () => {
               />
             ) : field.type === "textArea" ? (
               <>
-                { field.textArea?.content &&  (<Box
-                  className="ck-content"
-                  sx={{
-                    backgroundColor: "white",
-                    border: "1px solid #ddd",
-                    borderRadius: "5px",
-                    overflowX: "auto",
-                    marginBottom: "20px",
-                  }}
-                  dangerouslySetInnerHTML={{ __html: field.textArea?.content || "" }}
-                />) }
+                {field.textArea?.content && (
+                  <Box
+                    className="ck-content"
+                    sx={{
+                      backgroundColor: "white",
+                      border: "1px solid #ddd",
+                      borderRadius: "5px",
+                      overflowX: "auto",
+                      marginBottom: "20px",
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: field.textArea?.content || "",
+                    }}
+                  />
+                )}
                 <TextField
                   placeholder={field.placeholder || ""}
                   fullWidth

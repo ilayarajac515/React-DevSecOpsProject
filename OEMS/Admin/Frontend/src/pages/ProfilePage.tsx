@@ -99,27 +99,6 @@ const ProfilePage = () => {
                 {email}
               </Typography>
               <Divider sx={{ my: 2 }} />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate("/edit-profile")}
-                sx={{ borderRadius: 20, textTransform: "none", paddingX: 4 }}
-              >
-                Edit Profile
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => navigate("/")}
-                sx={{
-                  borderRadius: 20,
-                  textTransform: "none",
-                  paddingX: 4,
-                  marginTop: 1,
-                }}
-              >
-                Back to Dashboard
-              </Button>
             </>
           ) : (
             <Typography color="error">No user data available</Typography>
