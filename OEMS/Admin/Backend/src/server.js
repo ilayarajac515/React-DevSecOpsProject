@@ -39,8 +39,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
-  process.env.BAC_LOCAL,
-  process.env.BAC_CLOUDFARE
+  process.env.BAC_CLOUDFARE,
+  process.env.BAC_LOCAL
 ];
 
 app.use(cors({
