@@ -31,7 +31,9 @@ interface CandidateProviderProps {
 export const CandidateProvider: React.FC<CandidateProviderProps> = ({
   children,
 }) => {
-  const { data } = useCheckCandidateAuthQuery();
+  const responseId = localStorage.getItem("responseId");
+  const skipQuery = !responseId;
+  const { data } = useCheckCandidateAuthQuery(undefined, { skip: skipQuery });
   const [auth, setAuthState] = useState<Omit<CandidateState, "setAuth">>({
     email: null,
     authorized: null,
@@ -47,7 +49,6 @@ export const CandidateProvider: React.FC<CandidateProviderProps> = ({
 
   useEffect(() => {
     const loadAuth = () => {
-
       if (data?.authorized) {
         setAuthState({
           email: data.email ?? null,
