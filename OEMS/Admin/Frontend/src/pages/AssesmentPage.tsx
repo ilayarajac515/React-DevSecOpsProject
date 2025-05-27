@@ -111,14 +111,9 @@ const AssessmentPage = () => {
         (e.ctrlKey && (key === "c" || key === "v" || key === "x")) ||
         key === "F11" ||
         key === "F12" ||
-        key === "Escape"
+        key === "Escape" || (key === "Tab" && e.altKey)
       ) {
         e.preventDefault();
-        if (!openDialog) {
-          toast.warn(
-            `${key === "Escape" ? "Esc" : key} key is disabled during the assessment.`
-          );
-        }
       }
     };
 

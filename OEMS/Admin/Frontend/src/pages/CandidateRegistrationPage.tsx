@@ -8,6 +8,10 @@ import {
   FormControlLabel,
   Radio,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
@@ -43,7 +47,7 @@ const CandidateRegistrationPage = () => {
       relocate: null,
     },
   });
-
+  const selectedDegree = watch("degree");
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [mobileError, setMobileError] = useState("");
@@ -55,6 +59,12 @@ const CandidateRegistrationPage = () => {
     formId ?? ""
   );
 
+  const departmentOptions: Record<string, string[]> = {
+    "B.E": ["IT", "CSE", "ECE"],
+    "B.Tech": ["IT", "CSE", "ECE"],
+    Other: ["MCA"],
+  };
+
   useEffect(() => {
     if (emailError) setEmailError("");
   }, [emailErr]);
@@ -62,6 +72,13 @@ const CandidateRegistrationPage = () => {
   useEffect(() => {
     if (mobileError) setMobileError("");
   }, [mobileErr]);
+
+  useEffect(() => {
+  reset((prevValues) => ({
+    ...prevValues,
+    department: "",
+  }));
+}, [selectedDegree, reset]);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
@@ -133,6 +150,7 @@ const CandidateRegistrationPage = () => {
           >
             Candidate Registration
           </Typography>
+          <Typography variant="body2">{formData.description}</Typography>
 
           <TextField
             label="Name"
@@ -173,21 +191,37 @@ const CandidateRegistrationPage = () => {
             helperText={errors.mobile?.message || mobileError}
           />
 
-          <TextField
-            label="Degree"
-            {...register("degree", { required: "Degree is required" })}
-            error={!!errors.degree}
-            helperText={errors.degree?.message}
-          />
+          <FormControl fullWidth error={!!errors.degree}>
+            <InputLabel>Degree</InputLabel>
+            <Select
+              label="Degree"
+              defaultValue=""
+              {...register("degree", { required: "Degree is required" })}
+            >
+              <MenuItem value="B.E">B.E</MenuItem>
+              <MenuItem value="B.Tech">B.Tech</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </Select>
+          </FormControl>
 
-          <TextField
-            label="Department"
-            {...register("department", {
-              required: "Department is required",
-            })}
-            error={!!errors.department}
-            helperText={errors.department?.message}
-          />
+          <FormControl fullWidth error={!!errors.department}>
+            <InputLabel>Department</InputLabel>
+            <Select
+              label="Department"
+              defaultValue=""
+              error={!!errors.department}
+              {...register("department", {
+                required: "Department is required",
+              })}
+            >
+              {selectedDegree &&
+                departmentOptions[selectedDegree]?.map((dept: any) => (
+                  <MenuItem key={dept} value={dept}>
+                    {dept}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
 
           <TextField
             label="Degree Percentage"
