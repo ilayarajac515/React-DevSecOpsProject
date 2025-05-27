@@ -250,7 +250,7 @@ export const logoutSpecificDevice = async (
 
 export const checkAuth = async (): Promise<CheckAuthResponse> => {
   try {
-    const { data } = await axiosInstance.get<CheckAuthResponse>("/check-auth");
+    const { data } = await axiosInstance.get<CheckAuthResponse>("/check-auth", { withCredentials: true });
     return data;
   } catch (error) {
     return { authorized: false, userId: null };

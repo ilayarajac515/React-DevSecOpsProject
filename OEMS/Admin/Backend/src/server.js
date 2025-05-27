@@ -37,12 +37,22 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    credentials: true,
-    origin: ["http://localhost:5173"],
-  })
-);
+
+const allowedOrigins = [
+  "https://sagem-suits-converter-invest.trycloudflare.com",
+  "http://localhost:5173"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 app.use("/api/admin", adminRouter);
 app.use("/api/mock_form", formRouter);

@@ -65,8 +65,8 @@ export const candidateLogin = (req, res) => {
 
         res.cookie("candidateToken", candidateToken, {
           httpOnly: true,
-          secure: false,
-          sameSite: "Lax",
+          secure: true,
+          sameSite: "None",
           maxAge: 3 * 60 * 60 * 1000,
         });
 

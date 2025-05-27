@@ -68,7 +68,7 @@ export interface CandidateAuthResponse {
 }
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api/candidate",
+  baseUrl: "https://butterfly-filename-aerospace-hampshire.trycloudflare.com/api/candidate",
   credentials: "include",
 });
 
