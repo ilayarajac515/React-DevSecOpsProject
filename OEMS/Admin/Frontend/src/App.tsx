@@ -169,10 +169,21 @@ const App = () => {
               }
             />
 
-            <Route path="/forget-password" element={<ForgetPassword />} />
+            <Route
+              path="/forget-password"
+              element={
+                <CheckAuth>
+                  <ForgetPassword />
+                </CheckAuth>
+              }
+            />
             <Route
               path="/reset-password/:userId/:token/:expiry"
-              element={<ResetPassword />}
+              element={
+              <CheckAuth>
+                <ResetPassword />
+              </CheckAuth>
+            }
             />
             <Route path="*" element={<PageNotFound />} />
           </Routes>

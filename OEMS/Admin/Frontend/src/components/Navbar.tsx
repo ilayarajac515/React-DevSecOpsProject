@@ -86,7 +86,7 @@ function Navbar() {
 
   const isCandidateRoute =
     location.pathname.startsWith("/assessment-page") ||
-    location.pathname.startsWith("/candidate");
+    location.pathname.startsWith("/candidate") ||  location.pathname.startsWith("/reset-password"); 
 
   return (
     <AppBar position={!isAssessmentPage ? "static" : "fixed"} elevation={0}>
