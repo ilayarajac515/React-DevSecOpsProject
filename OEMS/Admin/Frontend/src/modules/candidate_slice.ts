@@ -67,8 +67,12 @@ export interface CandidateAuthResponse {
   email: string;
 }
 
+const baseURL = import.meta.env.VITE_USE_TUNNEL === "true"
+  ? import.meta.env.VITE_CANDIDATE
+  : import.meta.env.VITE_CANDIDATE_LOCAL;
+
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://butterfly-filename-aerospace-hampshire.trycloudflare.com/api/candidate",
+  baseUrl: baseURL,
   credentials: "include",
 });
 

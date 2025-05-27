@@ -48,8 +48,12 @@ export interface RegistrationForm {
   status?: string;
 }
 
+const baseURL = import.meta.env.VITE_USE_TUNNEL === "true"
+  ? import.meta.env.VITE_ADMINFORM
+  : import.meta.env.VITE_ADMINFORM_LOCAL;
+
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://butterfly-filename-aerospace-hampshire.trycloudflare.com/api/mock_form",
+  baseUrl: baseURL,
   credentials: "include",
 });
 

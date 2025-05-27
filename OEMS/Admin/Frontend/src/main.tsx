@@ -4,11 +4,11 @@ import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
-import '@fontsource/poppins/300.css';
-import '@fontsource/poppins/400.css';
-import '@fontsource/poppins/500.css';
-import '@fontsource/poppins/600.css';
-import '@fontsource/poppins/700.css';
+import "@fontsource/poppins/300.css";
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
 import App from "./App";
 import { AuthProvider } from "./context/GlobalContext";
 import { LicenseInfo } from "@mui/x-license-pro";
@@ -18,20 +18,18 @@ import { CandidateProvider } from "./context/CandidateContext";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./themes/theme";
 
-LicenseInfo.setLicenseKey(
-  "e0d9bb8070ce0054c9d9ecb6e82cb58fTz0wLEU9MzI0NzIxNDQwMDAwMDAsUz1wcmVtaXVtLExNPXBlcnBldHVhbCxLVj0y"
-);
+LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X);
 
 const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);
 
 root.render(
   <StrictMode>
-      <Provider store={store}>
-        <BrowserRouter>
-          <AuthProvider>
-            <CandidateProvider>
-              <ThemeProvider theme={theme}>
+    <Provider store={store}>
+      <BrowserRouter>
+        <AuthProvider>
+          <CandidateProvider>
+            <ThemeProvider theme={theme}>
               <CssBaseline />
               <App />
               <ToastContainer
@@ -45,10 +43,10 @@ root.render(
                 draggable
                 theme="colored"
               />
-               </ThemeProvider>
-            </CandidateProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </Provider>
+            </ThemeProvider>
+          </CandidateProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </Provider>
   </StrictMode>
 );

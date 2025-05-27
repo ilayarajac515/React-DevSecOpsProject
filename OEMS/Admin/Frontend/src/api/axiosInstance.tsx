@@ -1,7 +1,13 @@
 import axios from "axios";
  
+const useTunnel = import.meta.env.VITE_USE_TUNNEL === "true";
+
+const baseURL = useTunnel
+  ? import.meta.env.VITE_ADMIN
+  : import.meta.env.VITE_ADMIN_LOCAL;
+
 const axiosInstance = axios.create({
-  baseURL: "https://butterfly-filename-aerospace-hampshire.trycloudflare.com/api/admin",
+  baseURL,
   withCredentials: true,
 });
  

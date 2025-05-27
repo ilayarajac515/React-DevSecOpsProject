@@ -39,8 +39,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
-  "https://sagem-suits-converter-invest.trycloudflare.com",
-  "http://localhost:5173"
+  process.env.BAC_LOCAL,
+  process.env.BAC_CLOUDFARE
 ];
 
 app.use(cors({
