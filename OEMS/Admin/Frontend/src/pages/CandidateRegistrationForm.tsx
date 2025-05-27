@@ -221,7 +221,7 @@ const CandidateRegistrationForm = () => {
   };
  
   const handleCopyApplyUrl = (row: any) => {
-    const url = `http://localhost:5173/candidate-registration-page/${row.formId}`;
+    const url = `https://sagem-suits-converter-invest.trycloudflare.com/candidate-registration-page/${row.formId}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied!");
   };
