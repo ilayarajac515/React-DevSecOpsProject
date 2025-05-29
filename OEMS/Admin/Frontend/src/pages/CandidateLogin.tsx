@@ -6,6 +6,7 @@ import {
   IconButton,
   InputAdornment,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -33,6 +34,7 @@ const CandidateLogin = () => {
   } = useForm<FormValues>();
   const [showPassword, setShowPassword] = useState(false);
   const [existError, setExistError] = useState("");
+  const [loading, setLoading] = useState(false);
   const emailValue = watch("email");
   const passwordValue = watch("password");
   const [candidateLogin] = useLoginCandidateMutation();
@@ -47,6 +49,7 @@ const CandidateLogin = () => {
   const { data: formData , isLoading} = useGetFormByIdQuery(formId ?? "");
   
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    setLoading(true);
     try {
       await candidateLogin({
         email: data.email,
@@ -61,6 +64,9 @@ const CandidateLogin = () => {
       console.error("Login error:", err);
       setExistError(err?.data?.message || "Login failed. Try again.");
     }
+    finally {
+    setLoading(false);
+  }
   };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
@@ -163,8 +169,13 @@ const CandidateLogin = () => {
             variant="contained"
             color="primary"
             type="submit"
+            disabled={loading}
           >
-            Sign in
+            {loading ? (
+                    <CircularProgress size={24} sx={{ color: "white" }} />
+                  ) : (
+                    "Sign in"
+                  )}
           </Button>
         </Box>
         

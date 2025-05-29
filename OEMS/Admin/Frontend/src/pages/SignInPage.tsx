@@ -5,6 +5,7 @@ import {
   Typography,
   IconButton,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ const SignInPage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [existError, setExistError] = useState("");
+  const [loading, setLoading] = useState(false);
   const emailValue = watch("email");
   const passwordValue = watch("password");
   const { setAuth } = useAuth();
@@ -42,10 +44,11 @@ const SignInPage = () => {
   }, [emailValue, passwordValue]);
 
   const handleForgotPassword = () => {
-    navigate("/Forget-password");
+    navigate("/forget-password");
   };
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    setLoading(true);  // start loading
     const { email, password } = data;
     try {
       const result = await loginUser(email, password);
@@ -60,6 +63,8 @@ const SignInPage = () => {
         err?.message ||
         "Invalid email or password";
       setExistError(message);
+    } finally {
+      setLoading(false);  // stop loading regardless of success or error
     }
   };
 
@@ -151,8 +156,13 @@ const SignInPage = () => {
         variant="contained"
         color="primary"
         type="submit"
+        disabled={loading}
       >
-        Sign in
+        {loading ? (
+          <CircularProgress size={24} sx={{ color: "white" }} />
+        ) : (
+          "Sign in"
+        )}
       </Button>
       <Typography>
         Don't have an account?{" "}

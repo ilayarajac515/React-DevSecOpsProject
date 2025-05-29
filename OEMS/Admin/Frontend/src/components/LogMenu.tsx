@@ -13,6 +13,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import PeopleIcon from "@mui/icons-material/People";
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import CloseIcon from '@mui/icons-material/Close';
 
 type LongMenuProps = {
   handleEdit?: () => void;
@@ -27,6 +28,7 @@ type LongMenuProps = {
   handleViewAnswers?: () => void;
   handlePreviewForm?: () => void;
   handleCloneForm?: () => void;
+  handleTerminate?: () => void;
   Logoptions: string[];
 };
 
@@ -44,6 +46,7 @@ const LongMenu = ({
   handleViewAnswers,
   handlePreviewForm,
   handleCloneForm,
+  handleTerminate,
 }: LongMenuProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -121,6 +124,9 @@ const LongMenu = ({
               if (option === "View Answers" && handleViewAnswers) {
                 handleViewAnswers();
               }
+              if (option === "Terminate" && handleTerminate) {
+                handleTerminate();
+              }
               if (option === "Preview Form" && handlePreviewForm) {
                 handlePreviewForm();
               }
@@ -178,6 +184,11 @@ const LongMenu = ({
             {option === "View Answers" && (
               <ListItemIcon>
                 <QuestionAnswerIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "Terminate" && (
+              <ListItemIcon>
+                <CloseIcon fontSize="small" />
               </ListItemIcon>
             )}
             {option === "Preview Form" && (
