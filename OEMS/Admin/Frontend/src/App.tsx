@@ -168,7 +168,6 @@ const App = () => {
                 </CheckAuthCandidate>
               }
             />
-
             <Route
               path="/forget-password"
               element={

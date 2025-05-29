@@ -3,10 +3,10 @@ import * as formController from "../Controllers/form.controller.js";
 import multer from "multer";
 import handler from "express-async-handler";
 import { authenticateJWT } from "../Middleware/auth.mid.js";
-
+ 
 const router = Router();
 const upload = multer();
-
+ 
 router.get('/form/:formId/registration', handler(formController.getRegistrationForm));
 router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
 router.use(authenticateJWT);
@@ -26,6 +26,7 @@ router.delete("/form/:formId", handler(formController.deleteForm));
 router.put("/form/:formId/fields", handler(formController.replaceFields));
 router.get("/form/:formId/submissions", handler(formController.getSubmissions));
 router.get('/forms/:formId/submission/:email', handler(formController.getSubmissionByEmail));
+router.delete('/form/:formId/submission/:email', handler(formController.deleteSubmissionByEmail));
 router.get("/form/:formId/submitted-count",handler(formController.getSubmittedCount));
 router.put("/form/:formId/submission", handler(formController.editSubmission));
 router.post('/register/form', handler(formController.addForm));

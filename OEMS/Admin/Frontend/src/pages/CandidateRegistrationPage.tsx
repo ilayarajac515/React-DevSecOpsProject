@@ -164,9 +164,9 @@ const CandidateRegistrationPage = () => {
             {...register("email", {
               required: "Email is required",
               pattern: {
-                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                message: "Invalid email format",
-              },
+              value: /^[a-zA-Z0-9._%+-]+@gmail\.com$/,
+              message: "Email must be a valid Gmail address (e.g. user@gmail.com)",
+            },
             })}
             error={!!errors.email || !!emailError}
             helperText={errors.email?.message || emailError}

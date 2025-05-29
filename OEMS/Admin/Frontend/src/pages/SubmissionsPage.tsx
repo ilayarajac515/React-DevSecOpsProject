@@ -7,25 +7,26 @@ import {
 } from "@mui/x-data-grid-pro";
 import LongMenu from "../components/LogMenu";
 import DownloadIcon from "@mui/icons-material/Download";
-import { useGetSubmissionsByFormIdQuery, useUpdateSubmissionMutation } from "../modules/admin_slice";
+import { useDeleteSubmissionByEmailMutation, useGetSubmissionsByFormIdQuery, useUpdateSubmissionMutation } from "../modules/admin_slice";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
+import { useLogoutCandidateMutation } from "../modules/candidate_slice";
+import { useCandidate } from "../context/CandidateContext";
  
 const SubmissionsPage = () => {
   const apiRef = useGridApiRef();
-  const Logoptions: string[] = ["View Answers"];
   const { id: formId } = useParams();
   const [rows, setRows] = useState<GridRowsProp>([]);
     const [editSubmission] = useUpdateSubmissionMutation();
   const navigate = useNavigate();
   
   const columns: GridColDef[] = [
-    { field: "userEmail", headerName: "Email", width: 350 },
+    { field: "userEmail", headerName: "Email", width: 300 },
     { field: "startTime", headerName: "Start Time", width: 150 },
     { field: "endTime", headerName: "End Time", width: 150 },
-    { field: "duration", headerName: "Duration", width: 150 },
+    { field: "duration", headerName: "Duration", width: 120 },
     {
       field: "status",
       headerName: "Status",
@@ -35,13 +36,20 @@ const SubmissionsPage = () => {
           ? "status-submitted"
           : "status-not-submitted",
     },
-    { field: "warnings", headerName: "Warnings", width: 150 ,
+    { field: "warnings", headerName: "Warnings", width: 120 ,
       cellClassName: (params) =>
         params.value > 3 ? "status-warning" : "",
     },
     {
       field: "score",
       headerName: "Score",
+      width: 120,
+      editable: true,
+      filterable:true,
+    },
+    {
+      field: "remarks",
+      headerName: "Remarks",
       width: 150,
       editable: true,
       filterable:true,
@@ -54,24 +62,35 @@ const SubmissionsPage = () => {
       filterable: false,
       disableColumnMenu: true,
       align: "center",
-      renderCell: (params) => (
+      renderCell: (params) => {
+        const row = params.row;
+        const isSubmitted = row.status === "submitted";
+        const filteredOptions = isSubmitted
+        ? ["View Answers"]
+        : ["View Answers", "Terminate"];
+        return (
         <Box onClick={(event) => event.stopPropagation()}>
           <LongMenu
             handleViewAnswers={() => handleViewAnswers(params.row)}
-            Logoptions={Logoptions}
+            handleTerminate={()=> handleterminate(params.row)}
+            Logoptions={filteredOptions}
           />
         </Box>
-      ),
+      )}
     },
   ];
  
   const { data: submissionData } = useGetSubmissionsByFormIdQuery(formId ?? "");
- 
+  const [terminateSubmission] = useDeleteSubmissionByEmailMutation();
+  const [ logoutCandidate] = useLogoutCandidateMutation();
+  const { setAuth } = useCandidate();
+
   useEffect(() => {
     if (submissionData) {
       setRows(submissionData);
     }
   }, [submissionData]);
+
  const handleProcessRowUpdate = async (updatedRow: any) => {
     try {
       await editSubmission({
@@ -87,9 +106,11 @@ const SubmissionsPage = () => {
     }
 
   };
+
   const handleViewAnswers = (row: any) => {
     navigate(`/examinee-answers/${row.formId}/${row.userEmail}`);
   };
+
   const handleDownload = () => {
     if (!apiRef.current) {
       return;
@@ -109,6 +130,12 @@ const SubmissionsPage = () => {
     XLSX.writeFile(workbook, "selected_candidates.xlsx");
     toast.success("Downloaded successfully!");
   };
+
+  const handleterminate = async(row:any) => {
+    await logoutCandidate().unwrap();
+    setAuth({ email: null, authorized: null });
+    terminateSubmission({formId: formId ?? "", email: row.userEmail})
+  }
  
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
