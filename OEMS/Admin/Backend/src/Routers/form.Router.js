@@ -37,5 +37,6 @@ router.get("/selected-candidates/:formId", handler(formController.getSelectedCan
 router.delete("/candidates/:tableType/:formId/:email", handler(formController.deleteCandidate));
 router.get("/candidates/:tableType/:formId", handler(formController.getCandidates));
 router.get('/candidates/count/:formId/:tableType', handler(formController.getCandidateCount));
+router.get('/form/remarks', handler(formController.getAllUserRemarks));
  
 export default router;

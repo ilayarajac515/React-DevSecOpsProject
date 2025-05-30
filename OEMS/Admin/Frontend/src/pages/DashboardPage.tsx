@@ -32,7 +32,7 @@ export default function DashboardPage() {
             <Box>
               <Box display="flex" alignItems="center" mb={2}>
                 <AssignmentIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Form Manager</Typography>
+                <Typography variant="h6">Assessment Manager</Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" mb={2}>
                 Create , View, edit, and manage all assessment forms.
@@ -56,7 +56,7 @@ export default function DashboardPage() {
             <Box>
               <Box display="flex" alignItems="center" mb={2}>
                 <GroupAddIcon color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Registration Forms</Typography>
+                <Typography variant="h6">Registration Manager</Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" mb={2}>
                 Create and manage registration forms for candidates.
