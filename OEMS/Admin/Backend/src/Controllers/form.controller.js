@@ -980,7 +980,6 @@ export const uploadImageController = async (req, res) => {
 export const insertCandidate = (req, res) => {
   const { formId, tableType } = req.params;
   const { candidate } = req.body;
-  console.log(formId, tableType, candidate);
 
   if (!formId || !tableType || !candidate) {
     return res
@@ -1006,11 +1005,9 @@ export const insertCandidate = (req, res) => {
     if (checkResults.length > 0) {
       const existing = checkResults[0];
       if (existing.email === candidate.email) {
-        console.log("Email already exists");
         return res.status(BAD_REQUEST).json({ error: "Email already exists" });
       }
       if (existing.mobile === candidate.mobile) {
-        console.log("Mobile already exists");
         return res.status(BAD_REQUEST).json({ error: "Mobile number already exists" });
       }
     }
