@@ -354,6 +354,13 @@ export const formSlice = createApi({
         `candidates/count/${formId}/${tableType}`,
     }),
  
+    getAllUserRemarks: builder.query<
+      { formId: string; userEmail: string; remarks: string }[],
+      void
+    >({
+      query: () => "/form/remarks",
+    }),
+ 
     uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
       query: (formData) => ({
         url: "/upload-image",
@@ -374,6 +381,7 @@ export const {
   useAddFieldMutation,
   useEditFieldMutation,
   useDeleteFieldMutation,
+  useGetAllUserRemarksQuery,
   useGetSubmissionsByFormIdQuery,
   useCloneFormMutation,
   useGetSubmissionByEmailQuery,

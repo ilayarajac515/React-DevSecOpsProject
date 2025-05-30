@@ -89,7 +89,7 @@ const CandidateRegistrationForm = () => {
     "Eligible candidates"
   ];
   const columns: GridColDef[] = [
-    { field: "label", headerName: "Form Name", width: 250 },
+    { field: "label", headerName: "Drive Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
     { field: "submissions", headerName: "Registrations", width: 200 },
     { field: "branch", headerName: "Branch", width: 200 },

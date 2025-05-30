@@ -29,7 +29,9 @@ export const getFields = (req, res) => {
 };
  
 export const getForms = (req, res) => {
-  connection.query("SELECT * FROM FormTable", (err, results) => {
+  const query = "SELECT * FROM FormTable WHERE isActive = 1";
+ 
+  connection.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
@@ -416,46 +418,20 @@ export const deleteForm = (req, res) => {
     return res.status(BAD_REQUEST).json({ message: "formId is required" });
   }
  
-  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
-  const candidateTable = `selectedCandidate_${sanitizedFormId}`;
-  const valueTable = `valueTable_${sanitizedFormId}`;
+  const updateFormQuery = `UPDATE FormTable SET isActive = 0 WHERE formId = ?`;
  
-  const dropCandidateTableQuery = `DROP TABLE IF EXISTS \`${candidateTable}\``;
-  const dropValueTableQuery = `DROP TABLE IF EXISTS \`${valueTable}\``;
- 
-  connection.query(dropCandidateTableQuery, (dropErr1) => {
-    if (dropErr1) {
-      console.error("Error dropping candidate table:", dropErr1);
-      return res
-        .status(SERVER_ERROR)
-        .json({ error: "Failed to drop candidate table" });
+  connection.query(updateFormQuery, [formId], (err, results) => {
+    if (err) {
+      console.error("Error soft-deleting form:", err);
+      return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
  
-    connection.query(dropValueTableQuery, (dropErr2) => {
-      if (dropErr2) {
-        console.error("Error dropping value table:", dropErr2);
-        return res
-          .status(SERVER_ERROR)
-          .json({ error: "Failed to drop value table" });
-      }
+    if (results.affectedRows === 0) {
+      return res.status(NOT_FOUND).json({ message: "Form not found" });
+    }
  
-      const deleteFormQuery = `DELETE FROM FormTable WHERE formId = ?`;
- 
-      connection.query(deleteFormQuery, [formId], (deleteErr, results) => {
-        if (deleteErr) {
-          console.error("Error deleting form:", deleteErr);
-          return res.status(SERVER_ERROR).json({ error: "Server error" });
-        }
- 
-        if (results.affectedRows === 0) {
-          return res.status(NOT_FOUND).json({ message: "Form not found" });
-        }
- 
-        res.status(STATUS_OK).json({
-          message:
-            "Form, candidate table, and value table deleted successfully",
-        });
-      });
+    res.status(STATUS_OK).json({
+      message: "Form soft-deleted successfully",
     });
   });
 };
@@ -901,11 +877,9 @@ export const deleteSubmissionByEmail = (req, res) => {
     }
  
     if (result.affectedRows === 0) {
-      return res
-        .status(NOT_FOUND)
-        .json({
-          message: "No submission found for the given email and formId",
-        });
+      return res.status(NOT_FOUND).json({
+        message: "No submission found for the given email and formId",
+      });
     }
  
     return res
@@ -941,51 +915,36 @@ export const editForm = (req, res) => {
 export const removeForm = (req, res) => {
   const { formId } = req.params;
  
-  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
-  const registrationTable = `Registration_${sanitizedFormId}`;
-  const selectedTable = `selected_${sanitizedFormId}`;
+  if (!formId) {
+    return res.status(BAD_REQUEST).json({ message: "formId is required" });
+  }
  
-  const query = `DELETE FROM registration_form WHERE formId = ?`;
+  const updateRegistrationFormQuery = `UPDATE registration_form SET isActive = 0 WHERE formId = ?`;
  
-  connection.query(query, [formId], (err, results) => {
+  connection.query(updateRegistrationFormQuery, [formId], (err, results) => {
     if (err) {
-      console.error("Delete form error:", err);
+      console.error("Error soft-deleting registration form:", err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
  
-    const dropRegistrationTableQuery = `DROP TABLE IF EXISTS \`${registrationTable}\``;
-    const dropSelectedTableQuery = `DROP TABLE IF EXISTS \`${selectedTable}\``;
+    if (results.affectedRows === 0) {
+      return res
+        .status(NOT_FOUND)
+        .json({ message: "Registration form not found" });
+    }
  
-    connection.query(dropRegistrationTableQuery, (err) => {
-      if (err) {
-        console.error("Error dropping registration table:", err);
-        return res
-          .status(SERVER_ERROR)
-          .json({ error: "Failed to drop registration table" });
-      }
- 
-      connection.query(dropSelectedTableQuery, (err) => {
-        if (err) {
-          console.error("Error dropping selected table:", err);
-          return res
-            .status(SERVER_ERROR)
-            .json({ error: "Failed to drop selected table" });
-        }
- 
-        res
-          .status(STATUS_OK)
-          .json({ message: "Form and related tables deleted successfully" });
-      });
+    res.status(STATUS_OK).json({
+      message: "Registration form soft-deleted successfully",
     });
   });
 };
  
 export const getAllRegistrationForms = (req, res) => {
-  const query = "SELECT * FROM registration_form";
+  const query = "SELECT * FROM registration_form WHERE isActive = 1";
  
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching forms:", err);
+      console.error("Error fetching registration forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
  
@@ -1156,3 +1115,20 @@ export const getCandidateCount = (req, res) => {
     res.status(STATUS_OK).json({ count: results[0].count });
   });
 };
+ 
+export const getAllUserRemarks = (req, res) => {
+  const query = `CALL GetAllUserEmailsAndRemarks();`;
+ 
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching user remarks:", err);
+      return res
+        .status(SERVER_ERROR)
+        .json({ error: "Failed to fetch user remarks" });
+    }
+ 
+    res.status(STATUS_OK).json(results[0]);
+  });
+};
+ 
+ 

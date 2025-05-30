@@ -27,6 +27,7 @@ import { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
+  useGetAllUserRemarksQuery,
   useGetCandidatesQuery,
   useInsertCandidatesMutation,
 } from "../modules/admin_slice";
@@ -58,6 +59,7 @@ const columns: GridColDef[] = [
   },
   { field: "location", headerName: "Location", width: 120 },
   { field: "relocate", headerName: "Relocate?", width: 100 },
+  { field: "remarks", headerName: "Remarks", width: 100 },
 ];
 
 export default function CandidatesListingPage() {
@@ -68,6 +70,9 @@ export default function CandidatesListingPage() {
     tableType: "Registration",
   });
   const [selectedCandidates] = useInsertCandidatesMutation();
+  const {data: remarksHistory} = useGetAllUserRemarksQuery();
+  console.log(remarksHistory);
+  
   const [rows, setRows] = useState<Candidate[]>([]);
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
@@ -81,10 +86,23 @@ export default function CandidatesListingPage() {
   const [uploadedRows, setUploadedRows] = useState<Candidate[]>([]);
   const [candidateRegister] = useInsertCandidatesMutation();
   useEffect(() => {
-    if (data) {
-      setRows(data.candidates);
-    }
-  }, [data]);
+  if (data && remarksHistory) {
+    const mergedRows = data.candidates.map((candidate) => {
+      const remarkEntry = remarksHistory.find(
+        (remark) =>
+          remark.userEmail === candidate.email
+      );
+
+      return {
+        ...candidate,
+        remarks: remarkEntry ? remarkEntry.remarks : "",
+      };
+    });
+
+    setRows(mergedRows);
+  }
+}, [data, remarksHistory, formId]);
+
 
   const handleDownload = () => {
     if (!apiRef.current) return;
@@ -173,7 +191,7 @@ export default function CandidatesListingPage() {
             <Button
               disableElevation
               variant="contained"
-              color="secondary"
+              color="success"
               startIcon={<UploadFileRoundedIcon />}
               onClick={() => setUploadDialogOpen(true)}
             >
