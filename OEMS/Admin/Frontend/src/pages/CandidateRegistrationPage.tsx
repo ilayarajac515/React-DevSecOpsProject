@@ -18,10 +18,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   useGetRegistrationFormQuery,
-  useInsertCandidatesMutation,
+  useInsertCandidateMutation,
 } from "../modules/admin_slice";
 
-type FormValues = {
+export type FormValues = {
   name: string;
   email: string;
   mobile: string;
@@ -42,22 +42,20 @@ const CandidateRegistrationPage = () => {
     reset,
     watch,
     control,
+    setError,
   } = useForm<FormValues>({
     defaultValues: {
       relocate: null,
     },
   });
+
   const selectedDegree = watch("degree");
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [emailError, setEmailError] = useState("");
-  const [mobileError, setMobileError] = useState("");
   const { registerId: formId } = useParams();
-  const [candidateRegister] = useInsertCandidatesMutation();
-  const emailErr = watch("email");
-  const mobileErr = watch("mobile");
+  const [candidateRegister] = useInsertCandidateMutation();
   const { data: formData, isLoading } = useGetRegistrationFormQuery(
     formId ?? ""
   );
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const departmentOptions: Record<string, string[]> = {
     "B.E": ["IT", "CSE", "ECE"],
@@ -66,39 +64,39 @@ const CandidateRegistrationPage = () => {
   };
 
   useEffect(() => {
-    if (emailError) setEmailError("");
-  }, [emailErr]);
-
-  useEffect(() => {
-    if (mobileError) setMobileError("");
-  }, [mobileErr]);
-
-  useEffect(() => {
-  reset((prevValues) => ({
-    ...prevValues,
-    department: "",
-  }));
-}, [selectedDegree, reset]);
+    reset((prevValues) => ({
+      ...prevValues,
+      department: "",
+    }));
+  }, [selectedDegree, reset]);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
       await candidateRegister({
         tableType: "Registration",
         formId: formId!,
-        candidates: [data],
-      });
+        candidate: data,
+      }).unwrap();
       setFormSubmitted(true);
       reset();
     } catch (err: any) {
-      if (err.error === "Email already exists") setEmailError(err.error);
-      if (err.error === "Mobile number already exists")
-        setMobileError(err.error);
+      if (err?.data?.error === "Email already exists") {
+        setError("email", {
+          type: "manual",
+          message: "Email already exists",
+        });
+      } else if (err?.data?.error === "Mobile number already exists") {
+        setError("mobile", {
+          type: "manual",
+          message: "Mobile number already exists",
+        });
+      } else {
+        console.error("Unexpected error", err);
+      }
     }
   };
 
-  if (isLoading) {
-    return null;
-  }
+  if (isLoading) return null;
 
   if (formData?.status !== "active") {
     return (
@@ -164,12 +162,13 @@ const CandidateRegistrationPage = () => {
             {...register("email", {
               required: "Email is required",
               pattern: {
-              value: /^[a-zA-Z0-9._%+-]+@gmail\.com$/,
-              message: "Email must be a valid Gmail address (e.g. user@gmail.com)",
-            },
+                value: /^[a-zA-Z0-9._%+-]+@gmail\.com$/,
+                message:
+                  "Email must be a valid Gmail address (e.g. user@gmail.com)",
+              },
             })}
-            error={!!errors.email || !!emailError}
-            helperText={errors.email?.message || emailError}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
 
           <TextField
@@ -187,8 +186,8 @@ const CandidateRegistrationPage = () => {
                 message: "Enter valid 10-digit mobile number",
               },
             })}
-            error={!!errors.mobile || !!mobileError}
-            helperText={errors.mobile?.message || mobileError}
+            error={!!errors.mobile}
+            helperText={errors.mobile?.message}
           />
 
           <FormControl fullWidth error={!!errors.degree}>
@@ -209,13 +208,12 @@ const CandidateRegistrationPage = () => {
             <Select
               label="Department"
               defaultValue=""
-              error={!!errors.department}
               {...register("department", {
                 required: "Department is required",
               })}
             >
               {selectedDegree &&
-                departmentOptions[selectedDegree]?.map((dept: any) => (
+                departmentOptions[selectedDegree]?.map((dept) => (
                   <MenuItem key={dept} value={dept}>
                     {dept}
                   </MenuItem>

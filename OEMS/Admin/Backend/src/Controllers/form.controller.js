@@ -976,6 +976,78 @@ export const uploadImageController = async (req, res) => {
   const imageUrl = await uploadImageToCloudinary(file.buffer);
   res.send({ imageUrl });
 };
+
+export const insertCandidate = (req, res) => {
+  const { formId, tableType } = req.params;
+  const { candidate } = req.body;
+  console.log(formId, tableType, candidate);
+
+  if (!formId || !tableType || !candidate) {
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Missing formId, tableType, or candidate object" });
+  }
+
+  const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
+  const tableName = `${tableType}_${sanitizedFormId}`;
+
+  const checkQuery = `
+    SELECT email, mobile 
+    FROM \`${tableName}\` 
+    WHERE email = ? OR mobile = ?
+  `;
+
+  connection.query(checkQuery, [candidate.email, candidate.mobile], (checkErr, checkResults) => {
+    if (checkErr) {
+      console.error("Check error:", checkErr);
+      return res.status(SERVER_ERROR).json({ error: "Database check failed" });
+    }
+
+    if (checkResults.length > 0) {
+      const existing = checkResults[0];
+      if (existing.email === candidate.email) {
+        console.log("Email already exists");
+        return res.status(BAD_REQUEST).json({ error: "Email already exists" });
+      }
+      if (existing.mobile === candidate.mobile) {
+        console.log("Mobile already exists");
+        return res.status(BAD_REQUEST).json({ error: "Mobile number already exists" });
+      }
+    }
+
+    const insertQuery = `
+      INSERT INTO \`${tableName}\`
+      (formId, name, email, mobile, degree, department, degree_percentage, sslc_percentage, hsc_percentage, location, relocate)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      formId,
+      candidate.name,
+      candidate.email,
+      candidate.mobile,
+      candidate.degree,
+      candidate.department,
+      candidate.degree_percentage,
+      candidate.sslc_percentage,
+      candidate.hsc_percentage,
+      candidate.location,
+      candidate.relocate,
+    ];
+
+    connection.query(insertQuery, values, (insertErr, results) => {
+      if (insertErr) {
+        console.error("Insert error:", insertErr);
+        return res.status(SERVER_ERROR).json({ error: "Database insert failed" });
+      }
+
+      res.status(STATUS_OK).json({
+        message: "Candidate inserted successfully",
+        insertedId: results.insertId,
+      });
+    });
+  });
+};
  
 export const insertCandidates = (req, res) => {
   const { formId, tableType, candidates } = req.body;

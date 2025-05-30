@@ -8,9 +8,9 @@ const router = Router();
 const upload = multer();
  
 router.get('/form/:formId/registration', handler(formController.getRegistrationForm));
-router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
+router.post("/candidate/:tableType/:formId", handler(formController.insertCandidate));
 router.use(authenticateJWT);
- 
+
 router.post("/upload-image", upload.single("image"), handler(formController.uploadImageController));
 router.put('/register/form/:formId', handler(formController.editForm));
 router.delete('/register/form/:formId', handler(formController.removeForm));
@@ -31,6 +31,7 @@ router.get("/form/:formId/submitted-count",handler(formController.getSubmittedCo
 router.put("/form/:formId/submission", handler(formController.editSubmission));
 router.post('/register/form', handler(formController.addForm));
 router.get('/register/forms', handler(formController.getAllRegistrationForms));
+router.post("/candidates/:tableType/:formId", handler(formController.insertCandidates));
 router.post("/selected-candidates/:formId", handler(formController.insertSelectedCandidates));
 router.delete("/selected-candidates/:formId/:email", handler(formController.deleteSelectedCandidateByEmail));
 router.get("/selected-candidates/:formId", handler(formController.getSelectedCandidatesByFormId));

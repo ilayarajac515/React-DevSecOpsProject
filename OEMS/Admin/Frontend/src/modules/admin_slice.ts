@@ -1,7 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { EditSubmissionInput, EditSubmissionResponse } from "./candidate_slice";
- 
+import type { FormValues } from "../pages/CandidateRegistrationPage";
+
 export interface Field {
   fieldId: string;
   type?: string;
@@ -14,7 +15,7 @@ export interface Field {
 interface Candidate {
   candidates: any[];
 }
- 
+
 interface Submission {
   responseId: string;
   formId?: string;
@@ -38,7 +39,7 @@ export interface Form {
   startContent?: string;
   branch?: string;
 }
- 
+
 export interface RegistrationForm {
   formId: string;
   branch: string;
@@ -47,32 +48,32 @@ export interface RegistrationForm {
   manager: string;
   status?: string;
 }
- 
+
 const baseURL = import.meta.env.VITE_USE_TUNNEL === "true"
   ? import.meta.env.VITE_ADMINFORM
   : import.meta.env.VITE_ADMINFORM_LOCAL;
- 
+
 const baseQuery = fetchBaseQuery({
   baseUrl: baseURL,
   credentials: "include",
 });
- 
+
 const baseQueryWithReauth: BaseQueryFn<any, unknown, unknown> = async (
   args,
   api,
   extraOptions
 ) => {
   const result = await baseQuery(args, api, extraOptions);
- 
+
   if (result.error && result.error.status === 401) {
     console.warn("Unauthorized. Redirecting to /");
     window.location.href = "/";
     return result;
   }
- 
+
   return result;
 };
- 
+
 export const formSlice = createApi({
   reducerPath: "form_api",
   baseQuery: baseQueryWithReauth,
@@ -82,7 +83,7 @@ export const formSlice = createApi({
       query: () => "forms",
       providesTags: ["Forms"],
     }),
- 
+
     addForm: builder.mutation<
       { message: string; formId: string },
       Omit<Form, "createdAt">
@@ -94,7 +95,7 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["Forms"],
     }),
- 
+
     cloneForm: builder.mutation<
       { message: string; newFormId: string },
       { form: Form; fields: Field[] }
@@ -106,7 +107,7 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["Forms", "Fields"],
     }),
- 
+
     updateForm: builder.mutation<
       { message: string },
       { data: Omit<Form, "createdAt"> }
@@ -118,7 +119,7 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["Forms"],
     }),
- 
+
     deleteForm: builder.mutation<{ message: string }, string>({
       query: (formId) => ({
         url: `form/${formId}`,
@@ -126,14 +127,14 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["Forms"],
     }),
- 
+
     getFieldsByFormId: builder.query<Field[], string>({
       query: (formId) => `form/${formId}/fields`,
       providesTags: (_result, _error, formId) => [
         { type: "Fields", id: formId },
       ],
     }),
- 
+
     addField: builder.mutation<
       { message: string; fieldId: string },
       { formId: string; data: Field }
@@ -147,7 +148,7 @@ export const formSlice = createApi({
         { type: "Fields", id: formId },
       ],
     }),
- 
+
     editField: builder.mutation<Field, { formId: string; data: Field }>({
       query: ({ formId, data }) => ({
         url: `form/${formId}/field/${data.fieldId}`,
@@ -158,7 +159,7 @@ export const formSlice = createApi({
         { type: "Fields", id: formId },
       ],
     }),
- 
+
     deleteField: builder.mutation<void, { formId: string; fieldId: string }>({
       query: ({ formId, fieldId }) => ({
         url: `form/${formId}/field/${fieldId}`,
@@ -168,28 +169,28 @@ export const formSlice = createApi({
         { type: "Fields", id: formId },
       ],
     }),
- 
+
     getSubmissionsByFormId: builder.query<Submission[], string>({
       query: (formId) => `form/${formId}/submissions`,
       providesTags: (_result, _error, formId) => [
         { type: "Submissions", id: formId },
       ],
     }),
- 
+
     getSubmissionByEmail: builder.query<
       Submission,
       { formId: string; email: string }
     >({
       query: ({ formId, email }) => `forms/${formId}/submission/${email}`,
     }),
- 
+
     getSubmittedCount: builder.query<{ submittedCount: number }, string>({
       query: (formId) => `form/${formId}/submitted-count`,
       providesTags: (_result, _error, formId) => [
         { type: "Submissions", id: formId },
       ],
     }),
- 
+
     updateSubmission: builder.mutation<
       EditSubmissionResponse,
       EditSubmissionInput
@@ -203,7 +204,7 @@ export const formSlice = createApi({
         { type: "Submissions", id: formId },
       ],
     }),
- 
+
     deleteSubmissionByEmail: builder.mutation<
       { message: string },
       { formId: string; email: string }
@@ -216,7 +217,7 @@ export const formSlice = createApi({
         { type: "Submissions", id: formId },
       ],
     }),
- 
+
     registerAddForm: builder.mutation<
       { message: string; formId: string },
       RegistrationForm
@@ -228,7 +229,7 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["RegisterForms"],
     }),
- 
+
     registerUpdateForm: builder.mutation<
       { message: string },
       { data: RegistrationForm }
@@ -240,7 +241,7 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["RegisterForms"],
     }),
- 
+
     registerDeleteForm: builder.mutation<{ message: string }, string>({
       query: (formId) => ({
         url: `register/form/${formId}`,
@@ -248,17 +249,17 @@ export const formSlice = createApi({
       }),
       invalidatesTags: ["RegisterForms"],
     }),
- 
+
     getAllRegistrationForms: builder.query<RegistrationForm[], void>({
       query: () => "register/forms",
       providesTags: ["RegisterForms"],
     }),
- 
+
     getRegistrationForm: builder.query<RegistrationForm, string>({
       query: (formId) => `form/${formId}/registration`,
       providesTags: ["RegisterForms"],
     }),
- 
+
     replaceFields: builder.mutation<
       { message: string },
       { formId: string; fields: Field[] }
@@ -272,7 +273,7 @@ export const formSlice = createApi({
         { type: "Fields", id: formId },
       ],
     }),
- 
+
     addSelectedCandidates: builder.mutation<
       { message: string; insertedCount: number },
       { formId: string; candidates: any[] }
@@ -286,7 +287,7 @@ export const formSlice = createApi({
         { type: "Selected", id: formId },
       ],
     }),
- 
+
     deleteSelectedCandidateByEmail: builder.mutation<
       { message: string; affectedRows: number },
       { formId: string; email: string[] }
@@ -300,14 +301,14 @@ export const formSlice = createApi({
         { type: "Selected", id: formId },
       ],
     }),
- 
+
     getSelectedCandidatesByFormId: builder.query<Candidate, string>({
       query: (formId) => `selected-candidates/${formId}`,
       providesTags: (_result, _error, formId) => [
         { type: "Selected", id: formId },
       ],
     }),
- 
+
     insertCandidates: builder.mutation<
       { message: string; insertedCount?: number },
       { tableType: string; formId: string; candidates: any[] }
@@ -321,7 +322,21 @@ export const formSlice = createApi({
         { type: "Selected", id: formId },
       ],
     }),
- 
+
+    insertCandidate: builder.mutation<
+      { message: string; insertedCount?: number },
+      { tableType: string; formId: string; candidate: FormValues }
+    >({
+      query: ({ tableType, formId, candidate }) => ({
+        url: `candidate/${tableType}/${formId}`,
+        method: "POST",
+        body: {candidate},
+      }),
+      invalidatesTags: (_result, _error, { formId }) => [
+        { type: "Selected", id: formId },
+      ],
+    }),
+
     deleteCandidate: builder.mutation<
       { message: string; affectedRows?: number },
       { tableType: string; formId: string; email: string[] }
@@ -335,7 +350,7 @@ export const formSlice = createApi({
         { type: "Selected", id: formId },
       ],
     }),
- 
+
     getCandidates: builder.query<
       Candidate,
       { tableType: string; formId: string }
@@ -345,7 +360,7 @@ export const formSlice = createApi({
         { type: "Selected", id: formId },
       ],
     }),
- 
+
     getCandidateCount: builder.query<
       { count: number },
       { tableType: string; formId: string }
@@ -353,14 +368,14 @@ export const formSlice = createApi({
       query: ({ tableType, formId }) =>
         `candidates/count/${formId}/${tableType}`,
     }),
- 
+
     getAllUserRemarks: builder.query<
       { formId: string; userEmail: string; remarks: string }[],
       void
     >({
       query: () => "/form/remarks",
     }),
- 
+
     uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
       query: (formData) => ({
         url: "/upload-image",
@@ -370,7 +385,7 @@ export const formSlice = createApi({
     }),
   }),
 });
- 
+
 export const {
   useGetFormsQuery,
   useAddFormMutation,
@@ -397,6 +412,7 @@ export const {
   useRegisterDeleteFormMutation,
   useGetAllRegistrationFormsQuery,
   useInsertCandidatesMutation,
+  useInsertCandidateMutation,
   useDeleteCandidateMutation,
   useGetCandidatesQuery,
   useLazyGetCandidateCountQuery,

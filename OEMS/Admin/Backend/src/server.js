@@ -39,7 +39,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
-  "https://services-deficit-tight-psi.trycloudflare.com",
+  "https://cherry-suspected-recordings-diversity.trycloudflare.com",
   "http://localhost:5173"
 ];
 
