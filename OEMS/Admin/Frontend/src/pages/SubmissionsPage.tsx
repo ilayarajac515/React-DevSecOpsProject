@@ -24,9 +24,9 @@ const SubmissionsPage = () => {
   
   const columns: GridColDef[] = [
     { field: "userEmail", headerName: "Email", width: 300 },
-    { field: "startTime", headerName: "Start Time", width: 150 },
-    { field: "endTime", headerName: "End Time", width: 150 },
-    { field: "duration", headerName: "Duration", width: 120 },
+    { field: "startTime", headerName: "Start Time", type: "number", width: 150 },
+    { field: "endTime", headerName: "End Time", type: "number", width: 150 },
+    { field: "duration", headerName: "Duration", type: "number", width: 120 },
     {
       field: "status",
       headerName: "Status",
@@ -36,7 +36,7 @@ const SubmissionsPage = () => {
           ? "status-submitted"
           : "status-not-submitted",
     },
-    { field: "warnings", headerName: "Warnings", width: 120 ,
+    { field: "warnings", headerName: "Warnings", type: "number", width: 120 ,
       cellClassName: (params) =>
         params.value > 3 ? "status-warning" : "",
     },
@@ -44,6 +44,7 @@ const SubmissionsPage = () => {
       field: "score",
       headerName: "Score",
       width: 120,
+      type: "number",
       editable: true,
       filterable:true,
     },

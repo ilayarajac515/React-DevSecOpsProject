@@ -17,11 +17,11 @@ import DataTable from "../components/DataTable";
 import { GridColDef } from "@mui/x-data-grid";
 import LongMenu from "../components/LogMenu";
 import { useAuth } from "../context/GlobalContext";
+import type { RegistrationForm } from "../modules/admin_slice";
 import {
   useRegisterAddFormMutation,
   useRegisterUpdateFormMutation,
   useRegisterDeleteFormMutation,
-  RegistrationForm,
   useGetAllRegistrationFormsQuery,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";

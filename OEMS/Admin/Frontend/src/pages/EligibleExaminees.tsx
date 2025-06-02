@@ -5,7 +5,6 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-
 import {
   DataGridPro,
   GridColDef,

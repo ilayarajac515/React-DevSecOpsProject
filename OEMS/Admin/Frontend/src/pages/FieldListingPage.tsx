@@ -1,4 +1,3 @@
-// ...Imports (same as before)
 import {
   Box,
   Button,
@@ -26,8 +25,8 @@ import LongMenu from "../components/LogMenu";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { CustomUploadAdapter } from "../utils/ckeditorUploadAdapter";
+import type { Field } from "../modules/admin_slice";
 import {
-  Field,
   useAddFieldMutation,
   useDeleteFieldMutation,
   useEditFieldMutation,

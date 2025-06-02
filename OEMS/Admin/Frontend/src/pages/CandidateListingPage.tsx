@@ -23,7 +23,7 @@ import UploadIcon from "@mui/icons-material/Upload";
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { toast } from "react-toastify";
-import { Candidate } from "../Services/adminService";
+import type { Candidate } from "../Services/adminService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -71,8 +71,6 @@ export default function CandidatesListingPage() {
   });
   const [selectedCandidates] = useInsertCandidatesMutation();
   const {data: remarksHistory} = useGetAllUserRemarksQuery();
-  console.log(remarksHistory);
-  
   const [rows, setRows] = useState<Candidate[]>([]);
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 10,
@@ -102,7 +100,6 @@ export default function CandidatesListingPage() {
     setRows(mergedRows);
   }
 }, [data, remarksHistory, formId]);
-
 
   const handleDownload = () => {
     if (!apiRef.current) return;
