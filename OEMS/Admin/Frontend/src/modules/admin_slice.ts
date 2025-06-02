@@ -84,6 +84,22 @@ export const formSlice = createApi({
       providesTags: ["Forms"],
     }),
 
+    getArchivedForms: builder.query<Form[], void>({
+      query: () => "forms/assesment/archive",
+      providesTags: ["Forms"],
+    }),
+
+    unarchiveForm: builder.mutation<
+      { message: string },
+      string
+    >({
+      query: (formId) => ({
+        url: `forms/${formId}/assesment/unarchive`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Forms"],
+    }),
+
     addForm: builder.mutation<
       { message: string; formId: string },
       Omit<Form, "createdAt">
@@ -255,6 +271,22 @@ export const formSlice = createApi({
       providesTags: ["RegisterForms"],
     }),
 
+    getAllArchivedRegistrations: builder.query<RegistrationForm[], void>({
+      query: () => "forms/registration/archive",
+      providesTags: ["RegisterForms"],
+    }),
+
+    unarchiveRegistrationForm: builder.mutation<
+      { message: string },
+      string
+    >({
+      query: (formId) => ({
+        url: `forms/${formId}/registration/unarchive`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["RegisterForms"],
+    }),
+
     getRegistrationForm: builder.query<RegistrationForm, string>({
       query: (formId) => `form/${formId}/registration`,
       providesTags: ["RegisterForms"],
@@ -330,7 +362,7 @@ export const formSlice = createApi({
       query: ({ tableType, formId, candidate }) => ({
         url: `candidate/${tableType}/${formId}`,
         method: "POST",
-        body: {candidate},
+        body: { candidate },
       }),
       invalidatesTags: (_result, _error, { formId }) => [
         { type: "Selected", id: formId },
@@ -393,6 +425,10 @@ export const {
   useDeleteFormMutation,
   useGetFieldsByFormIdQuery,
   useLazyGetFieldsByFormIdQuery,
+  useGetAllArchivedRegistrationsQuery,
+  useGetArchivedFormsQuery,
+  useUnarchiveRegistrationFormMutation,
+  useUnarchiveFormMutation,
   useAddFieldMutation,
   useEditFieldMutation,
   useDeleteFieldMutation,

@@ -39,5 +39,9 @@ router.delete("/candidates/:tableType/:formId/:email", handler(formController.de
 router.get("/candidates/:tableType/:formId", handler(formController.getCandidates));
 router.get('/candidates/count/:formId/:tableType', handler(formController.getCandidateCount));
 router.get('/form/remarks', handler(formController.getAllUserRemarks));
+router.get('/forms/assesment/archive', handler(formController.getArchivedForms));
+router.put('/forms/:formId/assesment/unarchive', handler(formController.unarchiveForm));
+router.get('/forms/registration/archive', handler(formController.getAllArchivedRegistrations));
+router.put('/forms/:formId/registration/unarchive', handler(formController.unarchiveRegistrationForm));
  
 export default router;
