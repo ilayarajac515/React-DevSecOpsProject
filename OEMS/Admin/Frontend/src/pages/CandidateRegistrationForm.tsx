@@ -17,7 +17,11 @@ import DataTable from "../components/DataTable";
 import { GridColDef } from "@mui/x-data-grid";
 import LongMenu from "../components/LogMenu";
 import { useAuth } from "../context/GlobalContext";
-import type { RegistrationForm } from "../modules/admin_slice";
+import {
+  RegistrationForm,
+  useGetAllArchivedRegistrationsQuery,
+  useUnarchiveRegistrationFormMutation,
+} from "../modules/admin_slice";
 import {
   useRegisterAddFormMutation,
   useRegisterUpdateFormMutation,
@@ -25,9 +29,11 @@ import {
   useGetAllRegistrationFormsQuery,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
-import DeleteFormDialog from "../components/ConfirmationDialog";
 import { toast } from "react-toastify";
+import ArchiveIcon from "@mui/icons-material/Archive";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useLazyGetCandidateCountQuery } from "../modules/admin_slice";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 type FormValues = {
   branch: string;
@@ -36,12 +42,16 @@ type FormValues = {
   manager: string;
   status: string;
 };
- 
+
 const CandidateRegistrationForm = () => {
   const [addForm] = useRegisterAddFormMutation();
   const [updateForm] = useRegisterUpdateFormMutation();
   const [deleteForm] = useRegisterDeleteFormMutation();
+  const { data: archievedForms } = useGetAllArchivedRegistrationsQuery();
+  const [unArchive] = useUnarchiveRegistrationFormMutation();
   const [editId, setEditId] = useState<string | null>(null);
+  const [archievedFormRow, setArchievedForRows] = useState<any[]>([]);
+  const [isArchieved, setIsArchieved] = useState<boolean>();
   const [open, setOpen] = useState(false);
   const [formRows, setFormRows] = useState<RegistrationForm[]>([]);
   const { name } = useAuth();
@@ -52,42 +62,55 @@ const CandidateRegistrationForm = () => {
   const { data: registrationData } = useGetAllRegistrationFormsQuery();
   const [triggerGetCandidateCount] = useLazyGetCandidateCountQuery();
 
-
-  
   useEffect(() => {
-  const fetchFormCounts = async () => {
-    if (!registrationData) return;
+    const fetchFormCounts = async () => {
+      if (!registrationData) return;
 
-    const updatedForms = await Promise.all(
-      registrationData.map(async (form) => {
-        try {
-          const response = await triggerGetCandidateCount({
-            formId: form.formId,
-            tableType: "Registration",
-          }).unwrap();
+      const updatedForms = await Promise.all(
+        registrationData.map(async (form) => {
+          try {
+            const response = await triggerGetCandidateCount({
+              formId: form.formId,
+              tableType: "Registration",
+            }).unwrap();
 
-          return { ...form, submissions: response.count };
-        } catch (err) {
-          console.error(`Failed to fetch count for form ${form.formId}`, err);
-          return { ...form, submissions: 0 };
-        }
-      })
-    );
+            return { ...form, submissions: response.count };
+          } catch (err) {
+            console.error(`Failed to fetch count for form ${form.formId}`, err);
+            return { ...form, submissions: 0 };
+          }
+        })
+      );
 
-    setFormRows(updatedForms);
-  };
+      setFormRows(updatedForms);
+    };
 
-  fetchFormCounts();
-}, [registrationData, triggerGetCandidateCount]);
+    fetchFormCounts();
+  }, [registrationData, triggerGetCandidateCount]);
 
- 
-  const Logoptions: string[] = [
-    "Edit",
-    "Delete",
-    "Copy apply url",
-    "View registrations",
-    "Eligible candidates"
-  ];
+  useEffect(() => {
+    if (archievedForms) {
+      setArchievedForRows(archievedForms);
+    }
+  }, [archievedForms]);
+  console.log(archievedForms);
+
+  const Logoptions: string[] = isArchieved
+    ? [
+        "Edit",
+        "UnArchive",
+        "Copy apply url",
+        "View registrations",
+        "Eligible candidates",
+      ]
+    : [
+        "Edit",
+        "Archive",
+        "Copy apply url",
+        "View registrations",
+        "Eligible candidates",
+      ];
+
   const columns: GridColDef[] = [
     { field: "label", headerName: "Drive Name", width: 250 },
     { field: "description", headerName: "Description", width: 250 },
@@ -125,29 +148,41 @@ const CandidateRegistrationForm = () => {
           }}
         >
           <LongMenu
-            handleDelete={() => handleDeleteClick(params.row)}
+            handleArchive={() => handleDeleteClick(params.row)}
+            handleUnArchive={() => handleUnArchive(params.row)}
             handleEdit={() => handleEdit(params.row)}
             handleCopyApplyUrl={() => handleCopyApplyUrl(params.row)}
             handleViewRegistrations={() => handleViewRegistrations(params.row)}
-            handleViewEligibleCandidates ={() => handleViewEligibleCandidates(params.row)}
+            handleViewEligibleCandidates={() =>
+              handleViewEligibleCandidates(params.row)
+            }
             Logoptions={Logoptions}
           />
         </Box>
       ),
     },
   ];
-  const handleViewEligibleCandidates = (row:any) => {
-    navigate(`/eligible-candidates/${row.label}/${row.formId}`)
-  }
- 
+  const handleViewEligibleCandidates = (row: any) => {
+    navigate(`/eligible-candidates/${row.label}/${row.formId}`);
+  };
+
   const handleDeleteClick = (row: any) => {
     setSelectedForm(row);
     setDeleteDialogOpen(true);
   };
- 
-  const handleDelete = async (row: any) => {
+
+  const handleArchive = async (row: any) => {
     try {
       await deleteForm(row.formId).unwrap();
+      setDeleteDialogOpen(false);
+    } catch (err) {
+      console.error("Failed to delete form:", err);
+    }
+  };
+
+  const handleUnArchive = async (row: any) => {
+    try {
+      await unArchive(row.formId).unwrap();
       setDeleteDialogOpen(false);
     } catch (err) {
       console.error("Failed to delete form:", err);
@@ -156,7 +191,7 @@ const CandidateRegistrationForm = () => {
   const handleViewRegistrations = async (row: any) => {
     navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
- 
+
   const handleToggleStatus = async (row: any) => {
     const updatedRow = {
       ...row,
@@ -172,7 +207,7 @@ const CandidateRegistrationForm = () => {
       toast.error("Status update failed");
     }
   };
- 
+
   const handleEdit = (row: any) => {
     setEditId(row.formId);
     reset({
@@ -183,7 +218,7 @@ const CandidateRegistrationForm = () => {
     });
     setOpen(true);
   };
- 
+
   const onSubmit = async (formData: FormValues) => {
     if (editId) {
       const currentForm = formRows.find((form) => form.formId === editId);
@@ -207,30 +242,29 @@ const CandidateRegistrationForm = () => {
         manager: name ?? "",
         status: "inactive",
       };
- 
+
       try {
         await addForm(newForm).unwrap();
       } catch (err) {
         console.error("Failed to add form:", err);
       }
     }
- 
+
     setOpen(false);
- 
+
     reset();
   };
- 
 
   const handleCopyApplyUrl = (row: any) => {
     const url = `${import.meta.env.VITE_CANDIDATE_FORM}/${row.formId}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied!");
   };
- 
+
   const handleRowClick = (row: any) => {
     navigate(`/registered-candidates-list/${row.label}/${row.formId}`);
   };
- 
+
   const handleCreate = () => {
     reset({
       label: "",
@@ -242,7 +276,7 @@ const CandidateRegistrationForm = () => {
     setEditId(null);
     setOpen(true);
   };
- 
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
       <Box
@@ -257,25 +291,39 @@ const CandidateRegistrationForm = () => {
         }}
       >
         <Typography sx={{ fontWeight: "bold" }}>
-          Registration Manager
+          {isArchieved ? "Archived registrations" : "Registration Manager"}
         </Typography>
-        <Button
-          variant="contained"
-          disableElevation
-          onClick={() => handleCreate()}
-        >
-          Create Form
-        </Button>
+        <Box sx={{ display: "flex", gap: "10px" }}>
+          <Tooltip title="Archieved forms">
+            <Button
+              variant="contained"
+              color={isArchieved ? "warning" : "success"}
+              onClick={() => setIsArchieved(!isArchieved)}
+              startIcon={isArchieved ? <ArrowBackIcon /> : <ArchiveIcon />}
+            >
+              {isArchieved ? "Back" : "Archived"}
+            </Button>
+          </Tooltip>
+          <Tooltip title="New Form">
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => handleCreate()}
+            >
+              Create
+            </Button>
+          </Tooltip>
+        </Box>
       </Box>
- 
+
       <Box sx={{ marginTop: "30px" }}>
         <DataTable
           columns={columns}
-          rows={formRows}
+          rows={isArchieved ? archievedFormRow : formRows}
           onRowClick={(params: any) => handleRowClick(params.row)}
         />
       </Box>
- 
+
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -285,7 +333,7 @@ const CandidateRegistrationForm = () => {
         <DialogTitle sx={{ fontWeight: "bold" }}>
           {editId ? "Edit Form" : "Create Form"}
         </DialogTitle>
- 
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
             sx={{
@@ -312,7 +360,7 @@ const CandidateRegistrationForm = () => {
               fullWidth
             />
           </DialogContent>
- 
+
           <DialogActions sx={{ padding: "30px" }}>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" variant="contained" disableElevation>
@@ -321,22 +369,26 @@ const CandidateRegistrationForm = () => {
           </DialogActions>
         </form>
       </Dialog>
-      <DeleteFormDialog
+
+      <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => {
           setDeleteDialogOpen(false);
           setSelectedForm(null);
         }}
-        onDelete={() => handleDelete(selectedForm)}
-        confirmLabel="Delete"
-        title="Confirm Deletion"
-        description={<>
-            Are you sure you want to delete the form {" "}
-            <strong>{selectedForm?.label}</strong> {" "}?
-          </>}
+        onDelete={() => handleArchive(selectedForm)}
+        itemLabel={selectedForm?.label}
+        confirmLabel="Archive"
+        title="Archive Form"
+        description={
+          <>
+            Are you sure you want to Archive the form{" "}
+            <strong>{selectedForm?.label}</strong> ?
+          </>
+        }
       />
     </Box>
   );
 };
- 
+
 export default CandidateRegistrationForm;

@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
+      host: '0.0.0.0',
       allowedHosts: [env.VITE_ALLOWEDHOSTS],
     },
   };

@@ -25,6 +25,8 @@ import {
   useGetFormsQuery,
   useLazyGetFieldsByFormIdQuery,
   useCloneFormMutation,
+  useGetArchivedFormsQuery,
+  useUnarchiveFormMutation,
 } from "../modules/admin_slice";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
@@ -32,6 +34,8 @@ import { useLazyGetSubmittedCountQuery } from "../modules/admin_slice";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import PreviewForm from "../components/PreviewForm";
 import CloseIcon from "@mui/icons-material/Close";
+import ArchiveIcon from "@mui/icons-material/Archive";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useLazyGetFormByIdQuery } from "../modules/candidate_slice";
 
 type FormValues = {
@@ -46,11 +50,15 @@ type FormValues = {
 const FormListingPage = () => {
   const [updateForm] = useUpdateFormMutation();
   const [deleteForm] = useDeleteFormMutation();
+  const [unArchive] = useUnarchiveFormMutation();
   const { data, isLoading } = useGetFormsQuery();
+  const { data: archievedForms } = useGetArchivedFormsQuery();
   const [editId, setEditId] = useState<string | null>(null);
   const [addForm] = useAddFormMutation();
   const [open, setOpen] = useState(false);
   const [formRows, setFormRows] = useState<any[]>([]);
+  const [archievedFormRow, setArchievedForRows] = useState<any[]>([]);
+  const [isArchieved, setIsArchieved] = useState<boolean>();
   const { name } = useAuth();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -90,16 +98,35 @@ const FormListingPage = () => {
     }
   }, [data, triggerGetSubmittedCount]);
 
-  const Logoptions: string[] = [
-    "Edit",
-    "Delete",
-    "Form builder",
-    "Copy test url",
-    "View submissions",
-    "Eligible examinees",
-    "Preview Form",
-    "Clone Form"
-  ];
+  useEffect(() => {
+    if (archievedForms) {
+      setArchievedForRows(archievedForms);
+    }
+  }, [archievedForms]);
+
+  console.log(archievedForms);
+
+  const Logoptions: string[] = isArchieved
+    ? [
+        "Edit",
+        "UnArchive",
+        "Form builder",
+        "Copy test url",
+        "View submissions",
+        "Eligible examinees",
+        "Preview Form",
+        "Clone Form",
+      ]
+    : [
+        "Edit",
+        "Archive",
+        "Form builder",
+        "Copy test url",
+        "View submissions",
+        "Eligible examinees",
+        "Preview Form",
+        "Clone Form",
+      ];
 
   const columns: GridColDef[] = [
     { field: "label", headerName: "Form Name", width: 250 },
@@ -139,7 +166,8 @@ const FormListingPage = () => {
           }}
         >
           <LongMenu
-            handleDelete={() => handleDeleteClick(params.row)}
+            handleArchive={() => handleDeleteClick(params.row)}
+            handleUnArchive={() => handleUnArchive(params.row)}
             handleEdit={() => handleEdit(params.row)}
             handleCopyUrl={() => handleCopyUrl(params.row)}
             handleForm={() => handleForm(params.row)}
@@ -155,21 +183,25 @@ const FormListingPage = () => {
       ),
     },
   ];
-  const [triggerField , {data: fieldsData}] = useLazyGetFieldsByFormIdQuery();
-  const [triggerForm, {data:formData}] = useLazyGetFormByIdQuery(); 
+
+  const [triggerField, { data: fieldsData }] = useLazyGetFieldsByFormIdQuery();
+  const [triggerForm, { data: formData }] = useLazyGetFormByIdQuery();
   const [cloneForm] = useCloneFormMutation();
-  
+
   const handleCloneForm = (row: any) => {
     const formId = row.formId || "";
     triggerField(formId);
     triggerForm(formId);
-  }
+  };
 
   useEffect(() => {
-    if(fieldsData && formData){
-      cloneForm({form: {...formData, manager: name ?? formData.manager}, fields: fieldsData});
+    if (fieldsData && formData) {
+      cloneForm({
+        form: { ...formData, manager: name ?? formData.manager },
+        fields: fieldsData,
+      });
     }
-  }, [fieldsData, formData])
+  }, [fieldsData, formData]);
 
   const handleViewEligibleExaminees = (row: any) => {
     navigate(`/eligible-examinees/${row.label}/${row.formId}`);
@@ -185,9 +217,17 @@ const FormListingPage = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = async (row: any) => {
+  const handleArchive = async (row: any) => {
     try {
       await deleteForm(row.formId).unwrap();
+      setDeleteDialogOpen(false);
+    } catch (err) {
+      console.error("Failed to delete form:", err);
+    }
+  };
+  const handleUnArchive = async (row: any) => {
+    try {
+      await unArchive(row.formId).unwrap();
       setDeleteDialogOpen(false);
     } catch (err) {
       console.error("Failed to delete form:", err);
@@ -306,20 +346,36 @@ const FormListingPage = () => {
           borderRadius: "10px",
         }}
       >
-        <Typography sx={{ fontWeight: "bold" }}>Assessment Manager</Typography>
-        <Button
-          variant="contained"
-          disableElevation
-          onClick={() => handleCreate()}
-        >
-          Create
-        </Button>
+        <Typography sx={{ fontWeight: "bold" }}>
+          {isArchieved ? "Archived Assessments" : "Assessment Manager"}
+        </Typography>
+        <Box sx={{ display: "flex", gap: "10px" }}>
+          <Tooltip title="Archieved forms">
+            <Button
+              variant="contained"
+              color={isArchieved ? "warning" : "success"}
+              onClick={() => setIsArchieved(!isArchieved)}
+              startIcon={isArchieved ? <ArrowBackIcon /> : <ArchiveIcon />}
+            >
+              {isArchieved ? "Back" : "Archived"}
+            </Button>
+          </Tooltip>
+          <Tooltip title="New Form">
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => handleCreate()}
+            >
+              Create
+            </Button>
+          </Tooltip>
+        </Box>
       </Box>
 
       <Box sx={{ marginTop: "30px" }}>
         <DataTable
           columns={columns}
-          rows={formRows}
+          rows={isArchieved ? archievedFormRow : formRows}
           onRowClick={(params: any) => handleRowClick(params.row)}
         />
       </Box>
@@ -384,38 +440,38 @@ const FormListingPage = () => {
         </form>
       </Dialog>
       <Dialog
-              open={previewOpen}
-              onClose={() => setPreviewOpen(false)}
-              maxWidth="md"
-              fullWidth
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            Preview Form - {previewForm?.label}
+          </DialogTitle>
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            <Tooltip title="Close">
+              <Button
+                color="error"
+                variant="outlined"
+                onClick={() => setPreviewOpen(false)}
               >
-                <DialogTitle sx={{ fontWeight: "bold" }}>
-                  Preview Form - {previewForm?.label}
-                </DialogTitle>
-                <DialogTitle sx={{ fontWeight: "bold" }}>
-                  <Tooltip title="Close">
-                    <Button
-                      color="error"
-                      variant="outlined"
-                      onClick={() => setPreviewOpen(false)}
-                    >
-                      <CloseIcon />
-                    </Button>
-                  </Tooltip>
-                </DialogTitle>
-              </Box>
-              <Divider />
-              <DialogActions>
-                <PreviewForm form={previewForm} />
-              </DialogActions>
-            </Dialog>
+                <CloseIcon />
+              </Button>
+            </Tooltip>
+          </DialogTitle>
+        </Box>
+        <Divider />
+        <DialogActions>
+          <PreviewForm form={previewForm} />
+        </DialogActions>
+      </Dialog>
 
       <ConfirmationDialog
         open={deleteDialogOpen}
@@ -423,13 +479,13 @@ const FormListingPage = () => {
           setDeleteDialogOpen(false);
           setSelectedForm(null);
         }}
-        onDelete={() => handleDelete(selectedForm)}
+        onDelete={() => handleArchive(selectedForm)}
         itemLabel={selectedForm?.label}
-        confirmLabel="Delete"
-        title="Delete Form"
+        confirmLabel="Archive"
+        title="Archive Form"
         description={
           <>
-            Are you sure you want to delete the form{" "}
+            Are you sure you want to Archive the form{" "}
             <strong>{selectedForm?.label}</strong> ?
           </>
         }
