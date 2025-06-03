@@ -20,6 +20,7 @@ type LongMenuProps = {
   handleEdit?: () => void;
   handleArchive?: () => void;
   handleUnArchive?: () => void;
+  handleDelete?: () => void;
   handleForm?: () => void;
   handleCopyUrl?: () => void;
   handleCopyApplyUrl?: () => void;
@@ -38,6 +39,7 @@ const LongMenu = ({
   handleEdit,
   handleArchive,
   handleUnArchive,
+  handleDelete,
   handleForm,
   handleCopyUrl,
   handleCopyApplyUrl,
@@ -106,6 +108,9 @@ const LongMenu = ({
               if (option === "UnArchive" && handleUnArchive) {
                 handleUnArchive();
               }
+              if (option === "Delete" && handleDelete) {
+                handleDelete();
+              }
               if (handleForm && option === "Form builder") {
                 handleForm();
               }
@@ -157,6 +162,12 @@ const LongMenu = ({
                 <UnarchiveIcon fontSize="small" />
               </ListItemIcon>
             )}
+            {option === "Delete" && (
+              <ListItemIcon>
+                <UnarchiveIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+
             {option === "Form builder" && (
               <ListItemIcon>
                 <SettingsIcon fontSize="small" />

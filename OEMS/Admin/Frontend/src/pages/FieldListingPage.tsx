@@ -217,7 +217,6 @@ const FieldListingPage = () => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
-      {/* Top Bar */}
       <Box
         sx={{
           display: "flex",
@@ -243,7 +242,6 @@ const FieldListingPage = () => {
         </Box>
       </Box>
 
-      {/* DataGrid */}
       <Box sx={{ marginTop: "30px", height: "630px" }}>
         <DataGridPro
           columns={columns}
@@ -265,7 +263,6 @@ const FieldListingPage = () => {
         />
       </Box>
 
-      {/* Dialog Form */}
       <Dialog open={open} onClose={() => { setOpen(false); reset(); setEditId(null); }} fullWidth maxWidth="sm">
         <DialogTitle sx={{ fontWeight: "bold" }}>{editId ? "Edit Field" : "Create Field"}</DialogTitle>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -315,7 +312,6 @@ const FieldListingPage = () => {
               </Box>
             )}
 
-            {/* Rich Text Area Section */}
             {selectedType === "rta" && (
               <Box>
                 <Controller
@@ -359,7 +355,6 @@ const FieldListingPage = () => {
               </Box>
             )}
 
-            {/* Radio Options */}
             {selectedType === "radio" && (
               <Box>
                 <Typography sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>Options</Typography>
@@ -392,7 +387,6 @@ const FieldListingPage = () => {
         </form>
       </Dialog>
 
-      {/* Preview Dialog */}
       <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="md" fullWidth>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <DialogTitle sx={{ fontWeight: "bold" }}>Preview Form - {form}</DialogTitle>
