@@ -15,6 +15,7 @@ import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import CloseIcon from '@mui/icons-material/Close';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 type LongMenuProps = {
   handleEdit?: () => void;
@@ -151,7 +152,6 @@ const LongMenu = ({
                 <EditRoundedIcon fontSize="small" />
               </ListItemIcon>
             )}
-
             {option === "Archive" && (
               <ListItemIcon>
                 <ArchiveIcon fontSize="small" />
@@ -164,10 +164,9 @@ const LongMenu = ({
             )}
             {option === "Delete" && (
               <ListItemIcon>
-                <UnarchiveIcon fontSize="small" />
+                <DeleteIcon fontSize="small" />
               </ListItemIcon>
             )}
-
             {option === "Form builder" && (
               <ListItemIcon>
                 <SettingsIcon fontSize="small" />
@@ -183,7 +182,6 @@ const LongMenu = ({
                 <ContentCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
-
             {option === "View submissions" && (
               <ListItemIcon>
                 <ListAltIcon fontSize="small" />
@@ -224,7 +222,6 @@ const LongMenu = ({
                 <FileCopyIcon fontSize="small" />
               </ListItemIcon>
             )}
-
             {option}
           </MenuItem>
         ))}
