@@ -66,7 +66,7 @@ export default function EligibleExaminees() {
           }}
         >
           <LongMenu
-            handleDelete={() => handleDeleteClick(params.row)}
+            handleDelete={() => handleDelete(params.row)}
             Logoptions={Logoptions}
           />
         </Box>
@@ -96,13 +96,14 @@ export default function EligibleExaminees() {
   }
 }, [EligibleExaminees]);
 
-
-  const handleDeleteClick = async (row: any) => {
-    await deleteEligibleExaminees({
+const handleDelete = async (row:any) => {
+  console.log(row);
+  
+await deleteEligibleExaminees({
       formId: formId ?? "",
       email: row.email ?? "",
     });
-  };
+}
   const handleDeleteSelected = async () => {
       const selectedIDs = apiRef?.current?.getSelectedRows();
       const selectedRows = Array.from(selectedIDs!.values());
