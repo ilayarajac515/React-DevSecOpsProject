@@ -93,7 +93,6 @@ const CandidateRegistrationForm = () => {
       setArchievedForRows(archievedForms);
     }
   }, [archievedForms]);
-  console.log(archievedForms);
 
   const Logoptions: string[] = isArchieved
     ? [

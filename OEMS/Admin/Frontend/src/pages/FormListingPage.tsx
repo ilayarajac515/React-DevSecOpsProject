@@ -104,8 +104,6 @@ const FormListingPage = () => {
     }
   }, [archievedForms]);
 
-  console.log(archievedForms);
-
   const Logoptions: string[] = isArchieved
     ? [
         "Edit",

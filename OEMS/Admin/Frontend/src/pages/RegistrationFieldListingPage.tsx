@@ -67,7 +67,7 @@ const RegistrationFieldListingPage = () => {
       renderCell: (params) => (
         <LongMenu
           handleEdit={() => handleEdit(params.row)}
-          handleDelete={() => handleDelete(params.row)}
+          handleUnArchive={() => handleUnArchive(params.row)}
           Logoptions={Logoptions}
         />
       ),
@@ -146,7 +146,7 @@ const RegistrationFieldListingPage = () => {
     }
   }, [targettedIndex]);
 
-  const handleDelete = (row: any) => {
+  const handleUnArchive = (row: any) => {
     deleteField({ formId: formId!, fieldId: row.fieldId! });
     setEditId(null);
   };
