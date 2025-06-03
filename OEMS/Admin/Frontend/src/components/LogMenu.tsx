@@ -4,7 +4,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Box, ListItemIcon } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -14,10 +13,13 @@ import PeopleIcon from "@mui/icons-material/People";
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import CloseIcon from '@mui/icons-material/Close';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
 
 type LongMenuProps = {
   handleEdit?: () => void;
-  handleDelete?: () => void;
+  handleArchive?: () => void;
+  handleUnArchive?: () => void;
   handleForm?: () => void;
   handleCopyUrl?: () => void;
   handleCopyApplyUrl?: () => void;
@@ -34,7 +36,8 @@ type LongMenuProps = {
 
 const LongMenu = ({
   handleEdit,
-  handleDelete,
+  handleArchive,
+  handleUnArchive,
   handleForm,
   handleCopyUrl,
   handleCopyApplyUrl,
@@ -97,8 +100,11 @@ const LongMenu = ({
                 handleEdit();
               }
 
-              if (option === "Delete" && handleDelete) {
-                handleDelete();
+              if (option === "Archive" && handleArchive) {
+                handleArchive();
+              }
+              if (option === "UnArchive" && handleUnArchive) {
+                handleUnArchive();
               }
               if (handleForm && option === "Form builder") {
                 handleForm();
@@ -140,9 +146,15 @@ const LongMenu = ({
                 <EditRoundedIcon fontSize="small" />
               </ListItemIcon>
             )}
-            {option === "Delete" && (
+
+            {option === "Archive" && (
               <ListItemIcon>
-                <DeleteIcon fontSize="small" />
+                <ArchiveIcon fontSize="small" />
+              </ListItemIcon>
+            )}
+            {option === "UnArchive" && (
+              <ListItemIcon>
+                <UnarchiveIcon fontSize="small" />
               </ListItemIcon>
             )}
             {option === "Form builder" && (
