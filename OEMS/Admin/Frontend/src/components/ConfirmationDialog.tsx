@@ -18,7 +18,7 @@ interface ConfirmationDialogProps {
   description?: React.ReactNode;
 }
 
-const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+const ConfirmationDialog = ({
   open,
   onClose,
   onDelete,
@@ -26,7 +26,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   confirmLabel = "Delete",
   title = "Confirm",
   description,
-}) => {
+}: ConfirmationDialogProps) => {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle sx={{fontWeight:"bold"}}>{title}</DialogTitle>

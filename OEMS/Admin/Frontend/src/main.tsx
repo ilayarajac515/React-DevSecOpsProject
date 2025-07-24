@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -24,29 +23,27 @@ const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);
 
 root.render(
-  <StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <AuthProvider>
-          <CandidateProvider>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
-              <App />
-              <ToastContainer
-                position="bottom-right"
-                autoClose={3000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                theme="colored"
-              />
-            </ThemeProvider>
-          </CandidateProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </Provider>
-  </StrictMode>
+  <Provider store={store}>
+    <BrowserRouter>
+      <AuthProvider>
+        <CandidateProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+            <ToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={true}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              theme="colored"
+            />
+          </ThemeProvider>
+        </CandidateProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </Provider>
 );
