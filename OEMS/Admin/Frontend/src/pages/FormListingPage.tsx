@@ -219,7 +219,7 @@ const FormListingPage = () => {
       await deleteForm(row.formId).unwrap();
       setDeleteDialogOpen(false);
     } catch (err) {
-      console.error("Failed to delete form:", err);
+      throw err;
     }
   };
   const handleUnArchive = async (row: any) => {
@@ -227,7 +227,7 @@ const FormListingPage = () => {
       await unArchive(row.formId).unwrap();
       setDeleteDialogOpen(false);
     } catch (err) {
-      console.error("Failed to delete form:", err);
+      throw err;
     }
   };
   const handleViewSubmissions = async (row: any) => {
@@ -245,7 +245,6 @@ const FormListingPage = () => {
         prevRows.map((form) => (form.formId === row.formId ? updatedRow : form))
       );
     } catch (err) {
-      console.error("Failed to update form status:", err);
       toast.error("Status update failed");
     }
   };
@@ -275,7 +274,7 @@ const FormListingPage = () => {
         await updateForm({ data: updatedForm }).unwrap();
         setEditId(null);
       } catch (err) {
-        console.error("Failed to update form:", err);
+        throw err;
       }
     } else {
       const newForm = {
@@ -291,7 +290,7 @@ const FormListingPage = () => {
       try {
         await addForm(newForm).unwrap();
       } catch (err) {
-        console.error("Failed to add form:", err);
+        throw err;
       }
     }
 

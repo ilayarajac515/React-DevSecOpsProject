@@ -88,7 +88,6 @@ export const sendOtp = async (
     const { data } = await axiosInstance.post<SendOtpResponse>("/send-otp", { fullName, email, password });
     return data;
   } catch (error: any) {
-    console.error("Error sending OTP:", error);
     throw error.response?.data || new Error("Failed to send OTP");
   }
 };
@@ -101,7 +100,6 @@ export const verifyOtp = async (
     const { data } = await axiosInstance.post<VerifyOtpResponse>("/verify-otp", { otpId, otp });
     return data;
   } catch (error: any) {
-    console.error("Error verifying OTP:", error);
     throw error.response?.data || new Error("Failed to verify OTP");
   }
 };
@@ -128,7 +126,6 @@ export const loginUser = async (
     );
     return data;
   } catch (error: any) {
-    console.error("Login failed:", error);
     throw error.response?.data || new Error("Login failed");
   }
 };
@@ -142,7 +139,6 @@ export const logoutUser = async (email: string): Promise<void> => {
     );
     return data;
   } catch (error: any) {
-    console.error("Logout failed:", error);
     throw error.response?.data || new Error("Logout failed");
   }
 };
@@ -163,7 +159,6 @@ export const forgotPass = async (
     const { data } = await axiosInstance.post("/forgot-password", { email });
     return data;
   } catch (error) {
-    console.error("Failed to send mail:", error);
     throw error;
   }
 };
@@ -181,7 +176,6 @@ export const resetPass = async (
     );
     return data;
   } catch (error) {
-    console.error("Failed to reset password:", error);
     throw error;
   }
 };
@@ -199,7 +193,6 @@ export const verifyToken = async (
     });
     return data;
   } catch (error) {
-    console.error("Token verification error:", error);
     throw error;
   }
 };
@@ -212,7 +205,6 @@ export const getActiveDevices = async (): Promise<DeviceSession[]> => {
     );
     return response.data.devices;
   } catch (error: any) {
-    console.error("Error fetching devices:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -228,7 +220,6 @@ export const logoutFromAllDevices = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error("Error logging out from all devices:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -243,7 +234,6 @@ export const logoutSpecificDevice = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error("Error logging out device:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -268,7 +258,6 @@ export const editUser = async (
     );
     return response.data;
   } catch (error: any) {
-    console.error("Error editing user:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -281,7 +270,6 @@ export const getUserByUserId = async (userId: string): Promise<User> => {
     );
     return response.data;
   } catch (error: any) {
-    console.error("Error fetching user:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };

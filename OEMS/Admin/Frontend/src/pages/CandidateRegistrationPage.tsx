@@ -91,7 +91,7 @@ const CandidateRegistrationPage = () => {
           message: "Mobile number already exists",
         });
       } else {
-        console.error("Unexpected error", err);
+        throw err;
       }
     }
   };

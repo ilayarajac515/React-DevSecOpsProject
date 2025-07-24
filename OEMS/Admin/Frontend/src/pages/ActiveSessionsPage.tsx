@@ -26,8 +26,8 @@ const ActiveSessionsPage = () => {
     try {
       const devices = await getActiveDevices();
       setLoggedInSessions(devices);
-    } catch (error) {
-      console.error("Error fetching active devices:", error);
+    } catch (err) {
+      throw err;
     }
   };
  
@@ -39,8 +39,8 @@ const ActiveSessionsPage = () => {
     try {
       await logoutSpecificDevice(sessionId);
       await fetchActiveDevices();
-    } catch (e) {
-      console.error("Failed to terminate session:", e);
+    } catch (err) {
+      throw err;
     }
   };
  
@@ -48,8 +48,8 @@ const ActiveSessionsPage = () => {
     try {
       await logoutFromAllDevices(true);
       await fetchActiveDevices();
-    } catch (e) {
-      console.error("Failed to terminate session:", e);
+    } catch (err) {
+      throw err;
     }
   };
  

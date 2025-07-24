@@ -76,7 +76,6 @@ const CandidateRegistrationForm = () => {
 
             return { ...form, submissions: response.count };
           } catch (err) {
-            console.error(`Failed to fetch count for form ${form.formId}`, err);
             return { ...form, submissions: 0 };
           }
         })
@@ -175,7 +174,7 @@ const CandidateRegistrationForm = () => {
       await deleteForm(row.formId).unwrap();
       setDeleteDialogOpen(false);
     } catch (err) {
-      console.error("Failed to delete form:", err);
+      throw err;
     }
   };
 
@@ -184,7 +183,7 @@ const CandidateRegistrationForm = () => {
       await unArchive(row.formId).unwrap();
       setDeleteDialogOpen(false);
     } catch (err) {
-      console.error("Failed to delete form:", err);
+      throw err;
     }
   };
   const handleViewRegistrations = async (row: any) => {
@@ -230,7 +229,7 @@ const CandidateRegistrationForm = () => {
         await updateForm({ data: updatedForm }).unwrap();
         setEditId(null);
       } catch (err) {
-        console.error("Failed to update form:", err);
+        throw err;
       }
     } else {
       const newForm: RegistrationForm = {
@@ -245,7 +244,7 @@ const CandidateRegistrationForm = () => {
       try {
         await addForm(newForm).unwrap();
       } catch (err) {
-        console.error("Failed to add form:", err);
+        throw err;
       }
     }
 

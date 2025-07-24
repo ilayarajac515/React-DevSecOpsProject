@@ -49,7 +49,6 @@ const ResetPassword = () => {
           setIsTokenValid(false);
         }
       } catch (error) {
-        console.error("Error verifying token:", error);
         setIsTokenValid(false);
       }
     };

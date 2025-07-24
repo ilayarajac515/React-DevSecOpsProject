@@ -18,7 +18,6 @@ export class CustomUploadAdapter {
           default: imageUrl,
         };
       } catch (error) {
-        console.error("CKEditor image upload failed:", error);
         throw error;
       }
     }

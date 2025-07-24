@@ -70,8 +70,8 @@ const AssessmentPage = () => {
   const submitForm = async () => {
     try {
       await handleSubmit(onSubmit)();
-    } catch (error) {
-      console.error("Submit failed", error);
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -263,7 +263,6 @@ const AssessmentPage = () => {
       }).unwrap();
       setOpenDialog(false);
     } catch (err) {
-      console.error("Failed to record start time", err);
       toast.error("Failed to start assessment.");
     }
   }, [termsAccepted, formId, startSubmit, email]);
@@ -274,7 +273,6 @@ const AssessmentPage = () => {
       localStorage.removeItem("responseId");
       setAuth({ email: null, authorized: null });
     } catch (err) {
-      console.error("Logout failed", err);
       toast.error("Logout failed.");
     }
   };
@@ -344,7 +342,6 @@ const AssessmentPage = () => {
       toast.success("Test submitted!");
       handleLogout();
     } catch (err) {
-      console.error("Failed to submit test", err);
       toast.error("Submission failed. Please try again.");
     }
   };

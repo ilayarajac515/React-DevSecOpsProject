@@ -58,7 +58,6 @@ const SignUpPage = () => {
         setOtpStep(true);
         toast.info("OTP sent to admin for verification");
       } catch (err: any) {
-        console.error("Send OTP error:", err);
         setExistError(err?.error);
       } finally {
         setIsLoading(false);
@@ -72,7 +71,6 @@ const SignUpPage = () => {
         navigate("/");
         toast.success("Sign Up successful!");
       } catch (err: any) {
-        console.error("Verify OTP error:", err.response?.data?.error);
         setOtpError(err.response?.data?.error || "Invalid OTP");
       } finally {
         setIsLoading(false);

@@ -218,7 +218,7 @@ const RegistrationFieldListingPage = () => {
         setEditId(null);
       }
     } catch (err) {
-      console.error("Error submitting field:", err);
+      throw err;
     }
   };
 

@@ -61,7 +61,6 @@ const CandidateLogin = () => {
       reset();
       navigate(`/assessment-page/${formId}`);
     } catch (err: any) {
-      console.error("Login error:", err);
       setExistError(err?.data?.message || "Login failed. Try again.");
     }
     finally {

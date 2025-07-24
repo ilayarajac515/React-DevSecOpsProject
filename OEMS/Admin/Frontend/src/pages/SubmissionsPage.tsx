@@ -101,7 +101,6 @@ const SubmissionsPage = () => {
       });
       return updatedRow;
     } catch (err) {
-      console.error("Update failed:", err);
       return updatedRow;
 
     }

@@ -99,7 +99,6 @@ const ExamineeAnswerPage = () => {
       const evalText = data.choices?.[0]?.message?.content || "No evaluation response.";
       setEvaluationResult(evalText);
     } catch (error) {
-      console.error(error);
       toast.error("Failed to evaluate answer.");
     } finally {
       setIsEvaluating(false);
