@@ -40,6 +40,15 @@ export interface Form {
   branch?: string;
 }
 
+type SendEmailRequest = {
+  formId: string;
+  candidates: any[];
+};
+
+type SendEmailResponse = {
+  message: string;
+};
+
 export interface RegistrationForm {
   formId: string;
   branch: string;
@@ -408,6 +417,14 @@ export const formSlice = createApi({
       query: () => "/form/remarks",
     }),
 
+    sendCandidateEmails: builder.mutation<SendEmailResponse, SendEmailRequest>({
+      query: ({ formId, candidates }) => ({
+        url: `/forms/registration/${formId}/send-emails`,
+        method: "POST",
+        body: { candidates },
+      }),
+    }),
+
     uploadImage: builder.mutation<{ imageUrl: string }, FormData>({
       query: (formData) => ({
         url: "/upload-image",
@@ -454,4 +471,5 @@ export const {
   useLazyGetCandidateCountQuery,
   useGetRegistrationFormQuery,
   useUploadImageMutation,
+  useSendCandidateEmailsMutation,
 } = formSlice;

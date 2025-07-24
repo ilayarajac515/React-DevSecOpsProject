@@ -18,9 +18,11 @@ import { useParams } from "react-router-dom";
 import {
   useDeleteSelectedCandidateByEmailMutation,
   useGetSelectedCandidatesByFormIdQuery,
+  useSendCandidateEmailsMutation,
 } from "../modules/admin_slice";
 import LongMenu from "../components/LogMenu";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SendIcon from '@mui/icons-material/Send';
 
 export default function EligibleExaminees() {
   const Logoptions: string[] = ["Delete"];
@@ -78,7 +80,7 @@ export default function EligibleExaminees() {
   
   const [deleteEligibleExaminees] = useDeleteSelectedCandidateByEmailMutation();
   const { data: EligibleExaminees } = useGetSelectedCandidatesByFormIdQuery(formId ?? "");
-  
+  const [sendEmail] = useSendCandidateEmailsMutation();
   const [rows, setRows] = useState<Candidate[]>([]);
 
   const [paginationModel, setPaginationModel] = useState({
@@ -104,6 +106,28 @@ await deleteEligibleExaminees({
       email: row.email ?? "",
     });
 }
+
+const handleSendMail = async () => {
+  const selectedIDs = apiRef?.current?.getSelectedRows();
+  const selectedRows = Array.from(selectedIDs!.values());
+
+  if (selectedRows.length === 0) {
+    toast.error("Please select at least one row.");
+    return;
+  }
+
+  try {
+    await sendEmail({
+      formId: formId ?? "",
+      candidates: selectedRows, // ✅ full row data
+    });
+
+    toast.success(`Email sent to ${selectedRows.length} candidate(s).`);
+  } catch (error) {
+    toast.error("Failed to send emails to selected candidates.");
+  }
+};
+
   const handleDeleteSelected = async () => {
       const selectedIDs = apiRef?.current?.getSelectedRows();
       const selectedRows = Array.from(selectedIDs!.values());
@@ -146,6 +170,17 @@ await deleteEligibleExaminees({
           Eligible Examinees
         </Typography>
         <Box sx={{ display: "flex", gap: 3 }}>
+          <Tooltip title="Send Test Link to Examinees">
+            <Button
+              disableElevation
+              variant="contained"
+              color="success"
+              onClick={()=> handleSendMail()}
+              startIcon={<SendIcon />}
+            >
+              Send Mail
+            </Button>
+          </Tooltip>
           <Tooltip title="Delete selected Examinees">
             <Button
               disableElevation

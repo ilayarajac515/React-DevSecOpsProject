@@ -43,5 +43,6 @@ router.get('/forms/assesment/archive', handler(formController.getArchivedForms))
 router.put('/forms/:formId/assesment/unarchive', handler(formController.unarchiveForm));
 router.get('/forms/registration/archive', handler(formController.getAllArchivedRegistrations));
 router.put('/forms/:formId/registration/unarchive', handler(formController.unarchiveRegistrationForm));
+router.post('/forms/registration/:formId/send-emails', handler(formController.sendCandidateEmails));
  
 export default router;

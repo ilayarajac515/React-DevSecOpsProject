@@ -6,6 +6,7 @@ import {
   STATUS_OK,
   NOT_FOUND,
 } from "../Constants/httpStatus.js";
+import nodemailer from "nodemailer";
 import { uploadImageToCloudinary } from "../Utils/cloudinary.helper.js";
 
 export const getFields = (req, res) => {
@@ -1282,4 +1283,143 @@ export const getAllUserRemarks = (req, res) => {
 
     res.status(STATUS_OK).json(results[0]);
   });
+};
+
+export const sendCandidateEmails = async (req, res) => {
+  const { formId } = req.params;
+  let { candidates } = req.body;
+
+  if (!formId || !candidates) {
+    return res
+      .status(BAD_REQUEST)
+      .json({ error: "Missing formId or candidates data" });
+  }
+
+  if (!Array.isArray(candidates)) {
+    candidates = [candidates];
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.SENDER_MAIL,
+      pass: process.env.PASS_KEY,
+    },
+  });
+
+  const examLink = `https://devopsinfoane.site/candidate-login/${formId}`;
+  const subject = "Assessment Invitation from Infoane Technologies";
+
+  const sendEmailPromises = candidates.map((candidate) => {
+    const { name, email } = candidate;
+
+    const mailOptions = {
+      from: process.env.SENDER_MAIL,
+      to: email,
+      subject,
+      html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Assessment Invitation</title>
+      <style>
+        body {
+          font-family: 'Arial', sans-serif;
+          background-color: #f4f4f4;
+          color: #333;
+          padding: 0;
+          margin: 0;
+        }
+        .container {
+          max-width: 600px;
+          margin: 20px auto;
+          background-color: #fff;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        .header {
+          background-color: #4a90e2;
+          color: #fff;
+          padding: 20px;
+          text-align: center;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 22px;
+        }
+        .content {
+          padding: 30px;
+        }
+        .content p {
+          font-size: 16px;
+          line-height: 1.6;
+          margin: 10px 0;
+        }
+        .exam-link {
+          display: inline-block;
+          margin-top: 15px;
+          padding: 12px 20px;
+          background-color: #4a90e2;
+          color: #fff;
+          text-decoration: none;
+          border-radius: 6px;
+          font-weight: bold;
+        }
+        .footer {
+          background-color: #f4f4f4;
+          padding: 15px;
+          text-align: center;
+          font-size: 14px;
+          color: #666;
+        }
+        @media only screen and (max-width: 600px) {
+          .container {
+            margin: 10px;
+          }
+          .content {
+            padding: 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Assessment Invitation</h1>
+        </div>
+        <div class="content">
+          <p>Dear <strong>${name}</strong>,</p>
+          <p>We hope this message finds you well.</p>
+          <p>You have been shortlisted for the assessment round as part of our recruitment process at <strong>Infoane Technologies</strong>.</p>
+          <p>Please use the link below to access your online assessment:</p>
+          <p><a class="exam-link" href="${examLink}" target="_blank">Start Your Assessment</a></p>
+          <p>Please login with your registered <strong>Email</strong> and use your registered <strong>Mobile Number</strong> as the <strong>Password</strong> to begin the test.</p>
+          <p>Kindly ensure you complete the assessment within the allocated time.</p>
+        </div>
+        <div class="footer">
+          <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `,
+    };
+
+    return transporter.sendMail(mailOptions);
+  });
+
+  try {
+    await Promise.all(sendEmailPromises);
+    res.status(STATUS_OK).json({
+      message: `Email(s) sent successfully to ${candidates.length} candidate(s).`,
+    });
+  } catch (error) {
+    console.error("Error sending emails:", error);
+    res
+      .status(SERVER_ERROR)
+      .json({ error: "Failed to send emails to one or more candidates." });
+  }
 };
