@@ -20,7 +20,7 @@ import LongMenu from "../components/LogMenu";
 import SecurityIcon from "@mui/icons-material/Security";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-export default function EligibleCandidates() {
+const EligibleCandidates = () => {
   const Logoptions: string[] = ["Delete"];
 
   const columns: GridColDef[] = [
@@ -258,3 +258,6 @@ export default function EligibleCandidates() {
     </Box>
   );
 }
+
+
+export default EligibleCandidates;

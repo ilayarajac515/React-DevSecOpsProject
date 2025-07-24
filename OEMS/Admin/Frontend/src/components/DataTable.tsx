@@ -9,12 +9,11 @@ type DataTableProps = {
 };
 
 const paginationModel = { page: 0, pageSize: 10 };
-
-export default function DataTable({
+const DataTable = ({
   columns,
   rows,
   onRowClick,
-}: DataTableProps) {
+}: DataTableProps) => {
   return (
     <Paper
       elevation={0}
@@ -40,3 +39,5 @@ export default function DataTable({
     </Paper>
   );
 }
+
+export default DataTable;

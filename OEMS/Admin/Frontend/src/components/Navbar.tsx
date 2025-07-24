@@ -50,7 +50,7 @@ const candidateStringToColor = (string: string) => {
   return color;
 };
 
-function Navbar() {
+const Navbar = () => {
   const location = useLocation();
   const isAssessmentPage = location.pathname.startsWith("/assessment-page");
   const { isAdmin, name, setAuth, email } = useAuth();

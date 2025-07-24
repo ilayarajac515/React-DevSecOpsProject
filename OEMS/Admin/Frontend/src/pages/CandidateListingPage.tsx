@@ -61,8 +61,7 @@ const columns: GridColDef[] = [
   { field: "relocate", headerName: "Relocate?", width: 100 },
   { field: "remarks", headerName: "Remarks", width: 100 },
 ];
-
-export default function CandidatesListingPage() {
+const CandidatesListingPage = () => {
   const apiRef = useGridApiRef();
   const { registerFormId: formId } = useParams();
   const { data } = useGetCandidatesQuery({
@@ -326,3 +325,4 @@ export default function CandidatesListingPage() {
     </Box>
   );
 }
+export default CandidatesListingPage;

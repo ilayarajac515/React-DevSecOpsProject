@@ -7,7 +7,7 @@ interface CheckAuthProps {
   children: ReactNode;
 }
 
-function CheckAuthCandidate({ children }: CheckAuthProps) {
+const CheckAuthCandidate = ({ children }: CheckAuthProps) => {
   const { email, authorized, loading } = useCandidate();
   const location = useLocation();
   const path = location.pathname;

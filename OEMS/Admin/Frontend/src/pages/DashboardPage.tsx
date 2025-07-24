@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export default function DashboardPage() {
+const DashboardPage = () => {
   const navigate = useNavigate();
 
   return (
@@ -75,3 +75,4 @@ export default function DashboardPage() {
     </Box>
   );
 }
+export default DashboardPage;

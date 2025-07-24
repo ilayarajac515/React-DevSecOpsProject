@@ -1,7 +1,7 @@
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 
-export default function CircularProgressBar() {
+const CircularProgressBar = () => {
   return (
     <Box
       sx={{
@@ -16,3 +16,4 @@ export default function CircularProgressBar() {
     </Box>
   );
 }
+export default CircularProgressBar;

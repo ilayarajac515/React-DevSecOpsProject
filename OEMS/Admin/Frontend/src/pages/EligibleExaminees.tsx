@@ -1,10 +1,4 @@
-import {
-  Box,
-  Button,
-  Paper,
-  Typography,
-  Tooltip,
-} from "@mui/material";
+import { Box, Button, Paper, Typography, Tooltip } from "@mui/material";
 import {
   DataGridPro,
   GridColDef,
@@ -22,9 +16,9 @@ import {
 } from "../modules/admin_slice";
 import LongMenu from "../components/LogMenu";
 import DeleteIcon from "@mui/icons-material/Delete";
-import SendIcon from '@mui/icons-material/Send';
+import SendIcon from "@mui/icons-material/Send";
 
-export default function EligibleExaminees() {
+const EligibleExaminees = () => {
   const Logoptions: string[] = ["Delete"];
 
   const columns: GridColDef[] = [
@@ -77,9 +71,11 @@ export default function EligibleExaminees() {
   ];
   const apiRef = useGridApiRef();
   const { testId: formId } = useParams();
-  
+
   const [deleteEligibleExaminees] = useDeleteSelectedCandidateByEmailMutation();
-  const { data: EligibleExaminees } = useGetSelectedCandidatesByFormIdQuery(formId ?? "");
+  const { data: EligibleExaminees } = useGetSelectedCandidatesByFormIdQuery(
+    formId ?? ""
+  );
   const [sendEmail] = useSendCandidateEmailsMutation();
   const [rows, setRows] = useState<Candidate[]>([]);
 
@@ -93,62 +89,61 @@ export default function EligibleExaminees() {
   });
 
   useEffect(() => {
-  if (EligibleExaminees) {
-    setRows(EligibleExaminees.candidates);
-  }
-}, [EligibleExaminees]);
+    if (EligibleExaminees) {
+      setRows(EligibleExaminees.candidates);
+    }
+  }, [EligibleExaminees]);
 
-const handleDelete = async (row:any) => {
-  console.log(row);
-  
-await deleteEligibleExaminees({
+  const handleDelete = async (row: any) => {
+    await deleteEligibleExaminees({
       formId: formId ?? "",
       email: row.email ?? "",
     });
-}
+  };
 
-const handleSendMail = async () => {
-  const selectedIDs = apiRef?.current?.getSelectedRows();
-  const selectedRows = Array.from(selectedIDs!.values());
+  const handleSendMail = async () => {
+    const selectedIDs = apiRef?.current?.getSelectedRows();
+    const selectedRows = Array.from(selectedIDs!.values());
 
-  if (selectedRows.length === 0) {
-    toast.error("Please select at least one row.");
-    return;
-  }
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one row.");
+      return;
+    }
 
-  try {
-    await sendEmail({
-      formId: formId ?? "",
-      candidates: selectedRows, // ✅ full row data
-    });
+    try {
+      await sendEmail({
+        formId: formId ?? "",
+        candidates: selectedRows, // ✅ full row data
+      });
 
-    toast.success(`Email sent to ${selectedRows.length} candidate(s).`);
-  } catch (error) {
-    toast.error("Failed to send emails to selected candidates.");
-  }
-};
+      toast.success(`Email sent to ${selectedRows.length} candidate(s).`);
+    } catch (error) {
+      toast.error("Failed to send emails to selected candidates.");
+    }
+  };
 
   const handleDeleteSelected = async () => {
-      const selectedIDs = apiRef?.current?.getSelectedRows();
-      const selectedRows = Array.from(selectedIDs!.values());
-      if (selectedRows.length === 0) {
-        toast.error("Please select at least one row.");
-        return;
-      }
-      const emails = selectedRows.flatMap(row => row.email ? [row.email] : []);
+    const selectedIDs = apiRef?.current?.getSelectedRows();
+    const selectedRows = Array.from(selectedIDs!.values());
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one row.");
+      return;
+    }
+    const emails = selectedRows.flatMap((row) =>
+      row.email ? [row.email] : []
+    );
 
-      try {
+    try {
+      await deleteEligibleExaminees({
+        formId: formId ?? "",
+        email: emails ?? "",
+      });
 
-          await deleteEligibleExaminees({
-            formId: formId ?? "",
-            email: emails ?? "",
-          });
-
-        toast.success(`Deleted ${selectedRows.length} candidate(s).`);
-      } catch (error) {
-        toast.error("Failed to delete selected candidates.");
-      }
-    };
+      toast.success(`Deleted ${selectedRows.length} candidate(s).`);
+    } catch (error) {
+      toast.error("Failed to delete selected candidates.");
+    }
+  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
@@ -175,7 +170,7 @@ const handleSendMail = async () => {
               disableElevation
               variant="contained"
               color="success"
-              onClick={()=> handleSendMail()}
+              onClick={() => handleSendMail()}
               startIcon={<SendIcon />}
             >
               Send Mail
@@ -186,7 +181,7 @@ const handleSendMail = async () => {
               disableElevation
               variant="contained"
               color="error"
-              onClick={()=> handleDeleteSelected()}
+              onClick={() => handleDeleteSelected()}
               startIcon={<DeleteIcon />}
             >
               Delete
@@ -225,4 +220,6 @@ const handleSendMail = async () => {
       </Box>
     </Box>
   );
-}
+};
+
+export default EligibleExaminees;

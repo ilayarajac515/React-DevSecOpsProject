@@ -12,23 +12,23 @@ import {
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
-interface AgreeToTermsDialogProps {
+type AgreeToTermsDialogProps = {
   open: boolean;
   onClose: () => void;
   onAgree: () => void;
   termsAccepted: boolean;
   handleTermsChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   instructions: string;
-}
+};
 
-const AgreeToTermsDialog: React.FC<AgreeToTermsDialogProps> = ({
+const AgreeToTermsDialog = ({
   open,
   onClose,
   onAgree,
   termsAccepted,
   handleTermsChange,
   instructions,
-}) => {
+}: AgreeToTermsDialogProps) => {
   return (
     <Dialog
       open={open}

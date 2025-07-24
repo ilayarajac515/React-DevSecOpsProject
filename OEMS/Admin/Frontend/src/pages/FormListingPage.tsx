@@ -83,7 +83,6 @@ const FormListingPage = () => {
               };
             } catch (err: any) {
               console.log(err);
-
               return {
                 ...form,
                 submissions: 0,

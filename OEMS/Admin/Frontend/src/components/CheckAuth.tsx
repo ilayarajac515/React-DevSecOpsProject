@@ -7,7 +7,7 @@ interface CheckAuthProps {
   children: ReactNode;
 }
 
-function CheckAuth({ children }: CheckAuthProps) {
+const CheckAuth = ({ children }: CheckAuthProps) => {
   const { isAdmin, loading } = useAuth();
   const location = useLocation();
   const isAuthenticated = !!isAdmin;
