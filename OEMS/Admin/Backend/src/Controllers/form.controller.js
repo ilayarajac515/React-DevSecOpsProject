@@ -21,7 +21,6 @@ export const getFields = (req, res) => {
     [formId],
     (err, results) => {
       if (err) {
-        console.error("Error fetching fields:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
       res.status(STATUS_OK).json(results);
@@ -34,7 +33,6 @@ export const getForms = (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -47,7 +45,6 @@ export const getArchivedForms = (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -66,7 +63,6 @@ export const unarchiveForm = (req, res) => {
 
   connection.query(query, [formId], (err, result) => {
     if (err) {
-      console.error("Error updating form:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -107,7 +103,6 @@ export const updateField = (req, res) => {
     ],
     (err, results) => {
       if (err) {
-        console.error("Error updating field:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -134,7 +129,6 @@ export const deleteField = (req, res) => {
     [formId, fieldId],
     (err, results) => {
       if (err) {
-        console.error("Error deleting field:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -177,7 +171,6 @@ export const addField = (req, res) => {
     ],
     (err, results) => {
       if (err) {
-        console.error("Error inserting field:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -224,7 +217,6 @@ export const createForm = (req, res) => {
     ],
     (err, results) => {
       if (err) {
-        console.error("Error creating form:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -251,7 +243,6 @@ export const createForm = (req, res) => {
 
       connection.query(createCandidateTableQuery, (err2, results2) => {
         if (err2) {
-          console.error("Error creating candidate table:", err2);
           return res
             .status(SERVER_ERROR)
             .json({ error: "Error creating candidate table" });
@@ -280,7 +271,6 @@ export const createForm = (req, res) => {
 
         connection.query(createValueTableQuery, (err3, results3) => {
           if (err3) {
-            console.error("Error creating value table:", err3);
             return res
               .status(SERVER_ERROR)
               .json({ error: "Error creating value table" });
@@ -334,7 +324,6 @@ export const insertSelectedCandidates = (req, res) => {
 
   connection.query(insertQuery, [values], (err, result) => {
     if (err) {
-      console.error("Error inserting candidates:", err);
       return res.status(SERVER_ERROR).json({
         message: "Failed to insert candidates",
         error: err,
@@ -372,7 +361,6 @@ export const deleteSelectedCandidateByEmail = (req, res) => {
 
   connection.query(deleteQuery, [emails], (err, result) => {
     if (err) {
-      console.error("Error deleting candidate:", err);
       return res
         .status(SERVER_ERROR)
         .json({ message: "Failed to delete candidate", error: err });
@@ -399,7 +387,6 @@ export const getSelectedCandidatesByFormId = (req, res) => {
 
   connection.query(selectQuery, (err, results) => {
     if (err) {
-      console.error("Error fetching candidates:", err);
       return res
         .status(SERVER_ERROR)
         .json({ message: "Failed to fetch candidates", error: err });
@@ -435,7 +422,6 @@ export const updateForm = (req, res) => {
     ],
     (err, results) => {
       if (err) {
-        console.error("Error updating form:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -459,7 +445,6 @@ export const deleteForm = (req, res) => {
 
   connection.query(updateFormQuery, [formId], (err, results) => {
     if (err) {
-      console.error("Error soft-deleting form:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -487,7 +472,6 @@ export const getSubmissions = (req, res) => {
 
   connection.query(query, [formId], (err, results) => {
     if (err) {
-      console.error("Error fetching submissions:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -511,7 +495,6 @@ export const getSubmissionByEmail = (req, res) => {
 
   connection.query(query, [email, formId], (err, results) => {
     if (err) {
-      console.error("Error fetching submission by email:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -564,7 +547,6 @@ export const editSubmission = (req, res) => {
     ],
     (err, result) => {
       if (err) {
-        console.error("Error updating submission:", err);
         return res.status(SERVER_ERROR).json({ message: "Server error" });
       }
 
@@ -595,7 +577,6 @@ export const getSubmittedCount = (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching submitted count:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -616,7 +597,6 @@ export const replaceFields = (req, res) => {
 
   connection.beginTransaction((err) => {
     if (err) {
-      console.error("Transaction start error:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -626,7 +606,6 @@ export const replaceFields = (req, res) => {
       (deleteErr) => {
         if (deleteErr) {
           return connection.rollback(() => {
-            console.error("Delete error:", deleteErr);
             res
               .status(SERVER_ERROR)
               .json({ error: "Server error during delete" });
@@ -652,7 +631,6 @@ export const replaceFields = (req, res) => {
         connection.query(insertQuery, [values], (insertErr) => {
           if (insertErr) {
             return connection.rollback(() => {
-              console.error("Insert error:", insertErr);
               res
                 .status(SERVER_ERROR)
                 .json({ error: "Server error during insert" });
@@ -662,7 +640,6 @@ export const replaceFields = (req, res) => {
           connection.commit((commitErr) => {
             if (commitErr) {
               return connection.rollback(() => {
-                console.error("Commit error:", commitErr);
                 res
                   .status(SERVER_ERROR)
                   .json({ error: "Server error during commit" });
@@ -699,7 +676,6 @@ export const addForm = (req, res) => {
     [formId, branch, label, description, manager, status],
     (err, results) => {
       if (err) {
-        console.error("Add form error:", err);
         return res.status(SERVER_ERROR).json({ error: "Database error" });
       }
 
@@ -727,7 +703,6 @@ export const addForm = (req, res) => {
 
       connection.query(createTableSQL(registrationTable), (err2) => {
         if (err2) {
-          console.error("Error creating registration table:", err2);
           return res
             .status(SERVER_ERROR)
             .json({ error: "Failed to create registration table" });
@@ -735,7 +710,6 @@ export const addForm = (req, res) => {
 
         connection.query(createTableSQL(selectedTable), (err3) => {
           if (err3) {
-            console.error("Error creating selected table:", err3);
             return res
               .status(SERVER_ERROR)
               .json({ error: "Failed to create selected table" });
@@ -791,7 +765,6 @@ export const cloneForm = (req, res) => {
     ],
     (err, result) => {
       if (err) {
-        console.error("Error inserting cloned form:", err);
         return res.status(SERVER_ERROR).json({ error: "Failed to clone form" });
       }
 
@@ -813,7 +786,6 @@ export const cloneForm = (req, res) => {
 
       connection.query(insertFieldsQuery, [fieldValues], (err2) => {
         if (err2) {
-          console.error("Error inserting cloned fields:", err2);
           return res
             .status(SERVER_ERROR)
             .json({ error: "Failed to clone fields" });
@@ -842,7 +814,6 @@ export const cloneForm = (req, res) => {
 
         connection.query(createCandidateTableQuery, (err3) => {
           if (err3) {
-            console.error("Error creating candidate table:", err3);
             return res
               .status(SERVER_ERROR)
               .json({ error: "Failed to create candidate table" });
@@ -871,7 +842,6 @@ export const cloneForm = (req, res) => {
 
           connection.query(createValueTableQuery, (err4) => {
             if (err4) {
-              console.error("Error creating value table:", err4);
               return res
                 .status(SERVER_ERROR)
                 .json({ error: "Failed to create value table" });
@@ -907,7 +877,6 @@ export const deleteSubmissionByEmail = (req, res) => {
 
   connection.query(deleteQuery, [email, formId], (err, result) => {
     if (err) {
-      console.error("Error deleting submission:", err);
       return res
         .status(SERVER_ERROR)
         .json({ error: "Failed to delete submission" });
@@ -940,7 +909,6 @@ export const editForm = (req, res) => {
     [branch, label, description, manager, status, formId],
     (err, results) => {
       if (err) {
-        console.error("Update form error:", err);
         return res.status(SERVER_ERROR).json({ error: "Database error" });
       }
 
@@ -960,7 +928,6 @@ export const removeForm = (req, res) => {
 
   connection.query(updateRegistrationFormQuery, [formId], (err, results) => {
     if (err) {
-      console.error("Error soft-deleting registration form:", err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
@@ -981,7 +948,6 @@ export const getAllRegistrationForms = (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching registration forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
@@ -994,7 +960,6 @@ export const getAllArchivedRegistrations = (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching registration forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
@@ -1013,7 +978,6 @@ export const unarchiveRegistrationForm = (req, res) => {
 
   connection.query(query, [formId], (err, result) => {
     if (err) {
-      console.error("Error updating form:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -1031,7 +995,6 @@ export const getRegistrationForm = (req, res) => {
 
   connection.query(query, [formId], (err, results) => {
     if (err) {
-      console.error("Error fetching forms:", err);
       return res.status(SERVER_ERROR).json({ error: "Database error" });
     }
 
@@ -1074,7 +1037,6 @@ export const insertCandidate = (req, res) => {
     [candidate.email, candidate.mobile],
     (checkErr, checkResults) => {
       if (checkErr) {
-        console.error("Check error:", checkErr);
         return res
           .status(SERVER_ERROR)
           .json({ error: "Database check failed" });
@@ -1116,7 +1078,6 @@ export const insertCandidate = (req, res) => {
 
       connection.query(insertQuery, values, (insertErr, results) => {
         if (insertErr) {
-          console.error("Insert error:", insertErr);
           return res
             .status(SERVER_ERROR)
             .json({ error: "Database insert failed" });
@@ -1165,7 +1126,6 @@ export const insertCandidates = (req, res) => {
 
   connection.query(insertQuery, [values], (err, results) => {
     if (err) {
-      console.error("Insert error:", err);
       return res.status(SERVER_ERROR).json({ error: "Database insert failed" });
     }
 
@@ -1194,7 +1154,6 @@ export const deleteCandidate = (req, res) => {
 
   connection.query(deleteQuery, [formId, emails], (err, result) => {
     if (err) {
-      console.error("Delete error:", err);
       return res
         .status(SERVER_ERROR)
         .json({ error: "Failed to delete candidate" });
@@ -1234,7 +1193,6 @@ export const getCandidates = (req, res) => {
 
   connection.query(selectQuery, (err, results) => {
     if (err) {
-      console.error("Error fetching candidates:", err);
       return res
         .status(SERVER_ERROR)
         .json({ error: "Failed to fetch candidates" });
@@ -1260,7 +1218,6 @@ export const getCandidateCount = (req, res) => {
 
   connection.query(countQuery, (err, results) => {
     if (err) {
-      console.error("Error fetching candidate count:", err);
       return res
         .status(SERVER_ERROR)
         .json({ error: "Failed to fetch candidate count" });
@@ -1275,7 +1232,6 @@ export const getAllUserRemarks = (req, res) => {
 
   connection.query(query, (err, results) => {
     if (err) {
-      console.error("Error fetching user remarks:", err);
       return res
         .status(SERVER_ERROR)
         .json({ error: "Failed to fetch user remarks" });
@@ -1417,7 +1373,6 @@ export const sendCandidateEmails = async (req, res) => {
       message: `Email(s) sent successfully to ${candidates.length} candidate(s).`,
     });
   } catch (error) {
-    console.error("Error sending emails:", error);
     res
       .status(SERVER_ERROR)
       .json({ error: "Failed to send emails to one or more candidates." });

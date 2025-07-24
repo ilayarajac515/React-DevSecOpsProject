@@ -38,7 +38,6 @@ export const registerUser = async (req, res) => {
 
     res.status(STATUS_OK).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error registering user:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 };
@@ -202,7 +201,6 @@ export const sendOtp = async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.status(STATUS_OK).json({ message: "OTP sent to admin", otpId });
   } catch (error) {
-    console.error("Error sending OTP:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 };
@@ -227,7 +225,6 @@ export const verifyOtp = async (req, res) => {
 
     res.status(STATUS_OK).json({ message: "OTP verified", otpId });
   } catch (error) {
-    console.error("Error verifying OTP:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 };
@@ -330,7 +327,6 @@ export const editUser = (req, res) => {
     [newEmail, name, imageUrl || null, userId],
     (err, result) => {
       if (err) {
-        console.error("Error updating user:", err);
         return res.status(SERVER_ERROR).json({
           message: "Failed to update user",
           error: err,
@@ -362,7 +358,6 @@ export const getUserByUserId = (req, res) => {
 
   connection.query(query, [userId], (err, results) => {
     if (err) {
-      console.error("Error fetching user:", err);
       return res
         .status(SERVER_ERROR)
         .json({ message: "Server error", error: err });
@@ -387,7 +382,6 @@ export const getActiveSessions = (req, res) => {
     [userId],
     (err, results) => {
       if (err) {
-        console.error("Error fetching sessions:", err);
         return res
           .status(SERVER_ERROR)
           .json({ message: "Failed to fetch sessions" });
@@ -458,7 +452,6 @@ export const loginUser = async (req, res) => {
       ],
       (err) => {
         if (err) {
-          console.error("DB insert error:", err);
           return res
             .status(SERVER_ERROR)
             .json({ error: "Session creation failed" });
@@ -489,7 +482,6 @@ export const loginUser = async (req, res) => {
       }
     );
   } catch (err) {
-    console.error("Login error:", err);
     res.status(SERVER_ERROR).json({ error: "Internal server error" });
   }
 };
@@ -511,7 +503,6 @@ export const logoutSpecificDevice = (req, res) => {
     [targetSessionId, userId],
     (err, result) => {
       if (err) {
-        console.error("Error logging out device:", err);
         return res
           .status(SERVER_ERROR)
           .json({ message: "Internal server error" });
@@ -543,7 +534,6 @@ export const logoutFromAllDevices = (req, res) => {
 
   connection.query(query, params, (err) => {
     if (err) {
-      console.error("Logout all devices error:", err);
       return res
         .status(SERVER_ERROR)
         .json({ message: "Internal server error" });
@@ -574,7 +564,6 @@ export const logoutUser = async (req, res) => {
     [sessionId, refreshToken],
     (err, results) => {
       if (err) {
-        console.error("Logout DB error:", err);
         return res
           .status(SERVER_ERROR)
           .json({ message: "Internal server error" });
@@ -621,7 +610,6 @@ export const forgotPassword = async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.json({ message: "Password reset email sent" });
   } catch (error) {
-    console.error("Forgot password error:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 };
@@ -661,7 +649,6 @@ export const resetPassword = async (req, res) => {
 
     res.json({ message: "Password reset successful" });
   } catch (error) {
-    console.error("Reset password error:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 };
@@ -696,7 +683,6 @@ export const verifyToken = async (req, res) => {
 
     res.json({ status: true, message: "Token is valid" });
   } catch (error) {
-    console.error("Token verification error:", error);
     res.status(SERVER_ERROR).json({ error: "Server error" });
   }
 };

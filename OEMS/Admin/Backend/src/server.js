@@ -18,22 +18,13 @@ export const connection = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
-connection.connect((err) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log("Mysql Connected");
-  }
-});
+connection.connect();
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  })
+  helmet()
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -59,6 +50,4 @@ app.use("/api/mock_form", formRouter);
 app.use("/api/candidate", candidateRouter);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log("Listening on port " + PORT);
-});
+app.listen(PORT);

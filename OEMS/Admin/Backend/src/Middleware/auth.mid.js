@@ -50,7 +50,6 @@ export const authenticateJWT = async (req, res, next) => {
       return next();
      
     } catch (err) {
-      console.error("Refresh error:", err);
       return res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
     }
   }

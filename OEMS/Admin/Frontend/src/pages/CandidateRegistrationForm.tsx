@@ -201,7 +201,6 @@ const CandidateRegistrationForm = () => {
         prevRows.map((form) => (form.formId === row.formId ? updatedRow : form))
       );
     } catch (err) {
-      console.error("Failed to update form status:", err);
       toast.error("Status update failed");
     }
   };

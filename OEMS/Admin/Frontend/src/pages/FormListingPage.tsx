@@ -12,7 +12,7 @@ import {
   Divider,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "../components/DataTable";
 import { GridColDef } from "@mui/x-data-grid";
@@ -68,34 +68,32 @@ const FormListingPage = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewForm, setPreviewForm] = useState<any>(null);
 
-  useEffect(() => {
-    if (data) {
-      const fetchSubmissionCounts = async () => {
-        const rowsWithCounts = await Promise.all(
-          data.map(async (form) => {
-            try {
-              const response = await triggerGetSubmittedCount(
-                form.formId
-              ).unwrap();
-              return {
-                ...form,
-                submissions: response.submittedCount ?? 0,
-              };
-            } catch (err: any) {
-              console.log(err);
-              return {
-                ...form,
-                submissions: 0,
-              };
-            }
-          })
-        );
-        setFormRows(rowsWithCounts);
-      };
+  const fetchSubmissionCounts = useCallback(async () => {
+    if (!data) return;
 
-      fetchSubmissionCounts();
-    }
+    const rowsWithCounts = await Promise.all(
+      data.map(async (form) => {
+        try {
+          const response = await triggerGetSubmittedCount(form.formId).unwrap();
+          return {
+            ...form,
+            submissions: response.submittedCount ?? 0,
+          };
+        } catch (err: any) {
+          return {
+            ...form,
+            submissions: 0,
+          };
+        }
+      })
+    );
+
+    setFormRows(rowsWithCounts);
   }, [data, triggerGetSubmittedCount]);
+
+  useEffect(() => {
+    fetchSubmissionCounts();
+  }, [fetchSubmissionCounts]);
 
   useEffect(() => {
     if (archievedForms) {
@@ -103,83 +101,93 @@ const FormListingPage = () => {
     }
   }, [archievedForms]);
 
-  const Logoptions: string[] = isArchieved
-    ? [
-        "Edit",
-        "UnArchive",
-        "Form builder",
-        "Copy test url",
-        "View submissions",
-        "Eligible examinees",
-        "Preview Form",
-        "Clone Form",
-      ]
-    : [
-        "Edit",
-        "Archive",
-        "Form builder",
-        "Copy test url",
-        "View submissions",
-        "Eligible examinees",
-        "Preview Form",
-        "Clone Form",
-      ];
+  const Logoptions = useMemo(
+    () =>
+      isArchieved
+        ? [
+            "Edit",
+            "UnArchive",
+            "Form builder",
+            "Copy test url",
+            "View submissions",
+            "Eligible examinees",
+            "Preview Form",
+            "Clone Form",
+          ]
+        : [
+            "Edit",
+            "Archive",
+            "Form builder",
+            "Copy test url",
+            "View submissions",
+            "Eligible examinees",
+            "Preview Form",
+            "Clone Form",
+          ],
+    [isArchieved]
+  );
 
-  const columns: GridColDef[] = [
-    { field: "label", headerName: "Form Name", width: 250 },
-    { field: "description", headerName: "Description", width: 250 },
-    { field: "branch", headerName: "Branch", width: 150 },
-    { field: "duration", headerName: "Duration (In mins)", width: 150 },
-    { field: "submissions", headerName: "Submissions", width: 120 },
-    { field: "manager", headerName: "Manager", width: 200 },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 100,
-      renderCell: (params) => (
-        <Tooltip title="Active / Inactive">
+  const columns: GridColDef[] = useMemo(
+    () => [
+      { field: "label", headerName: "Form Name", width: 250 },
+      { field: "description", headerName: "Description", width: 250 },
+      { field: "branch", headerName: "Branch", width: 150 },
+      { field: "duration", headerName: "Duration (In mins)", width: 150 },
+      { field: "submissions", headerName: "Submissions", width: 120 },
+      { field: "manager", headerName: "Manager", width: 200 },
+      {
+        field: "status",
+        headerName: "Status",
+        width: 100,
+        renderCell: (params) => (
+          <Tooltip title="Active / Inactive">
+            <Box onClick={(event) => event.stopPropagation()}>
+              <Switch
+                color="success"
+                checked={params.row.status === "active"}
+                onChange={() => handleToggleStatus(params.row)}
+              />
+            </Box>
+          </Tooltip>
+        ),
+      },
+      {
+        field: "actions",
+        headerName: "",
+        width: 200,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        align: "center",
+        renderCell: (params) => (
           <Box onClick={(event) => event.stopPropagation()}>
-            <Switch
-              color="success"
-              checked={params.row.status === "active"}
-              onChange={() => handleToggleStatus(params.row)}
+            <LongMenu
+              handleArchive={() => handleDeleteClick(params.row)}
+              handleUnArchive={() => handleUnArchive(params.row)}
+              handleEdit={() => handleEdit(params.row)}
+              handleCopyUrl={() => handleCopyUrl(params.row)}
+              handleForm={() => handleForm(params.row)}
+              handleViewSubmissions={() => handleViewSubmissions(params.row)}
+              handlePreviewForm={() => handlePreviewForm(params.row)}
+              handleViewEligibleExaminees={() =>
+                handleViewEligibleExaminees(params.row)
+              }
+              handleCloneForm={() => handleCloneForm(params.row)}
+              Logoptions={Logoptions}
             />
           </Box>
-        </Tooltip>
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "",
-      width: 200,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      align: "center",
-      renderCell: (params) => (
-        <Box
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-        >
-          <LongMenu
-            handleArchive={() => handleDeleteClick(params.row)}
-            handleUnArchive={() => handleUnArchive(params.row)}
-            handleEdit={() => handleEdit(params.row)}
-            handleCopyUrl={() => handleCopyUrl(params.row)}
-            handleForm={() => handleForm(params.row)}
-            handleViewSubmissions={() => handleViewSubmissions(params.row)}
-            handlePreviewForm={() => handlePreviewForm(params.row)}
-            handleViewEligibleExaminees={() =>
-              handleViewEligibleExaminees(params.row)
-            }
-            handleCloneForm={() => handleCloneForm(params.row)}
-            Logoptions={Logoptions}
-          />
-        </Box>
-      ),
-    },
-  ];
+        ),
+      },
+    ],
+    [isArchieved]
+  );
+
+  
+  
+const tableRows = useMemo(
+  () => (isArchieved ? archievedFormRow : formRows),
+  [isArchieved, archievedFormRow, formRows]
+);
 
   const [triggerField, { data: fieldsData }] = useLazyGetFieldsByFormIdQuery();
   const [triggerForm, { data: formData }] = useLazyGetFormByIdQuery();
@@ -249,18 +257,21 @@ const FormListingPage = () => {
     }
   };
 
-  const handleEdit = (row: any) => {
-    setEditId(row.formId);
-    reset({
-      label: row.label,
-      description: row.description,
-      startContent: row.startContent,
-      branch: row.branch,
-      duration: row.duration,
-      manager: row.manager,
-    });
-    setOpen(true);
-  };
+  const handleEdit = useCallback(
+    (row: any) => {
+      setEditId(row.formId);
+      reset({
+        label: row.label,
+        description: row.description,
+        startContent: row.startContent,
+        branch: row.branch,
+        duration: row.duration,
+        manager: row.manager,
+      });
+      setOpen(true);
+    },
+    [reset]
+  );
 
   const onSubmit = async (formData: FormValues) => {
     if (editId) {
@@ -312,22 +323,18 @@ const FormListingPage = () => {
     navigate(`/field-listing-page/${row.label}/${row.formId}`);
   };
 
-  const handleCreate = () => {
-    reset({
-      label: "",
-      description: "",
-      startContent: "",
-      branch: "",
-      duration: "",
-      manager: "",
-    });
-    setEditId(null);
-    reset();
-    setOpen(true);
-  };
-  if (isLoading) {
-    return null;
-  }
+const handleCreate = useCallback(() => {
+  reset({
+    label: "",
+    description: "",
+    startContent: "",
+    branch: "",
+    duration: "",
+    manager: "",
+  });
+  setEditId(null);
+  setOpen(true);
+}, [reset]);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "30px" }}>
@@ -371,7 +378,7 @@ const FormListingPage = () => {
       <Box sx={{ marginTop: "30px" }}>
         <DataTable
           columns={columns}
-          rows={isArchieved ? archievedFormRow : formRows}
+          rows={tableRows}
           onRowClick={(params: any) => handleRowClick(params.row)}
         />
       </Box>

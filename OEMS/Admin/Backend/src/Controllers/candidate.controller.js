@@ -32,7 +32,6 @@ export const candidateLogin = (req, res) => {
     [email, password],
     (err, candidateResults) => {
       if (err) {
-        console.error("Database error:", err);
         return res.status(SERVER_ERROR).json({ message: "Server error" });
       }
 
@@ -49,7 +48,6 @@ export const candidateLogin = (req, res) => {
 
       connection.query(checkSubmissionQuery, [email], (err2, valueResults) => {
         if (err2) {
-          console.error("Error checking submission status:", err2);
           return res.status(SERVER_ERROR).json({ message: "Server error" });
         }
 
@@ -103,7 +101,6 @@ export const getCandidateSubmission = (req, res) => {
 
   connection.query(query, [responseId], (err, results) => {
     if (err) {
-      console.error("Database error:", err);
       return res.status(SERVER_ERROR).json({ message: "Server error" });
     }
 
@@ -138,7 +135,6 @@ export const submitForm = (req, res) => {
     [responseId, formId, userEmail, startTime, termsAccepted],
     (err, results) => {
       if (err) {
-        console.error("Error submitting form response:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -178,7 +174,6 @@ export const editSubmission = (req, res) => {
     ],
     (err, result) => {
       if (err) {
-        console.error("Error updating submission:", err);
         return res.status(SERVER_ERROR).json({ message: "Server error" });
       }
 
@@ -217,7 +212,6 @@ export const updateWarnings = (req, res) => {
     [warnings, formId, userEmail],
     (err, result) => {
       if (err) {
-        console.error("Error updating warnings:", err);
         return res.status(SERVER_ERROR).json({ message: "Server error" });
       }
 
@@ -242,7 +236,6 @@ export const getCandidateFields = (req, res) => {
     [formId],
     (formErr, formResults) => {
       if (formErr) {
-        console.error("Error checking form status:", formErr);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -260,7 +253,6 @@ export const getCandidateFields = (req, res) => {
         [formId],
         (fieldErr, fieldResults) => {
           if (fieldErr) {
-            console.error("Error fetching fields:", fieldErr);
             return res.status(SERVER_ERROR).json({ error: "Server error" });
           }
           res.status(STATUS_OK).json(fieldResults);
@@ -282,7 +274,6 @@ export const getFormById = (req, res) => {
     [formId],
     (err, results) => {
       if (err) {
-        console.error("Error fetching form:", err);
         return res.status(SERVER_ERROR).json({ error: "Server error" });
       }
 
@@ -316,7 +307,6 @@ export const updateTimer = (req, res) => {
 
   connection.query(query, [Timer, formId, userEmail], (err, results) => {
     if (err) {
-      console.error("Error updating Timer:", err);
       return res.status(SERVER_ERROR).json({ error: "Server error" });
     }
 
@@ -342,7 +332,6 @@ export const getStartTime = (req, res) => {
 
   connection.query(query, [responseId], (err, results) => {
     if (err) {
-      console.error("DB Error:", err);
       return res.status(SERVER_ERROR).json({ message: "Database error" });
     }
 

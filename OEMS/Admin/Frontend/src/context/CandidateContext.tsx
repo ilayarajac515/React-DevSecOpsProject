@@ -28,9 +28,7 @@ interface CandidateProviderProps {
   children: ReactNode;
 }
 
-export const CandidateProvider: React.FC<CandidateProviderProps> = ({
-  children,
-}) => {
+export const CandidateProvider = ({children}: CandidateProviderProps) => {
   const responseId = localStorage.getItem("responseId");
   const skipQuery = !responseId;
   const { data } = useCheckCandidateAuthQuery(undefined, { skip: skipQuery });

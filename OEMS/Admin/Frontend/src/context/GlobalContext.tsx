@@ -38,7 +38,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [auth, setAuthState] = useState<Omit<AuthState, "setAuth">>({
     isAdmin: false,
     name: null,
