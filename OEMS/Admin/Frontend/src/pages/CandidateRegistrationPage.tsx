@@ -73,7 +73,7 @@ const CandidateRegistrationPage = () => {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
       await candidateRegister({
-        tableType: "Registration",
+        tableType: "registration",
         formId: formId!,
         candidate: data,
       }).unwrap();

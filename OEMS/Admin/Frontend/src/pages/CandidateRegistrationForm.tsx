@@ -71,7 +71,7 @@ const CandidateRegistrationForm = () => {
           try {
             const response = await triggerGetCandidateCount({
               formId: form.formId,
-              tableType: "Registration",
+              tableType: "registration",
             }).unwrap();
 
             return { ...form, submissions: response.count };

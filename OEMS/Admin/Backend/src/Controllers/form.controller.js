@@ -680,7 +680,7 @@ export const addForm = (req, res) => {
       }
 
       const sanitizedFormId = formId.replace(/[^a-zA-Z0-9_]/g, "_");
-      const registrationTable = `Registration_${sanitizedFormId}`;
+      const registrationTable = `registration_${sanitizedFormId}`;
       const selectedTable = `selected_${sanitizedFormId}`;
 
       const createTableSQL = (tableName) => `
@@ -1126,7 +1126,7 @@ export const insertCandidates = (req, res) => {
 
   connection.query(insertQuery, [values], (err, results) => {
     if (err) {
-      console.log(err);
+      console.log(err)
       return res.status(SERVER_ERROR).json({ error: "Database insert failed" });
     }
 

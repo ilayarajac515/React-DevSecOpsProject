@@ -66,7 +66,7 @@ const CandidatesListingPage = () => {
   const { registerFormId: formId } = useParams();
   const { data } = useGetCandidatesQuery({
     formId: formId ?? "",
-    tableType: "Registration",
+    tableType: "registration",
   });
   const [selectedCandidates] = useInsertCandidatesMutation();
   const {data: remarksHistory} = useGetAllUserRemarksQuery();
@@ -154,7 +154,7 @@ const CandidatesListingPage = () => {
   const handleAddUploadedCandidates = async () => {
     await candidateRegister({
       formId: formId ?? "",
-      tableType: "Registration",
+      tableType: "registration",
       candidates: uploadedRows,
     });
 
