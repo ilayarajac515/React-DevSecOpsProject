@@ -38,8 +38,8 @@ export const authenticateJWT = async (req, res, next) => {
  
       res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        //secure: true,
+        //sameSite: "None",
         maxAge: 1 * 60 * 1000,
       });
  
