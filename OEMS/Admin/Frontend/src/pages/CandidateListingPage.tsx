@@ -128,7 +128,7 @@ const CandidatesListingPage = () => {
 
     await selectedCandidates({
       formId: formId ?? "",
-      tableType: "Selected",
+      tableType: "selected",
       candidates: selectedRows,
     });
 
