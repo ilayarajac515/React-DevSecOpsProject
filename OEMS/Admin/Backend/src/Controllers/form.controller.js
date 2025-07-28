@@ -1126,6 +1126,7 @@ export const insertCandidates = (req, res) => {
 
   connection.query(insertQuery, [values], (err, results) => {
     if (err) {
+      console.log(err);
       return res.status(SERVER_ERROR).json({ error: "Database insert failed" });
     }
 
