@@ -51,7 +51,7 @@ const FormListingPage = () => {
   const [updateForm] = useUpdateFormMutation();
   const [deleteForm] = useDeleteFormMutation();
   const [unArchive] = useUnarchiveFormMutation();
-  const { data, isLoading } = useGetFormsQuery();
+  const { data } = useGetFormsQuery();
   const { data: archievedForms } = useGetArchivedFormsQuery();
   const [editId, setEditId] = useState<string | null>(null);
   const [addForm] = useAddFormMutation();
