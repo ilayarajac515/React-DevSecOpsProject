@@ -30,7 +30,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
-  "http://devopsinfoane.site",
+  "https://devopsinfoane.site",
   "http://localhost:5173"
 ];
 
