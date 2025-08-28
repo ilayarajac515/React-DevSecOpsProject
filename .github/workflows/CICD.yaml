@@ -1,0 +1,44 @@
+name: React-Application-CI-CD 
+
+on:
+  workflow_dispatch:
+  push: 
+    branches:
+      main
+
+env:
+  VITE_USE_TUNNEL: ${{ vars.VITE_USE_TUNNEL }}
+  VITE_ADMIN: ${{ vars.VITE_ADMIN }}
+  VITE_ADMINFORM: ${{ vars.VITE_ADMINFORM }}
+  VITE_CANDIDATE: ${{ vars.VITE_CANDIDATE }}
+  VITE_CANDIDATE_TEST: ${{ vars.VITE_CANDIDATE_TEST }}
+  VITE_CANDIDATE_FORM: ${{ vars.VITE_CANDIDATE_FORM }}
+
+  DB_HOST: ${{ vars.DB_HOST }}
+  DB_USER: ${{ vars.DB_USER }}
+  DB_PASSWORD: ${{ vars.DB_PASSWORD }}
+  DB_NAME: ${{ vars.DB_NAME }}
+  SECRET_KEY: ${{ vars.SECRET_KEY }}
+  REFRESH_KEY: ${{ vars.REFRESH_KEY }}
+  SENDER_MAIL: ${{ vars.SENDER_MAIL }}
+  PASS_KEY: ${{ vars.PASS_KEY }}
+  ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
+
+jobs:
+  compile:
+    runs-on: Runner-1
+
+    steps:
+      - name: checkout step
+        uses: actions/checkout@v4
+
+      - name: gitleaks step
+        uses: gitleaks/gitleaks-action@v2
+
+      - name: gitleaks run
+        run: | 
+          gitleaks detect --no-git --exit-code 1 source ./frontend --report-path ./report/
+          gitleaks detect --no-git --exit-code 1 source ./backend --report-path ./report/
+
+      
+  
