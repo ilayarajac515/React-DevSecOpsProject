@@ -37,6 +37,7 @@ jobs:
 
       - name: gitleaks run
         run: | 
+          pwd
           gitleaks detect --no-git --exit-code 1 source ./frontend --report-format json --report-path report/log.json
           gitleaks detect --no-git --exit-code 1 source ./backend --report-format json --report-path report/log.json
 
