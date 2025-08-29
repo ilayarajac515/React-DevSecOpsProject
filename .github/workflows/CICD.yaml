@@ -48,9 +48,6 @@ jobs:
     steps:
       - name: checkout step
         uses: actions/checkout@v4
-        
-      - name: create directory
-        run: mkdir -p ReactApplication/reports && sudo chown -R ubuntu:ubuntu ReactApplication/reports && chmod -R 755 ReactApplication/reports && echo "$USER"
       
       - name: Run OWASP Dependency-Check-Frontend
         uses: dependency-check/Dependency-Check_Action@main
@@ -67,5 +64,8 @@ jobs:
           path: "ReactApplication/Backend"
           format: "HTML"
           out: "reports/frontend"
+
+      - name: fix the issue
+        run: sudo chown -R ubuntu:ubuntu ReactApplication/reports
       
   
