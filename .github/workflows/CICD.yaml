@@ -25,7 +25,7 @@ env:
   ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
 
 jobs:
-  compile:
+  Compile:
     runs-on: Runner-1
 
     steps:
@@ -46,7 +46,7 @@ jobs:
     runs-on: Runner-1
 
     steps:
-      - name: Run OWASP Dependency-Check
+      - name: Run OWASP Dependency-Check-Frontend
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ReactApp-Frontend"
@@ -54,7 +54,7 @@ jobs:
           format: "HTML"
           out: "reports"
           
-      - name: Run OWASP Dependency-Check
+      - name: Run OWASP Dependency-Check-Backend
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ReactApp-Backend"
