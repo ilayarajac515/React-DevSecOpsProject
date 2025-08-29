@@ -42,5 +42,24 @@ jobs:
           gitleaks detect --no-git --exit-code 1 source ./frontend --report-format json --report-path report/log.json
           gitleaks detect --no-git --exit-code 1 source ./backend --report-format json --report-path report/log.json
 
+  OWASP:
+    runs-on: Runner-1
+
+    steps:
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "ReactApp-Frontend"
+          path: "./Frontend"
+          format: "HTML"
+          out: "reports"
+          
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "ReactApp-Backend"
+          path: "./Backend"
+          format: "HTML"
+          out: "reports"
       
   
