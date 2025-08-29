@@ -66,6 +66,6 @@ jobs:
           out: "reports/frontend"
 
       - name: fix the issue
-        run: sudo chown -R ubuntu:ubuntu ReactApplication/reports
+        run: sudo chown -R ubuntu:ubuntu reports
       
   
