@@ -55,7 +55,7 @@ jobs:
           project: "ReactApp-Frontend"
           path: "ReactApplication/Frontend"
           format: "HTML"
-          out: "reports"
+          out: "reports/backend"
           
       - name: Run OWASP Dependency-Check-Backend
         uses: dependency-check/Dependency-Check_Action@main
@@ -63,6 +63,6 @@ jobs:
           project: "ReactApp-Backend"
           path: "ReactApplication/Backend"
           format: "HTML"
-          out: "reports"
+          out: "reports/frontend"
       
   
