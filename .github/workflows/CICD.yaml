@@ -50,7 +50,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ReactApp-Frontend"
-          path: "./Frontend"
+          path: "Frontend"
           format: "HTML"
           out: "reports"
           
@@ -58,7 +58,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ReactApp-Backend"
-          path: "./Backend"
+          path: "Backend"
           format: "HTML"
           out: "reports"
       
