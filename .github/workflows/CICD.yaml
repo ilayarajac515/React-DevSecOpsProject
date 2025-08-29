@@ -53,7 +53,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ReactApp-Frontend"
-          path: "React-DevOpsProject/React-DevOpsProject/ReactApplication/Frontend/"
+          path: "ReactApplication/Frontend"
           format: "HTML"
           out: "reports"
           
@@ -61,7 +61,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ReactApp-Backend"
-          path: "React-DevOpsProject/React-DevOpsProject/ReactApplication/Backend/"
+          path: "ReactApplication/Backend"
           format: "HTML"
           out: "reports"
       
