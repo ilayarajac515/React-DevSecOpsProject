@@ -39,15 +39,15 @@ jobs:
         run: | 
           pwd
           mkdir -p report
-          gitleaks detect --no-git --exit-code 1 source ./frontend --report-format json --report-path report/log.json
-          gitleaks detect --no-git --exit-code 1 source ./backend --report-format json --report-path report/log.json
+          gitleaks detect --no-git --exit-code 1 source ./frontend --report-format json --report-path report/Front-log.json
+          gitleaks detect --no-git --exit-code 1 source ./backend --report-format json --report-path report/Back-log.json
 
   OWASP:
     runs-on: Runner-1
     needs: Compile
     steps:
       - name: create directory
-        run: mkdir -p ReactApplication/reports && chmod -R 755 ReactApplication/reports
+        run: mkdir -p ReactApplication/reports && sudo chown -R $USER:$USER ReactApplication/reports && chmod -R 755 ReactApplication/reports
       
       - name: Run OWASP Dependency-Check-Frontend
         uses: dependency-check/Dependency-Check_Action@main
