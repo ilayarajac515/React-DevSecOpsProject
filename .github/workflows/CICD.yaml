@@ -77,8 +77,8 @@ jobs:
       with:
         projectDir: Frontend
         args: >
-          -Dsonar.organization=React-DevOpsProject
-          -Dsonar.projectKey=React-DevOpsProject
+          -Dsonar.organization=React-DevOpsProject 
+          -Dsonar.projectKey=ilayarajac515/React-DevOpsProject
           -Dsonar.sources=.
           -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
       env:
