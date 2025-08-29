@@ -47,7 +47,7 @@ jobs:
     needs: Compile
     steps:
       - name: create directory
-        run: mkdir -p ReactApplication/reports && chmod -R 754 ReactApplication/reports
+        run: mkdir -p ReactApplication/reports && chmod -R 755 ReactApplication/reports
       
       - name: Run OWASP Dependency-Check-Frontend
         uses: dependency-check/Dependency-Check_Action@main
