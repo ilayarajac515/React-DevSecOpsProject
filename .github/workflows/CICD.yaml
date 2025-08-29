@@ -46,6 +46,9 @@ jobs:
     runs-on: Runner-1
     needs: Compile
     steps:
+      - name: checkout step
+        uses: actions/checkout@v4
+        
       - name: create directory
         run: mkdir -p ReactApplication/reports && sudo chown -R $USER:$USER ReactApplication/reports && chmod -R 755 ReactApplication/reports
       
