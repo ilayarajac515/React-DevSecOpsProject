@@ -44,7 +44,7 @@ jobs:
 
   OWASP-Dependency-check:
     runs-on: Runner-1
-    needs: Compile
+    needs: Gitleaks-Secrets-Check
     steps:
       - name: checkout step
         uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
   
   SonarCloud-Frontend:
     runs-on: Runner-1
-    needs: OWASP
+    needs: OWASP-Dependency-check
     steps:
     - name: SonarQube Scan
       uses: sonarsource/sonarcloud-github-action@v4 
