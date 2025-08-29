@@ -46,8 +46,8 @@ jobs:
     runs-on: Runner-1
     needs: Compile
     steps:
-      - name: checksum
-        run: pwd
+      - name: create directory
+        run: mkdir -p ReactApplication/reports && chmod -R 754 ReactApplication/reports
       
       - name: Run OWASP Dependency-Check-Frontend
         uses: dependency-check/Dependency-Check_Action@main
