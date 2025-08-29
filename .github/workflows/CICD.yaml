@@ -25,7 +25,7 @@ env:
   ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
 
 jobs:
-  Compile:
+  Gitleaks-Secrets-Check:
     runs-on: Runner-1
 
     steps:
@@ -42,7 +42,7 @@ jobs:
           gitleaks detect --no-git --exit-code 1 source ./frontend --report-format json --report-path report/Front-log.json
           gitleaks detect --no-git --exit-code 1 source ./backend --report-format json --report-path report/Back-log.json
 
-  OWASP:
+  OWASP-Dependency-check:
     runs-on: Runner-1
     needs: Compile
     steps:
@@ -67,5 +67,20 @@ jobs:
 
       - name: fix the issue
         run: sudo chown -R ubuntu:ubuntu reports
-      
+  
+  SonarCloud-Frontend:
+    runs-on: Runner-1
+    needs: OWASP
+    steps:
+    - name: SonarQube Scan
+      uses: sonarsource/sonarcloud-github-action@v4 
+      with:
+        projectDir: Frontend
+        args: >
+          -Dsonar.organization=React-DevOpsProject
+          -Dsonar.projectKey=React-DevOpsProject
+          -Dsonar.sources=.
+          -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
