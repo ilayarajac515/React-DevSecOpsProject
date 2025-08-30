@@ -2,9 +2,9 @@ name: React-Application-CI-CD
 
 on:
   workflow_dispatch:
-  push: 
-    branches:
-      main
+  # push: 
+  #   branches:
+  #     main
 
 env:
   VITE_USE_TUNNEL: ${{ vars.VITE_USE_TUNNEL }}
@@ -73,7 +73,7 @@ jobs:
     needs: OWASP-Dependency-check
     steps:
     - name: Run tests with coverage
-      run: npm run test -- --coverage --coverageReporters=lcov
+      run: npm install && npm run test -- --coverage --coverageReporters=lcov
       
     - name: SonarQube Scan
       uses: sonarsource/sonarcloud-github-action@v3
