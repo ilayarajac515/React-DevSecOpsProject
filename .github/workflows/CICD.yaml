@@ -72,6 +72,9 @@ jobs:
     runs-on: Runner-1
     needs: OWASP-Dependency-check
     steps:
+    - name: Run tests with coverage
+      run: npm run test -- --coverage --coverageReporters=lcov
+      
     - name: SonarQube Scan
       uses: sonarsource/sonarcloud-github-action@v3
       with:
@@ -81,6 +84,7 @@ jobs:
           -Dsonar.projectKey=ilayarajac515_React-DevOpsProject
           -Dsonar.sources=.
           -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
