@@ -55,7 +55,7 @@ jobs:
           project: "ReactApp-Frontend"
           path: "ReactApplication/Frontend"
           format: "HTML"
-          out: "reports/backend"
+          out: "reports/frontend"
           
       - name: Run OWASP Dependency-Check-Backend
         uses: dependency-check/Dependency-Check_Action@main
@@ -63,10 +63,16 @@ jobs:
           project: "ReactApp-Backend"
           path: "ReactApplication/Backend"
           format: "HTML"
-          out: "reports/frontend"
+          out: "reports/backend"
 
       - name: fix the issue
         run: sudo chown -R ubuntu:ubuntu reports
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OWASP-report
+          path: reports/**
   
   SonarQube-Frontend:
     runs-on: Runner-1
