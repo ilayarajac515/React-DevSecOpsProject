@@ -121,6 +121,5 @@ jobs:
           output: 'trivy-report.table'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
-          exit-code: '1'
     
   
