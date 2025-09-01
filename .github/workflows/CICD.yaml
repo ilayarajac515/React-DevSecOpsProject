@@ -117,8 +117,8 @@ jobs:
           scan-type: fs
           scan-ref: .
           vuln-type: 'os,library'
-          format: 'json'
-          output: 'trivy-report.json'
+          format: 'table'
+          output: 'trivy-report.table'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
           
@@ -126,5 +126,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
-          path: trivy-report.json
+          path: trivy-report.table
   
