@@ -103,4 +103,24 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  Trivy-FS-Scan:
+    runs-on: Runner-1
+    needs: SonarQube-Backend
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: TrivyScan
+        uses: aquasecurity/trivy-action@0.28.0
+        with: 
+          scan-type: fs
+          scan-ref: .
+          vuln-type: 'os,library'
+          format: 'table'
+          output: 'trivy-report.table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+    
   
