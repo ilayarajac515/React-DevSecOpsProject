@@ -112,7 +112,7 @@ jobs:
 
   Trivy-FS-Scan:
     runs-on: Runner-1
-    needs: SonarQube-Backend
+    needs: [SonarQube-Backend,SonarQube-Frontend]
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -133,4 +133,51 @@ jobs:
         with:
           name: trivy-report
           path: trivy-report.table
+
+  Docker-Frontend-Build:
+    runs-on: Runner-1
+    needs: Trivy-FS-Scan
+    steps:
+      - name: Checkout stage
+        uses: actions/checkout@v4
+        
+      - name: Setup Buildx
+        uses: docker/setup-buildx-actions@v3
+
+      - name: login to dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ReactApplication/Frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ReactApplication:${{ github.run_number }}-${{ github.sha }}
+
+  Docker-Backend-Build:
+    runs-on: Runner-1
+    needs: Trivy-FS-Scan
+    steps:
+      - name: Checkout stage
+        uses: actions/checkout@v4
+        
+      - name: Setup Buildx
+        uses: docker/setup-buildx-actions@v3
+
+      - name: login to dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ReactApplication/Backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ReactApplication:${{ github.run_number }}-${{ github.sha }}
+  
   
