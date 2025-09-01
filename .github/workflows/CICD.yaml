@@ -180,4 +180,3 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ReactApplication:${{ github.run_number }}-${{ github.sha }}
   
-  
