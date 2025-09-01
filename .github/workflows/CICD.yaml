@@ -80,7 +80,7 @@ jobs:
         args: > 
           -Dsonar.projectName=React-Frontend
           -Dsonar.projectKey=React-Frontend
-          -Dsonar.sources=Frontend
+          -Dsonar.sources=./ReactApplication/Frontend
           -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -98,7 +98,7 @@ jobs:
         args: >
           -Dsonar.projectName=React-Backend
           -Dsonar.projectKey=React-Backend
-          -Dsonar.sources=Backend
+          -Dsonar.sources=./ReactApplication/Backend
           -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
