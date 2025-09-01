@@ -85,4 +85,22 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        
+  SonarCloud-Backend:
+    runs-on: Runner-1
+    needs: OWASP-Dependency-check
+    steps:
+    - name: SonarQube Scan
+      # uses: sonarsource/sonarcloud-github-action@v3
+      uses: SonarSource/sonarqube-scan-action@v5.3.1
+      with:
+        projectDir: Backend
+        args: >
+          -Dsonar.organization=ilayarajac515 
+          -Dsonar.projectKey=ilayarajac515_React-DevOpsProject
+          -Dsonar.sources=.
+          -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
   
