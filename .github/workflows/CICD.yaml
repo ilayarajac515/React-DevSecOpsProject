@@ -76,11 +76,11 @@ jobs:
       # uses: sonarsource/sonarcloud-github-action@v3
       uses: SonarSource/sonarqube-scan-action@v5.3.1
       with:
-        projectDir: Frontend #-Dsonar.organization=ilayarajac515
+        #projectDir: Frontend Dsonar.organization=ilayarajac515
         args: > 
           -Dsonar.projectName=React-Frontend
           -Dsonar.projectKey=React-Frontend
-          -Dsonar.sources=.
+          -Dsonar.sources=Frontend
           -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -94,11 +94,11 @@ jobs:
       # uses: sonarsource/sonarcloud-github-action@v3
       uses: SonarSource/sonarqube-scan-action@v5.3.1
       with:
-        projectDir: Backend #-Dsonar.organization=ilayarajac515
+        #projectDir: Backend -Dsonar.organization=ilayarajac515
         args: >
           -Dsonar.projectName=React-Backend
           -Dsonar.projectKey=React-Backend
-          -Dsonar.sources=.
+          -Dsonar.sources=Backend
           -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
