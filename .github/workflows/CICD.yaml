@@ -33,6 +33,12 @@ jobs:
           args: --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json
           continue-on-error: true
 
+      - name: Run Gitleaks Action
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: --no-git --exit-code 0 --source ./backend --report-format json --report-path report/Back-log.json
+          continue-on-error: true
+
   OWASP-Dependency-check:
     runs-on: Runner-1
     needs: Gitleaks-Secrets-Check
