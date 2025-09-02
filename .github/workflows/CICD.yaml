@@ -182,6 +182,5 @@ jobs:
 
        - name: Deploy to EKS
          run: |
-          kubectl apply -f k8s-files/Secrets.yaml
           kubectl apply -f k8s-files/Deployment.yaml
           kubectl apply -f k8s-files/Service/.yaml
