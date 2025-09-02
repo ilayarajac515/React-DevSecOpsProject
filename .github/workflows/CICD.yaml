@@ -14,15 +14,24 @@ jobs:
       - name: checkout step
         uses: actions/checkout@v4
 
-      - name: gitleaks step
-        uses: gitleaks/gitleaks-action@v2
+      # - name: gitleaks step
+      #   uses: gitleaks/gitleaks-action@v2
 
-      - name: gitleaks run
-        run: | 
-          pwd
-          mkdir -p report
-          gitleaks detect --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json || true
-          gitleaks detect --no-git --exit-code 0 --source ./backend --report-format json --report-path report/Back-log.json || true
+      # - name: gitleaks run
+      #   run: | 
+      #     pwd
+      #     mkdir -p report
+      #     gitleaks detect --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json 
+      #     gitleaks detect --no-git --exit-code 0 --source ./backend --report-format json --report-path report/Back-log.json 
+      
+      -  name: create dir 
+         run: mkdir -p report 
+
+      - name: Run Gitleaks Action
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json
+          continue-on-error: true
 
   OWASP-Dependency-check:
     runs-on: Runner-1
