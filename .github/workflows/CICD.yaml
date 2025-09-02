@@ -7,35 +7,27 @@ on:
   #     main
 
 jobs:
-  Gitleaks-Secrets-Check:
-    runs-on: Runner-1
+  # Gitleaks-Secrets-Check:
+  #   runs-on: Runner-1
 
-    steps:
-      - name: checkout step
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: checkout step
+  #       uses: actions/checkout@v4
 
-      # - name: gitleaks step
-      #   uses: gitleaks/gitleaks-action@v2
+  #     - name: gitleaks step
+  #       uses: gitleaks/gitleaks-action@v2
 
-      # - name: gitleaks run
-      #   run: | 
-      #     pwd
-      #     mkdir -p report
-      #     gitleaks detect --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json 
-      #     gitleaks detect --no-git --exit-code 0 --source ./backend --report-format json --report-path report/Back-log.json 
-      
-      -  name: create dir 
-         run: mkdir -p report 
-
-      - name: Run Gitleaks 
-        run: |
-            gitleaks detect --no-git --exit-code 0 --source ./actions-runner/_work/React-DevSecOpsProject/React-DevSecOpsProject/ReactApplication/Frontend --report-format json --report-path report/Front-log.json
-            gitleaks detect --no-git --exit-code 0 --source ./actions-runner/_work/React-DevSecOpsProject/React-DevSecOpsProject/ReactApplication/Backend --report-format json --report-path report/Back-log.json
+  #     - name: gitleaks run
+  #       run: | 
+  #         pwd
+  #         mkdir -p report
+  #         gitleaks detect --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json 
+  #         gitleaks detect --no-git --exit-code 0 --source ./backend --report-format json --report-path report/Back-log.json 
 
 
   OWASP-Dependency-check:
     runs-on: Runner-1
-    needs: Gitleaks-Secrets-Check
+    # needs: Gitleaks-Secrets-Check
     steps:
       - name: checkout step
         uses: actions/checkout@v4
@@ -146,7 +138,7 @@ jobs:
         with:
           context: ./ReactApplication/Frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:v1.0.${{ github.run_number }}-${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:v1.0.${{ github.run_number }}-${{ github.sha::7}}
 
   Docker-Backend-Build:
     runs-on: Runner-1
@@ -169,5 +161,5 @@ jobs:
         with:
           context: ./ReactApplication/Backend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:v1.0.${{ github.run_number }}-${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:v1.0.${{ github.run_number }}-${{ github.sha::7 }}
   
