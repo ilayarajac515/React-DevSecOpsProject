@@ -459,22 +459,22 @@ export const loginUser = async (req, res) => {
 
         res.cookie("accessToken", accessToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "None",
+          // secure: true,
+          // sameSite: "None",
           maxAge: 1 * 60 * 1000,
         });
 
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "None",
+          // secure: true,
+          // sameSite: "None",
           maxAge: 365 * 24 * 60 * 60 * 1000,
         });
 
         res.cookie("sessionId", sessionId, {
           httpOnly: true,
-          secure: true,
-          sameSite: "None",
+          // secure: true,
+          // sameSite: "None",
           maxAge: 365 * 24 * 60 * 60 * 1000,
         });
 
