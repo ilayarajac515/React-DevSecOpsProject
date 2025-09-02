@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        - name: MYSQL_DATABASE
+          value: OEMS
+        ports:
+        - containerPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: react-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: ilayaraja616/reactapplication-backend:v1.0.{{ github.run_number }}
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_PASSWORD
+          value: root
+        - name: DB_HOST
+          value: mysql-container
+        - name: DB_USER
+          value: root
+        - name: DB_NAME
+          value: OEMS
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: react-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ilayaraja616/reactapplication-frontend:v1.0.{{ github.run_number }}
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: react-app-config
