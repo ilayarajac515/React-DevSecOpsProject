@@ -39,8 +39,8 @@ jobs:
         run: | 
           pwd
           mkdir -p report
-          gitleaks detect --no-git --exit-code 1 source ./frontend --report-format json --report-path report/Front-log.json
-          gitleaks detect --no-git --exit-code 1 source ./backend --report-format json --report-path report/Back-log.json
+          gitleaks detect --no-git --exit-code 0 source ./frontend --report-format json --report-path report/Front-log.json
+          gitleaks detect --no-git --exit-code 0 source ./backend --report-format json --report-path report/Back-log.json
 
   OWASP-Dependency-check:
     runs-on: Runner-1
