@@ -29,8 +29,8 @@ jobs:
 
       - name: Run Gitleaks 
         run: |
-            gitleaks detect --no-git --exit-code 0 --source ./frontend --report-format json --report-path report/Front-log.json
-            gitleaks detect --no-git --exit-code 0 --source ./Backend --report-format json --report-path report/Back-log.json
+            gitleaks detect --no-git --exit-code 0 --source ./actions-runner/_work/React-DevSecOpsProject/React-DevSecOpsProject/ReactApplication/Frontend --report-format json --report-path report/Front-log.json
+            gitleaks detect --no-git --exit-code 0 --source ./actions-runner/_work/React-DevSecOpsProject/React-DevSecOpsProject/ReactApplication/Backend --report-format json --report-path report/Back-log.json
 
 
   OWASP-Dependency-check:
