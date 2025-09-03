@@ -166,6 +166,7 @@ jobs:
   Kubernetes:
     runs-on: Runner-1
     needs: [Docker-Backend-Build,Docker-Frontend-Build]
+    environment: Production
     steps:
        - name: Checkout stage
          uses: actions/checkout@v4
