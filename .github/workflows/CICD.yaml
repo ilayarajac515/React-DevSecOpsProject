@@ -173,7 +173,7 @@ jobs:
 
        - name: Set up environment variables
          run: |
-            echo "GITHUB_RUN_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+            echo "GITHUB_RUN_NUMBER=${{ github.run_number }}" >> $GIT_VERSION
       
        - name: Configure AWS credentials
          uses: aws-actions/configure-aws-credentials@v4
