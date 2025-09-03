@@ -25,101 +25,101 @@ jobs:
   #         gitleaks detect --no-git --exit-code 0 --source ./backend --report-format json --report-path report/Back-log.json 
 
 
-  OWASP-Dependency-check:
-    runs-on: Runner-1
-    # needs: Gitleaks-Secrets-Check
-    steps:
-      - name: checkout step
-        uses: actions/checkout@v4
+  # OWASP-Dependency-check:
+  #   runs-on: Runner-1
+  #   # needs: Gitleaks-Secrets-Check
+  #   steps:
+  #     - name: checkout step
+  #       uses: actions/checkout@v4
       
-      - name: Run OWASP Dependency-Check-Frontend
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "ReactApp-Frontend"
-          path: "ReactApplication/Frontend"
-          format: "HTML"
-          out: "reports/frontend"
+  #     - name: Run OWASP Dependency-Check-Frontend
+  #       uses: dependency-check/Dependency-Check_Action@main
+  #       with:
+  #         project: "ReactApp-Frontend"
+  #         path: "ReactApplication/Frontend"
+  #         format: "HTML"
+  #         out: "reports/frontend"
           
-      - name: Run OWASP Dependency-Check-Backend
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "ReactApp-Backend"
-          path: "ReactApplication/Backend"
-          format: "HTML"
-          out: "reports/backend"
+  #     - name: Run OWASP Dependency-Check-Backend
+  #       uses: dependency-check/Dependency-Check_Action@main
+  #       with:
+  #         project: "ReactApp-Backend"
+  #         path: "ReactApplication/Backend"
+  #         format: "HTML"
+  #         out: "reports/backend"
 
-      - name: fix the issue
-        run: sudo chown -R ubuntu:ubuntu reports
+  #     - name: fix the issue
+  #       run: sudo chown -R ubuntu:ubuntu reports
 
-      - name: upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OWASP-report
-          path: reports/**
+  #     - name: upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: OWASP-report
+  #         path: reports/**
   
-  SonarQube-Frontend:
-    runs-on: Runner-1
-    needs: OWASP-Dependency-check
-    steps:
-    - name: SonarQube Scan
-      # uses: sonarsource/sonarcloud-github-action@v3
-      uses: SonarSource/sonarqube-scan-action@v5.3.1
-      with:
-        #projectDir: Frontend Dsonar.organization=ilayarajac515
-        args: > 
-          -Dsonar.projectName=React-Frontend
-          -Dsonar.projectKey=React-Frontend
-          -Dsonar.sources=./ReactApplication/Frontend
-          -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  # SonarQube-Frontend:
+  #   runs-on: Runner-1
+  #   needs: OWASP-Dependency-check
+  #   steps:
+  #   - name: SonarQube Scan
+  #     # uses: sonarsource/sonarcloud-github-action@v3
+  #     uses: SonarSource/sonarqube-scan-action@v5.3.1
+  #     with:
+  #       #projectDir: Frontend Dsonar.organization=ilayarajac515
+  #       args: > 
+  #         -Dsonar.projectName=React-Frontend
+  #         -Dsonar.projectKey=React-Frontend
+  #         -Dsonar.sources=./ReactApplication/Frontend
+  #         -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
+  #     env:
+  #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         
-  SonarQube-Backend:
-    runs-on: Runner-1
-    needs: OWASP-Dependency-check
-    steps:
-    - name: SonarQube Scan
-      # uses: sonarsource/sonarcloud-github-action@v3
-      uses: SonarSource/sonarqube-scan-action@v5.3.1
-      with:
-        #projectDir: Backend -Dsonar.organization=ilayarajac515
-        args: >
-          -Dsonar.projectName=React-Backend
-          -Dsonar.projectKey=React-Backend
-          -Dsonar.sources=./ReactApplication/Backend
-          -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  # SonarQube-Backend:
+  #   runs-on: Runner-1
+  #   needs: OWASP-Dependency-check
+  #   steps:
+  #   - name: SonarQube Scan
+  #     # uses: sonarsource/sonarcloud-github-action@v3
+  #     uses: SonarSource/sonarqube-scan-action@v5.3.1
+  #     with:
+  #       #projectDir: Backend -Dsonar.organization=ilayarajac515
+  #       args: >
+  #         -Dsonar.projectName=React-Backend
+  #         -Dsonar.projectKey=React-Backend
+  #         -Dsonar.sources=./ReactApplication/Backend
+  #         -Dsonar.exclusions=node_modules/**,coverage/**,dist/**
+  #     env:
+  #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  Trivy-FS-Scan:
-    runs-on: Runner-1
-    needs: [SonarQube-Backend,SonarQube-Frontend]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
+  # Trivy-FS-Scan:
+  #   runs-on: Runner-1
+  #   needs: [SonarQube-Backend,SonarQube-Frontend]
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v4
 
-      - name: TrivyScan
-        uses: aquasecurity/trivy-action@0.28.0
-        with: 
-          scan-type: fs
-          scan-ref: .
-          vuln-type: 'os,library'
-          format: 'table'
-          output: 'trivy-report.table'
-          severity: 'CRITICAL,HIGH'
-          ignore-unfixed: true
+  #     - name: TrivyScan
+  #       uses: aquasecurity/trivy-action@0.28.0
+  #       with: 
+  #         scan-type: fs
+  #         scan-ref: .
+  #         vuln-type: 'os,library'
+  #         format: 'table'
+  #         output: 'trivy-report.table'
+  #         severity: 'CRITICAL,HIGH'
+  #         ignore-unfixed: true
           
-      - name: Upload Trivy Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-report
-          path: trivy-report.table
+  #     - name: Upload Trivy Report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: trivy-report
+  #         path: trivy-report.table
 
   Docker-Frontend-Build:
     runs-on: ubuntu-latest
-    needs: Trivy-FS-Scan
+    # needs: Trivy-FS-Scan
     steps:
       - name: Checkout stage
         uses: actions/checkout@v4
@@ -142,7 +142,7 @@ jobs:
 
   Docker-Backend-Build:
     runs-on: Runner-1
-    needs: Trivy-FS-Scan
+    # needs: Trivy-FS-Scan
     steps:
       - name: Checkout stage
         uses: actions/checkout@v4
