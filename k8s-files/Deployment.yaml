@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: ilayaraja616/reactapplication-backend:v1.0.$GIT_VERSION
+        image: ilayaraja616/reactapplication-backend:latest
         ports:
         - containerPort: 5000
         env:
@@ -68,8 +68,9 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ilayaraja616/reactapplication-frontend:v1.0.$GIT_VERSION
+        image: ilayaraja616/reactapplication-frontend:latest
         ports:
         - containerPort: 80
+
 
 
