@@ -4,7 +4,7 @@ metadata:
   name: mysql-container
 spec:
   selector:
-    app: mysql
+    app: mysql-container
   ports:
   - port: 3306
     targetPort: 3306
@@ -25,10 +25,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend
-spec:
-  type: LoadBalancer   
+spec: 
   selector:
     app: frontend
   ports:
     - port: 80
       targetPort: 3000
+  type: ClusterIP
+
