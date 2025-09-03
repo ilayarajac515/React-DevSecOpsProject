@@ -138,7 +138,9 @@ jobs:
         with:
           context: ./ReactApplication/Frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:v1.0.${{ github.run_number }}
+          # tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:v1.0.${{ github.run_number }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:latest
+
 
   Docker-Backend-Build:
     runs-on: Runner-1
@@ -161,7 +163,9 @@ jobs:
         with:
           context: ./ReactApplication/Backend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:v1.0.${{ github.run_number }}
+          # tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:v1.0.${{ github.run_number }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:latest
+
   
   Kubernetes:
     runs-on: Runner-1
