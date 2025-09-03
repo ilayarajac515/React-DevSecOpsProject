@@ -189,4 +189,3 @@ jobs:
          run: |
           kubectl apply -f k8s-files/Deployment.yaml
           kubectl apply -f k8s-files/Service.yaml
-          kubectl apply -f k8s-files/Ingress.yaml
