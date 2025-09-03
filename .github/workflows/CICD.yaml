@@ -164,7 +164,7 @@ jobs:
           context: ./ReactApplication/Backend
           push: true
           # tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:v1.0.${{ github.run_number }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:latest
 
   
   Kubernetes:
