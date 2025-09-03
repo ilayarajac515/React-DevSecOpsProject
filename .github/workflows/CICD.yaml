@@ -167,7 +167,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/reactapplication-backend:latest
 
   trivy_image_scan:
-    runs-on: Agent-1
+    runs-on: Runner-1
     needs: Docker-Frontend-Build
     steps:
       - name: Checkout code
